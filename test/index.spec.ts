@@ -1,7 +1,8 @@
-import { hello } from '../src/index';
+import { AutoblocksTracer } from '../src/index';
 
 describe('index', () => {
-  it('hello', () => {
-    expect(hello()).toEqual('world');
+  it('AutoblocksTracer', () => {
+    const ab = new AutoblocksTracer('mock-ingestion-token');
+    expect(ab).toBeDefined();
   });
 });
