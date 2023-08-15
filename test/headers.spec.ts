@@ -36,7 +36,7 @@ describe('Replay Headers', () => {
     const commit = builder.getLocalCommitData({ sha: null });
 
     const ab = new AutoblocksTracer('mock-ingestion-token');
-    const traceId = await ab.sendEvent('mock-message');
+    const { traceId } = await ab.sendEvent('mock-message');
 
     expect(traceId).toEqual('mock-trace-id');
     expect(mockPost).toHaveBeenCalledWith(
@@ -102,7 +102,7 @@ describe('Replay Headers', () => {
       });
 
       const ab = new AutoblocksTracer('mock-ingestion-token');
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -167,7 +167,7 @@ describe('Replay Headers', () => {
       });
 
       const ab = new AutoblocksTracer('mock-ingestion-token');
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
