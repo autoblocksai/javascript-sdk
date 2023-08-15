@@ -75,11 +75,8 @@ const replayRunToHttpHeaders = (run: ReplayRun): Record<string, string> => {
 };
 
 export class HeadersBuilder {
-  // Need to figure out these types...
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private fs: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private cp: any;
+  private fs: typeof import('fs');
+  private cp: typeof import('child_process');
   private env: z.infer<typeof zEnvSchema>;
 
   constructor() {
