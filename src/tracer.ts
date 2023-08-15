@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { makeReplayHeaders } from './util';
 
 type EventProperties = Record<string, unknown>;
 
@@ -73,12 +74,23 @@ export class AutoblocksTracer {
       ...(args?.properties || {}),
     };
 
-    const { data } = await this.client.post('/', {
-      message,
-      traceId,
-      timestamp,
-      properties,
-    });
+    let replayHeaders = undefined;
+    try {
+      replayHeaders = makeReplayHeaders();
+    } catch {
+      // Couldn't make headers
+    }
+
+    const { data } = await this.client.post(
+      '/',
+      {
+        message,
+        traceId,
+        timestamp,
+        properties,
+      },
+      { headers: replayHeaders },
+    );
 
     return data.traceId;
   }

@@ -1,11 +1,13 @@
 import axios from 'axios';
-import { AutoblocksTracer } from '../src';
+import { AutoblocksTracer } from '../src/index';
 
 jest.mock('axios');
 
 const axiosCreateMock = axios.create as jest.Mock;
 
 describe('Autoblocks Tracer', () => {
+  process.env.GITHUB_ACTIONS = '';
+
   describe('constructor', () => {
     it('creates a client with the correct parameters', () => {
       new AutoblocksTracer('mock-ingestion-token');
@@ -53,12 +55,16 @@ describe('Autoblocks Tracer', () => {
       const traceId = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: {},
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: {},
+        },
+        { headers: undefined },
+      );
     });
 
     it('sends a message with properties', async () => {
@@ -69,12 +75,16 @@ describe('Autoblocks Tracer', () => {
       });
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: { x: 1 },
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: { x: 1 },
+        },
+        { headers: undefined },
+      );
     });
 
     it('sends properties from constructor', async () => {
@@ -85,12 +95,16 @@ describe('Autoblocks Tracer', () => {
       const traceId = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: { x: 1 },
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: { x: 1 },
+        },
+        { headers: undefined },
+      );
     });
 
     it('sends properties from setProperties', async () => {
@@ -100,12 +114,16 @@ describe('Autoblocks Tracer', () => {
       const traceId = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: { x: 1 },
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: { x: 1 },
+        },
+        { headers: undefined },
+      );
     });
 
     it('sends properties from updateProperties', async () => {
@@ -115,12 +133,16 @@ describe('Autoblocks Tracer', () => {
       const traceId = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: { x: 1 },
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: { x: 1 },
+        },
+        { headers: undefined },
+      );
     });
 
     it('overrides properties in correct order', async () => {
@@ -134,12 +156,16 @@ describe('Autoblocks Tracer', () => {
       });
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: { x: 10, y: 20, z: 3 },
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: { x: 10, y: 20, z: 3 },
+        },
+        { headers: undefined },
+      );
     });
 
     it('setProperties overrides all other properties', async () => {
@@ -152,12 +178,16 @@ describe('Autoblocks Tracer', () => {
       const traceId = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp: undefined,
-        properties: { x: 100 },
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp: undefined,
+          properties: { x: 100 },
+        },
+        { headers: undefined },
+      );
     });
 
     it('sends traceId from constructor', async () => {
@@ -167,12 +197,16 @@ describe('Autoblocks Tracer', () => {
 
       await ab.sendEvent('mock-message');
 
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: 'mock-trace-id',
-        timestamp: undefined,
-        properties: {},
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'mock-trace-id',
+          timestamp: undefined,
+          properties: {},
+        },
+        { headers: undefined },
+      );
     });
 
     it('sends traceId from setTraceId', async () => {
@@ -181,12 +215,16 @@ describe('Autoblocks Tracer', () => {
 
       await ab.sendEvent('mock-message');
 
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: 'mock-trace-id',
-        timestamp: undefined,
-        properties: {},
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'mock-trace-id',
+          timestamp: undefined,
+          properties: {},
+        },
+        { headers: undefined },
+      );
     });
 
     it('overrides traceId in constructor when calling setTraceId', async () => {
@@ -197,12 +235,16 @@ describe('Autoblocks Tracer', () => {
 
       await ab.sendEvent('mock-message');
 
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: 'trace-id-in-set-trace-id',
-        timestamp: undefined,
-        properties: {},
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'trace-id-in-set-trace-id',
+          timestamp: undefined,
+          properties: {},
+        },
+        { headers: undefined },
+      );
     });
 
     it('overrides traceId in constructor when calling traceId in sendEvent', async () => {
@@ -212,12 +254,16 @@ describe('Autoblocks Tracer', () => {
 
       await ab.sendEvent('mock-message', { traceId: 'trace-id-in-send-event' });
 
-      expect(mockPost).toHaveBeenCalledWith('/', {
-        message: 'mock-message',
-        traceId: 'trace-id-in-send-event',
-        timestamp: undefined,
-        properties: {},
-      });
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'trace-id-in-send-event',
+          timestamp: undefined,
+          properties: {},
+        },
+        { headers: undefined },
+      );
     });
   });
 
