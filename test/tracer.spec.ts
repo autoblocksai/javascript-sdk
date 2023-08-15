@@ -52,7 +52,7 @@ describe('Autoblocks Tracer', () => {
 
     it('sends a message', async () => {
       const ab = new AutoblocksTracer('mock-ingestion-token');
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -70,7 +70,7 @@ describe('Autoblocks Tracer', () => {
     it('sends a message with properties', async () => {
       const ab = new AutoblocksTracer('mock-ingestion-token');
 
-      const traceId = await ab.sendEvent('mock-message', {
+      const { traceId } = await ab.sendEvent('mock-message', {
         properties: { x: 1 },
       });
 
@@ -92,7 +92,7 @@ describe('Autoblocks Tracer', () => {
         properties: { x: 1 },
       });
 
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -111,7 +111,7 @@ describe('Autoblocks Tracer', () => {
       const ab = new AutoblocksTracer('mock-ingestion-token');
       ab.setProperties({ x: 1 });
 
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -130,7 +130,7 @@ describe('Autoblocks Tracer', () => {
       const ab = new AutoblocksTracer('mock-ingestion-token');
       ab.updateProperties({ x: 1 });
 
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -151,7 +151,7 @@ describe('Autoblocks Tracer', () => {
       });
       ab.updateProperties({ x: 10 });
 
-      const traceId = await ab.sendEvent('mock-message', {
+      const { traceId } = await ab.sendEvent('mock-message', {
         properties: { y: 20 },
       });
 
@@ -175,7 +175,7 @@ describe('Autoblocks Tracer', () => {
       ab.updateProperties({ x: 10 });
       ab.setProperties({ x: 100 });
 
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -274,7 +274,7 @@ describe('Autoblocks Tracer', () => {
       });
 
       const ab = new AutoblocksTracer('mock-ingestion-token');
-      const traceId = await ab.sendEvent('mock-message');
+      const { traceId } = await ab.sendEvent('mock-message');
       expect(traceId).toBeUndefined();
     });
   });

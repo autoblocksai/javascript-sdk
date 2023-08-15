@@ -102,12 +102,13 @@ export class AutoblocksTracer {
       timestamp?: string;
       properties?: EventProperties;
     },
-  ): Promise<string | undefined> {
+  ): Promise<{ traceId?: string }> {
     try {
-      return await this.sendEventUnsafe(message, args);
+      const traceId = await this.sendEventUnsafe(message, args);
+      return { traceId };
     } catch (err) {
       console.error(`Error sending event to Autoblocks: ${err}`);
-      return undefined;
+      return {};
     }
   }
 }
