@@ -32,14 +32,12 @@ const main = async () => {
   }
 
   // Find the test event we just sent
-  let cursor: string | undefined = undefined;
   let retries = 10;
 
   while (retries > 0) {
-    const { nextCursor, traces } = await client.getTracesFromView({
+    const { traces } = await client.getTracesFromView({
       viewId: E2E_TESTS_VIEW_ID,
       pageSize: 10,
-      cursor,
     });
 
     console.log('Found traces:');
@@ -55,8 +53,6 @@ const main = async () => {
     if (retries === 0) {
       throw new Error(`Couldn't find trace ${traceId}.`);
     }
-
-    cursor = nextCursor;
 
     const sleepSeconds = 5;
     console.log(
