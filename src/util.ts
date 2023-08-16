@@ -219,7 +219,7 @@ export class HeadersBuilder {
     ].join('%n');
 
     const out = this.run(
-      `git show ${args.sha || 'HEAD'} --format="${logFormat}"`,
+      `git show ${args.sha || 'HEAD'} --quiet --format="${logFormat}"`,
     );
     const lines = out.split('\n');
 
