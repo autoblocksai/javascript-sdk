@@ -19,11 +19,8 @@ const main = async () => {
     throw new Error('AUTOBLOCKS_INGESTION_KEY env var is required.');
   }
 
-  const traceId = crypto.randomUUID();
-  const tracer = new AutoblocksTracer(AUTOBLOCKS_INGESTION_KEY, { traceId });
+  const tracer = new AutoblocksTracer(AUTOBLOCKS_INGESTION_KEY);
   const client = new AutoblocksAPIClient(AUTOBLOCKS_API_KEY);
-
-  await tracer.sendEvent(E2E_TESTS_EXPECTED_MESSAGE);
 
   // Make sure our view exists
   const views = await client.getViews();
@@ -31,36 +28,36 @@ const main = async () => {
     throw new Error(`View ${E2E_TESTS_VIEW_ID} not found!`);
   }
 
+  // Send test event
+  const testTraceId = crypto.randomUUID();
+  await tracer.sendEvent(E2E_TESTS_EXPECTED_MESSAGE, { traceId: testTraceId });
+
   // Find the test event we just sent
-  let cursor: string | undefined = undefined;
   let retries = 10;
 
   while (retries > 0) {
-    const { nextCursor, traces } = await client.getTracesFromView({
+    const { traces } = await client.getTracesFromView({
       viewId: E2E_TESTS_VIEW_ID,
       pageSize: 10,
-      cursor,
     });
 
     console.log('Found traces:');
     console.log(traces.map((t) => t.id));
 
-    if (traces.some((t) => t.id === traceId)) {
-      console.log(`Found trace ${traceId}!`);
+    if (traces.some((t) => t.id === testTraceId)) {
+      console.log(`Found trace ${testTraceId}!`);
       break;
     }
 
     retries--;
 
     if (retries === 0) {
-      throw new Error(`Couldn't find trace ${traceId}.`);
+      throw new Error(`Couldn't find trace ${testTraceId}.`);
     }
-
-    cursor = nextCursor;
 
     const sleepSeconds = 5;
     console.log(
-      `Couldn't find trace ${traceId} yet, waiting ${sleepSeconds} seconds. ${retries} tries left.`,
+      `Couldn't find trace ${testTraceId} yet, waiting ${sleepSeconds} seconds. ${retries} tries left.`,
     );
     await sleep(sleepSeconds);
   }
