@@ -29,7 +29,7 @@ describe('Replay Headers', () => {
 
   it('local replay', async () => {
     replacedEnv = jest.replaceProperty(process, 'env', {
-      AUTOBLOCKS_REPLAY_ID: 'my-replay-id',
+      AUTOBLOCKS_SIMULATION_ID: 'my-replay-id',
     });
 
     const builder = new HeadersBuilder();

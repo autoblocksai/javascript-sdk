@@ -37,7 +37,7 @@ const zCommitSchema = z.object({
 type Commit = z.infer<typeof zCommitSchema>;
 
 const zEnvSchema = z.object({
-  AUTOBLOCKS_REPLAY_ID: z.string().optional(),
+  AUTOBLOCKS_SIMULATION_ID: z.string().optional(),
   GITHUB_ACTIONS: z.string().optional(),
 });
 
@@ -264,8 +264,8 @@ export class HeadersBuilder {
   private makeReplayRun(): ReplayRun | null {
     if (this.env.GITHUB_ACTIONS) {
       return this.makeGitHubReplayRun();
-    } else if (this.env.AUTOBLOCKS_REPLAY_ID) {
-      return this.makeLocalReplayRun(this.env.AUTOBLOCKS_REPLAY_ID);
+    } else if (this.env.AUTOBLOCKS_SIMULATION_ID) {
+      return this.makeLocalReplayRun(this.env.AUTOBLOCKS_SIMULATION_ID);
     }
 
     return null;
