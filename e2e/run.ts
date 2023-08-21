@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { AutoblocksAPIClient, AutoblocksTracer } from '../src';
+import { SystemEventFilterKey } from '../src/client';
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
@@ -36,15 +37,41 @@ const main = async () => {
   let retries = 10;
 
   while (retries > 0) {
-    const { traces } = await client.getTracesFromView({
+    // We should be able to fetch the trace both from the view and from searching
+    const { traces: tracesFromView } = await client.getTracesFromView({
       viewId: E2E_TESTS_VIEW_ID,
       pageSize: 10,
     });
+    const { traces: tracesFromSearch } = await client.searchTraces({
+      pageSize: 10,
+      timeFilter: {
+        type: 'relative',
+        hours: 1,
+      },
+      traceFilters: [
+        {
+          operator: 'CONTAINS',
+          eventFilters: [
+            {
+              key: SystemEventFilterKey.MESSAGE,
+              value: E2E_TESTS_EXPECTED_MESSAGE,
+              operator: 'EQUALS',
+            },
+          ],
+        },
+      ],
+    });
 
-    console.log('Found traces:');
-    console.log(traces.map((t) => t.id));
+    console.log('Found traces from view:');
+    console.log(tracesFromView.map((t) => t.id));
 
-    if (traces.some((t) => t.id === testTraceId)) {
+    console.log('Found traces from search:');
+    console.log(tracesFromSearch.map((t) => t.id));
+
+    if (
+      tracesFromView.some((t) => t.id === testTraceId) &&
+      tracesFromSearch.some((t) => t.id === testTraceId)
+    ) {
       console.log(`Found trace ${testTraceId}!`);
       break;
     }
