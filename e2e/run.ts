@@ -4,9 +4,9 @@ import { SystemEventFilterKey } from '../src/client';
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
-// We've created a view in our demo org to be used in CI tests.
+// We've created a view in our CI org to be used in CI tests.
 // It has one filter, message == 'sdk.e2e', and its timespan is "last 1 hour"
-const E2E_TESTS_VIEW_ID = 'cllh1o6bz0001jr08kocrn1fw';
+const E2E_TESTS_VIEW_ID = 'cllmlk8py0003l608vd83dc03';
 const E2E_TESTS_EXPECTED_MESSAGE = 'sdk.e2e';
 
 const sleep = (seconds: number) =>
