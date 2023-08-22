@@ -41,8 +41,8 @@ jobs:
       - name: Run e2e tests
         run: npm run test:e2e
         env:
-          AUTOBLOCKS_API_KEY: ${{ secrets.DEMO_AUTOBLOCKS_API_KEY }}
-          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.DEMO_AUTOBLOCKS_INGESTION_KEY }}
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
 
       - name: Run build
         run: npm run build
