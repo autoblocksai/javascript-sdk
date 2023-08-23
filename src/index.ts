@@ -1,3 +1,3 @@
 export { AutoblocksTracer } from './tracer';
-export { AutoblocksAPIClient } from './client';
-export type { View, Event, Trace, SystemEventFilterKey } from './client';
+export { AutoblocksAPIClient, SystemEventFilterKey } from './client';
+export type { View, Event, Trace } from './client';
