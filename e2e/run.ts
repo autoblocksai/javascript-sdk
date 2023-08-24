@@ -1,6 +1,9 @@
 import crypto from 'crypto';
-import { AutoblocksAPIClient, AutoblocksTracer } from '../src';
-import { SystemEventFilterKey } from '../src/client';
+import {
+  AutoblocksAPIClient,
+  AutoblocksTracer,
+  SystemEventFilterKey,
+} from '../src';
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
@@ -54,8 +57,8 @@ const main = async () => {
           eventFilters: [
             {
               key: SystemEventFilterKey.MESSAGE,
-              value: E2E_TESTS_EXPECTED_MESSAGE,
               operator: 'EQUALS',
+              value: E2E_TESTS_EXPECTED_MESSAGE,
             },
           ],
         },
