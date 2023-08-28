@@ -49,17 +49,33 @@ describe('Replay Headers', () => {
       },
       {
         headers: {
-          'X-Autoblocks-Replay-Provider': 'local',
-          'X-Autoblocks-Replay-Run-Id': 'my-replay-id',
-          'X-Autoblocks-Replay-Repo': 'autoblocksai/javascript-sdk',
-          'X-Autoblocks-Replay-Branch-Name': builder.getLocalBranchName(),
-          'X-Autoblocks-Replay-Commit-Sha': commit.sha,
-          'X-Autoblocks-Replay-Commit-Message': commit.message,
-          'X-Autoblocks-Replay-Commit-Author-Name': commit.authorName,
-          'X-Autoblocks-Replay-Commit-Author-Email': commit.authorEmail,
-          'X-Autoblocks-Replay-Commit-Committer-Name': commit.committerName,
-          'X-Autoblocks-Replay-Commit-Committer-Email': commit.committerEmail,
-          'X-Autoblocks-Replay-Commit-Committed-Date': commit.committedDate,
+          'X-Autoblocks-Replay-Provider': encodeURIComponent('local'),
+          'X-Autoblocks-Replay-Run-Id': encodeURIComponent('my-replay-id'),
+          'X-Autoblocks-Replay-Repo': encodeURIComponent(
+            'autoblocksai/javascript-sdk',
+          ),
+          'X-Autoblocks-Replay-Branch-Name': encodeURIComponent(
+            builder.getLocalBranchName() || '',
+          ),
+          'X-Autoblocks-Replay-Commit-Sha': encodeURIComponent(commit.sha),
+          'X-Autoblocks-Replay-Commit-Message': encodeURIComponent(
+            commit.message,
+          ),
+          'X-Autoblocks-Replay-Commit-Author-Name': encodeURIComponent(
+            commit.authorName,
+          ),
+          'X-Autoblocks-Replay-Commit-Author-Email': encodeURIComponent(
+            commit.authorEmail,
+          ),
+          'X-Autoblocks-Replay-Commit-Committer-Name': encodeURIComponent(
+            commit.committerName,
+          ),
+          'X-Autoblocks-Replay-Commit-Committer-Email': encodeURIComponent(
+            commit.committerEmail,
+          ),
+          'X-Autoblocks-Replay-Commit-Committed-Date': encodeURIComponent(
+            commit.committedDate,
+          ),
         },
       },
     );
@@ -115,22 +131,40 @@ describe('Replay Headers', () => {
         },
         {
           headers: {
-            'X-Autoblocks-Replay-Provider': 'github',
-            'X-Autoblocks-Replay-Run-Id':
+            'X-Autoblocks-Replay-Provider': encodeURIComponent('github'),
+            'X-Autoblocks-Replay-Run-Id': encodeURIComponent(
               'myorg/myrepo-my-run-id-my-run-attempt',
-            'X-Autoblocks-Replay-Run-Url':
+            ),
+            'X-Autoblocks-Replay-Run-Url': encodeURIComponent(
               'https://github.com/myorg/myrepo/actions/runs/my-run-id/attempts/my-run-attempt',
-            'X-Autoblocks-Replay-Repo': 'myorg/myrepo',
-            'X-Autoblocks-Replay-Repo-Url': 'https://github.com/myorg/myrepo',
-            'X-Autoblocks-Replay-Branch-Name': 'feat/my-branch',
-            'X-Autoblocks-Replay-Default-Branch-Name': 'main',
-            'X-Autoblocks-Replay-Commit-Sha': commit.sha,
-            'X-Autoblocks-Replay-Commit-Message': commit.message,
-            'X-Autoblocks-Replay-Commit-Author-Name': commit.authorName,
-            'X-Autoblocks-Replay-Commit-Author-Email': commit.authorEmail,
-            'X-Autoblocks-Replay-Commit-Committer-Name': commit.committerName,
-            'X-Autoblocks-Replay-Commit-Committer-Email': commit.committerEmail,
-            'X-Autoblocks-Replay-Commit-Committed-Date': commit.committedDate,
+            ),
+            'X-Autoblocks-Replay-Repo': encodeURIComponent('myorg/myrepo'),
+            'X-Autoblocks-Replay-Repo-Url': encodeURIComponent(
+              'https://github.com/myorg/myrepo',
+            ),
+            'X-Autoblocks-Replay-Branch-Name':
+              encodeURIComponent('feat/my-branch'),
+            'X-Autoblocks-Replay-Default-Branch-Name':
+              encodeURIComponent('main'),
+            'X-Autoblocks-Replay-Commit-Sha': encodeURIComponent(commit.sha),
+            'X-Autoblocks-Replay-Commit-Message': encodeURIComponent(
+              commit.message,
+            ),
+            'X-Autoblocks-Replay-Commit-Author-Name': encodeURIComponent(
+              commit.authorName,
+            ),
+            'X-Autoblocks-Replay-Commit-Author-Email': encodeURIComponent(
+              commit.authorEmail,
+            ),
+            'X-Autoblocks-Replay-Commit-Committer-Name': encodeURIComponent(
+              commit.committerName,
+            ),
+            'X-Autoblocks-Replay-Commit-Committer-Email': encodeURIComponent(
+              commit.committerEmail,
+            ),
+            'X-Autoblocks-Replay-Commit-Committed-Date': encodeURIComponent(
+              commit.committedDate,
+            ),
           },
         },
       );
@@ -180,24 +214,43 @@ describe('Replay Headers', () => {
         },
         {
           headers: {
-            'X-Autoblocks-Replay-Provider': 'github',
-            'X-Autoblocks-Replay-Run-Id':
+            'X-Autoblocks-Replay-Provider': encodeURIComponent('github'),
+            'X-Autoblocks-Replay-Run-Id': encodeURIComponent(
               'myorg/myrepo-my-run-id-my-run-attempt',
-            'X-Autoblocks-Replay-Run-Url':
+            ),
+            'X-Autoblocks-Replay-Run-Url': encodeURIComponent(
               'https://github.com/myorg/myrepo/actions/runs/my-run-id/attempts/my-run-attempt',
-            'X-Autoblocks-Replay-Repo': 'myorg/myrepo',
-            'X-Autoblocks-Replay-Repo-Url': 'https://github.com/myorg/myrepo',
-            'X-Autoblocks-Replay-Branch-Name': 'feat/my-branch',
-            'X-Autoblocks-Replay-Default-Branch-Name': 'main',
-            'X-Autoblocks-Replay-Commit-Sha': commit.sha,
-            'X-Autoblocks-Replay-Commit-Message': commit.message,
-            'X-Autoblocks-Replay-Commit-Author-Name': commit.authorName,
-            'X-Autoblocks-Replay-Commit-Author-Email': commit.authorEmail,
-            'X-Autoblocks-Replay-Commit-Committer-Name': commit.committerName,
-            'X-Autoblocks-Replay-Commit-Committer-Email': commit.committerEmail,
-            'X-Autoblocks-Replay-Commit-Committed-Date': commit.committedDate,
-            'X-Autoblocks-Replay-Pull-Request-Number': '5',
-            'X-Autoblocks-Replay-Pull-Request-Title': 'My PR Title',
+            ),
+            'X-Autoblocks-Replay-Repo': encodeURIComponent('myorg/myrepo'),
+            'X-Autoblocks-Replay-Repo-Url': encodeURIComponent(
+              'https://github.com/myorg/myrepo',
+            ),
+            'X-Autoblocks-Replay-Branch-Name':
+              encodeURIComponent('feat/my-branch'),
+            'X-Autoblocks-Replay-Default-Branch-Name':
+              encodeURIComponent('main'),
+            'X-Autoblocks-Replay-Commit-Sha': encodeURIComponent(commit.sha),
+            'X-Autoblocks-Replay-Commit-Message': encodeURIComponent(
+              commit.message,
+            ),
+            'X-Autoblocks-Replay-Commit-Author-Name': encodeURIComponent(
+              commit.authorName,
+            ),
+            'X-Autoblocks-Replay-Commit-Author-Email': encodeURIComponent(
+              commit.authorEmail,
+            ),
+            'X-Autoblocks-Replay-Commit-Committer-Name': encodeURIComponent(
+              commit.committerName,
+            ),
+            'X-Autoblocks-Replay-Commit-Committer-Email': encodeURIComponent(
+              commit.committerEmail,
+            ),
+            'X-Autoblocks-Replay-Commit-Committed-Date': encodeURIComponent(
+              commit.committedDate,
+            ),
+            'X-Autoblocks-Replay-Pull-Request-Number': encodeURIComponent('5'),
+            'X-Autoblocks-Replay-Pull-Request-Title':
+              encodeURIComponent('My PR Title'),
           },
         },
       );
