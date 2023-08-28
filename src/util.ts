@@ -68,7 +68,9 @@ const replayRunToHttpHeaders = (run: ReplayRun): Record<string, string> => {
     if (value === null) {
       continue;
     }
-    headers[`X-Autoblocks-Replay-${camelToKebab(key)}`] = `${value}`;
+    headers[`X-Autoblocks-Replay-${camelToKebab(key)}`] = encodeURIComponent(
+      `${value}`,
+    );
   }
 
   return headers;
