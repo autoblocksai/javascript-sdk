@@ -40,7 +40,15 @@ interface TraceFilter {
   eventFilters: {
     key: string;
     value: string;
-    operator: 'CONTAINS' | 'NOT_CONTAINS' | 'EQUALS' | 'NOT_EQUALS';
+    operator:
+      | 'CONTAINS'
+      | 'NOT_CONTAINS'
+      | 'EQUALS'
+      | 'NOT_EQUALS'
+      | 'LESS_THAN'
+      | 'LESS_THAN_OR_EQUALS'
+      | 'GREATER_THAN'
+      | 'GREATER_THAN_OR_EQUALS';
   }[];
 }
 
