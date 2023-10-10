@@ -1,4 +1,4 @@
-import { HeadersBuilder } from '../src/util';
+import { HeadersBuilder, parseRepoNameFromOriginUrl } from '../src/util';
 
 describe('Headers Builder', () => {
   it('getLocalCommitData', async () => {
@@ -24,5 +24,39 @@ describe('Headers Builder', () => {
     const builder = new HeadersBuilder();
     const repoName = builder.getLocalRepoName();
     expect(repoName).toEqual('autoblocksai/javascript-sdk');
+  });
+
+  describe('parseRepoNameFromOriginUrl', () => {
+    it('parses HTTPS urls (GitHub)', () => {
+      expect(
+        parseRepoNameFromOriginUrl(
+          'https://github.com/autoblocksai/neon-actions.git',
+        ),
+      ).toEqual('autoblocksai/neon-actions');
+    });
+
+    it('parses HTTPS urls (GitLab)', () => {
+      expect(
+        parseRepoNameFromOriginUrl(
+          'https://gitlab.com/gitlab-com/www-gitlab-com.git',
+        ),
+      ).toEqual('gitlab-com/www-gitlab-com');
+    });
+
+    it('parses SSH URLs (GitHub)', () => {
+      expect(
+        parseRepoNameFromOriginUrl(
+          'git@github.com:autoblocksai/neon-actions.git',
+        ),
+      ).toEqual('autoblocksai/neon-actions');
+    });
+
+    it('parses SSH URLs (GitLab)', () => {
+      expect(
+        parseRepoNameFromOriginUrl(
+          'git@gitlab.com:gitlab-com/www-gitlab-com.git',
+        ),
+      ).toEqual('gitlab-com/www-gitlab-com');
+    });
   });
 });
