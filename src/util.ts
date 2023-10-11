@@ -76,6 +76,18 @@ const replayRunToHttpHeaders = (run: ReplayRun): Record<string, string> => {
   return headers;
 };
 
+/**
+ * Parses the org and repo name from the origin URL.
+ *
+ * Examples:
+ *
+ * https://github.com/autoblocksai/javascript-sdk.git -> autoblocksai/javascript-sdk
+ * git@gitlab.com:gitlab-com/www-gitlab-com.git -> gitlab-com/www-gitlab-com
+ */
+export const parseRepoNameFromOriginUrl = (url: string): string => {
+  return url.replace('.git', '').split(':')[1].split('/').slice(-2).join('/');
+};
+
 export class HeadersBuilder {
   private fs: typeof import('fs');
   private cp: typeof import('child_process');
@@ -255,12 +267,7 @@ export class HeadersBuilder {
 
   public getLocalRepoName(): string {
     const originUrl = this.run('git remote get-url origin');
-    // https://github.com/autoblocksai/javascript-sdk.git -> autoblocksai/javascript-sdk
-    const [owner, repo] = originUrl
-      .split('/')
-      .slice(-2)
-      .map((p, i) => (i === 0 ? p : p.split('.')[0]));
-    return `${owner}/${repo}`;
+    return parseRepoNameFromOriginUrl(originUrl);
   }
 
   private makeReplayRun(): ReplayRun | null {
