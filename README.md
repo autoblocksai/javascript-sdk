@@ -30,8 +30,8 @@ pnpm add @autoblocks/client
 ```ts
 import { AutoblocksTracer } from '@autoblocks/client';
 
-const ab = new AutoblocksTracer('my-ingestion-key');
-await ab.sendEvent('my-first-event');
+const tracer = new AutoblocksTracer('my-ingestion-key');
+await tracer.sendEvent('my-first-event');
 ```
 
 ## Documentation

@@ -16,7 +16,7 @@
     "build": "npm run clean && npm run build:main && npm run build:module",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts --max-warnings 0 .",
-    "test": "jest",
+    "test": "TZ=UTC jest",
     "test:e2e": "tsx e2e/run.ts",
     "prepare": "husky install"
   },
