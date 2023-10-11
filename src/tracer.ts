@@ -20,7 +20,7 @@ const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
 
 export class AutoblocksTracer {
   private client: AxiosInstance;
-  private traceId: string | undefined;
+  private _traceId: string | undefined;
   private properties: Record<string, unknown>;
 
   constructor(
@@ -40,12 +40,16 @@ export class AutoblocksTracer {
         ? convertTimeDeltaToMilliSeconds(args.timeout)
         : undefined,
     });
-    this.traceId = args?.traceId;
+    this._traceId = args?.traceId;
     this.properties = args?.properties || {};
   }
 
+  get traceId(): string | undefined {
+    return this._traceId;
+  }
+
   public setTraceId(traceId: string) {
-    this.traceId = traceId;
+    this._traceId = traceId;
   }
 
   public setProperties(properties: EventProperties) {
