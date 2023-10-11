@@ -72,7 +72,7 @@ export class AutoblocksTracer {
     },
   ): Promise<string> {
     const traceId = args?.traceId || this.traceId;
-    const timestamp = args?.timestamp;
+    const timestamp = args?.timestamp || new Date().toISOString();
     const properties = {
       ...this.properties,
       ...(args?.properties || {}),
