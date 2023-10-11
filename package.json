@@ -2,25 +2,22 @@
   "name": "@autoblocks/client",
   "version": "0.0.0-automated",
   "description": "JavaScript client for Autoblocks",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "dist/main/index.js",
+  "module": "dist/module/index.js",
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/main/index.js",
+      "import": "./dist/module/index.js"
     },
     "./langchain": {
-      "require": "./dist/langchain/index.js",
-      "import": "./dist/langchain/index.mjs",
-      "types": "./dist/langchain/index.d.ts"
+      "require": "./dist/main/langchain/index.js",
+      "import": "./dist/module/langchain/index.ms"
     }
   },
   "typesVersions": {
     "*": {
       "langchain": [
-        "./dist/langchain/index.d.ts"
+        "./dist/main/langchain/index.d.ts"
       ]
     }
   },
@@ -31,7 +28,9 @@
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build": "tsup",
+    "build:main": "tsc -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json",
+    "build": "npm run clean && npm run build:main && npm run build:module",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts --max-warnings 0 .",
     "test": "TZ=UTC jest",
@@ -57,7 +56,6 @@
     "prettier": "^3.0.0",
     "rimraf": "^5.0.1",
     "ts-jest": "^29.1.1",
-    "tsup": "^7.2.0",
     "tsx": "^3.12.7",
     "typescript": "^5.1.6"
   },
