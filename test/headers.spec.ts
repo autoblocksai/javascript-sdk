@@ -27,6 +27,17 @@ describe('Replay Headers', () => {
     replacedEnv?.restore();
   });
 
+  beforeAll(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2021, 0, 1, 1, 1, 1, 1));
+  });
+
+  const timestamp = '2021-01-01T01:01:01.001Z';
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   it('local replay', async () => {
     replacedEnv = jest.replaceProperty(process, 'env', {
       AUTOBLOCKS_SIMULATION_ID: 'my-replay-id',
@@ -35,8 +46,8 @@ describe('Replay Headers', () => {
     const builder = new HeadersBuilder();
     const commit = builder.getLocalCommitData({ sha: null });
 
-    const ab = new AutoblocksTracer('mock-ingestion-token');
-    const { traceId } = await ab.sendEvent('mock-message');
+    const tracer = new AutoblocksTracer('mock-ingestion-token');
+    const { traceId } = await tracer.sendEvent('mock-message');
 
     expect(traceId).toEqual('mock-trace-id');
     expect(mockPost).toHaveBeenCalledWith(
@@ -44,7 +55,7 @@ describe('Replay Headers', () => {
       {
         message: 'mock-message',
         traceId: undefined,
-        timestamp: undefined,
+        timestamp,
         properties: {},
       },
       {
@@ -117,8 +128,8 @@ describe('Replay Headers', () => {
         GITHUB_SHA: commit.sha,
       });
 
-      const ab = new AutoblocksTracer('mock-ingestion-token');
-      const { traceId } = await ab.sendEvent('mock-message');
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+      const { traceId } = await tracer.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -126,7 +137,7 @@ describe('Replay Headers', () => {
         {
           message: 'mock-message',
           traceId: undefined,
-          timestamp: undefined,
+          timestamp,
           properties: {},
         },
         {
@@ -200,8 +211,8 @@ describe('Replay Headers', () => {
         GITHUB_SHA: commit.sha,
       });
 
-      const ab = new AutoblocksTracer('mock-ingestion-token');
-      const { traceId } = await ab.sendEvent('mock-message');
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+      const { traceId } = await tracer.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
       expect(mockPost).toHaveBeenCalledWith(
@@ -209,7 +220,7 @@ describe('Replay Headers', () => {
         {
           message: 'mock-message',
           traceId: undefined,
-          timestamp: undefined,
+          timestamp,
           properties: {},
         },
         {

@@ -11,8 +11,6 @@ const tracer = new AutoblocksTracer(readEnv(AUTOBLOCKS_INGESTION_KEY) || '', {
   properties: { provider: 'openai' },
 });
 
-const makeTimestamp = () => new Date().toISOString();
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeWrapper(func: any): any {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,7 +31,6 @@ function makeWrapper(func: any): any {
     await tracer.sendEvent('ai.completion.request', {
       traceId,
       properties: args[0],
-      timestamp: makeTimestamp(),
     });
 
     const start = Date.now();
@@ -54,7 +51,6 @@ function makeWrapper(func: any): any {
             latencyMs,
             error: error.toString(),
           },
-          timestamp: makeTimestamp(),
         });
       } else {
         await tracer.sendEvent('ai.completion.response', {
@@ -63,7 +59,6 @@ function makeWrapper(func: any): any {
             latencyMs,
             response,
           },
-          timestamp: makeTimestamp(),
         });
       }
     }
