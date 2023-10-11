@@ -11,7 +11,7 @@
     },
     "./langchain": {
       "require": "./dist/main/langchain/index.js",
-      "import": "./dist/module/langchain/index.ms"
+      "import": "./dist/module/langchain/index.js"
     }
   },
   "typesVersions": {
