@@ -1,11 +1,6 @@
 import crypto from 'crypto';
 import { AutoblocksTracer } from './tracer';
-
-const AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY';
-
-const readEnv = (key: string): string | undefined => {
-  return process.env[key];
-};
+import { readEnv, AUTOBLOCKS_INGESTION_KEY } from './util';
 
 const tracer = new AutoblocksTracer(readEnv(AUTOBLOCKS_INGESTION_KEY) || '', {
   properties: { provider: 'openai' },

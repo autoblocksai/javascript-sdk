@@ -2,8 +2,28 @@
   "name": "@autoblocks/client",
   "version": "0.0.0-automated",
   "description": "JavaScript client for Autoblocks",
-  "main": "dist/main/index.js",
-  "module": "dist/module/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./langchain": {
+      "require": "./dist/langchain/index.js",
+      "import": "./dist/langchain/index.mjs",
+      "types": "./dist/langchain/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "langchain": [
+        "./dist/langchain/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "LICENSE",
@@ -11,9 +31,7 @@
   ],
   "scripts": {
     "clean": "rimraf dist",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
-    "build": "npm run clean && npm run build:main && npm run build:module",
+    "build": "tsup",
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts --max-warnings 0 .",
     "test": "TZ=UTC jest",
@@ -33,11 +51,13 @@
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.0",
     "jest": "^29.6.2",
+    "langchain": "^0.0.165",
     "lint-staged": "^13.2.3",
     "openai": "^4.11.1",
     "prettier": "^3.0.0",
     "rimraf": "^5.0.1",
     "ts-jest": "^29.1.1",
+    "tsup": "^7.2.0",
     "tsx": "^3.12.7",
     "typescript": "^5.1.6"
   },
