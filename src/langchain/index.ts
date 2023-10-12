@@ -32,8 +32,23 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
 
     this.traceId = args?.traceId;
 
+    let langchainVersion: string | undefined = undefined;
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      langchainVersion = require('langchain/package.json').version;
+    } catch {
+      // Couldn't determine version
+    }
+
+    const mergedProperties = {
+      ...args?.properties,
+      __langchainVersion: langchainVersion,
+      __langchainLanguage: 'javascript',
+    };
+
     this.tracer = new AutoblocksTracer(ingestionKey, {
-      properties: args?.properties,
+      properties: mergedProperties,
     });
   }
 

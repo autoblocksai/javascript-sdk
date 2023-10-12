@@ -8,6 +8,11 @@ import { ChatOpenAI } from 'langchain/chat_models/openai';
 import { RunnableSequence } from 'langchain/schema/runnable';
 import { StringOutputParser } from 'langchain/schema/output_parser';
 
+// Used to verify we're sending the correct version
+// This will need to be updated if we update our version of
+// langchain in devDependencies
+const CURRENT_LANGCHAIN_VERSION = '0.0.165';
+
 describe('AutoblocksCallbackHandler', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
 
@@ -40,6 +45,7 @@ describe('AutoblocksCallbackHandler', () => {
 
     const messages = calls.map((call) => call[1].message);
     const traceIds = calls.map((call) => call[1].traceId);
+    const properties = calls.map((call) => call[1].properties);
 
     expect(messages).toEqual([
       'langchain.chain.start',
@@ -51,6 +57,16 @@ describe('AutoblocksCallbackHandler', () => {
     // All traceIds should be equal and defined
     expect(traceIds.every(Boolean)).toBe(true);
     expect(traceIds.every((id) => id === traceIds[0])).toBe(true);
+
+    // It should send the version and language with each event
+    expect(
+      properties.every(
+        (prop) => prop.__langchainVersion === CURRENT_LANGCHAIN_VERSION,
+      ),
+    ).toBe(true);
+    expect(
+      properties.every((prop) => prop.__langchainLanguage === 'javascript'),
+    ).toBe(true);
   });
 
   it('openai multiple chains', async () => {
@@ -88,6 +104,7 @@ describe('AutoblocksCallbackHandler', () => {
 
     const messages = calls.map((call) => call[1].message);
     const traceIds = calls.map((call) => call[1].traceId);
+    const properties = calls.map((call) => call[1].properties);
 
     expect(messages).toEqual([
       'langchain.chain.start',
@@ -115,5 +132,15 @@ describe('AutoblocksCallbackHandler', () => {
     // All traceIds should be equal and defined
     expect(traceIds.every(Boolean)).toBe(true);
     expect(traceIds.every((id) => id === traceIds[0])).toBe(true);
+
+    // It should send the version and language with each event
+    expect(
+      properties.every(
+        (prop) => prop.__langchainVersion === CURRENT_LANGCHAIN_VERSION,
+      ),
+    ).toBe(true);
+    expect(
+      properties.every((prop) => prop.__langchainLanguage === 'javascript'),
+    ).toBe(true);
   });
 });
