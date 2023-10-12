@@ -4,6 +4,23 @@
   "description": "JavaScript client for Autoblocks",
   "main": "dist/main/index.js",
   "module": "dist/module/index.js",
+  "exports": {
+    ".": {
+      "require": "./dist/main/index.js",
+      "import": "./dist/module/index.js"
+    },
+    "./langchain": {
+      "require": "./dist/main/langchain/index.js",
+      "import": "./dist/module/langchain/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "langchain": [
+        "./dist/main/langchain/index.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "LICENSE",
@@ -33,6 +50,7 @@
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.0",
     "jest": "^29.6.2",
+    "langchain": "^0.0.165",
     "lint-staged": "^13.2.3",
     "openai": "^4.11.1",
     "prettier": "^3.0.0",

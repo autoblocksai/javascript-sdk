@@ -298,3 +298,9 @@ export const makeReplayHeaders = (): Record<string, string> | undefined => {
   const builder = new HeadersBuilder();
   return builder.makeReplayHeaders();
 };
+
+export const AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY';
+
+export const readEnv = (key: string): string | undefined => {
+  return process.env[key];
+};

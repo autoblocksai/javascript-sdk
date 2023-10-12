@@ -6,13 +6,14 @@ jest.setTimeout(10000);
 
 describe('traceOpenAI', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
+
   const tracer = traceOpenAI();
 
   // Call multiple times to make sure we aren't patching openai multiple times
   traceOpenAI();
   traceOpenAI();
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const openai = new OpenAI();
 
   let mockPost: jest.Mock;
 
