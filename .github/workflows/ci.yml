@@ -45,3 +45,21 @@ jobs:
 
       - name: Run build
         run: npm run build
+
+      - name: Install yalc
+        run: npm install -g yalc
+
+      - name: Publish
+        run: yalc publish
+
+      - name: Test CJS imports
+        working-directory: e2e/test-import-cjs
+        run: yalc add @autoblocks/client && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test ESM imports
+        working-directory: e2e/test-import-esm
+        run: yalc add @autoblocks/client && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
