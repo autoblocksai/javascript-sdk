@@ -3,7 +3,7 @@ import {
   AutoblocksAPIClient,
   AutoblocksTracer,
   SystemEventFilterKey,
-} from '../src';
+} from '../../src';
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
