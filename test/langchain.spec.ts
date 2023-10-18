@@ -20,6 +20,15 @@ jest.setTimeout(60000);
 // langchain in devDependencies
 const CURRENT_LANGCHAIN_VERSION = '0.0.165';
 
+const mockHandlerPost = (handler: AutoblocksCallbackHandler) => {
+  const mockPost = jest
+    .fn()
+    .mockResolvedValue({ data: { traceId: 'mock-trace-id' } });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (handler as any).tracer.client.post = mockPost;
+  return mockPost;
+};
+
 describe('AutoblocksCallbackHandler', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
 
@@ -28,12 +37,7 @@ describe('AutoblocksCallbackHandler', () => {
 
   beforeEach(() => {
     handler = new AutoblocksCallbackHandler();
-
-    mockPost = jest
-      .fn()
-      .mockResolvedValue({ data: { traceId: 'mock-trace-id' } });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (handler as any).tracer.client.post = mockPost;
+    mockPost = mockHandlerPost(handler);
   });
 
   afterAll(() => {
@@ -274,5 +278,86 @@ describe('AutoblocksCallbackHandler', () => {
     // All traceIds should be equal and defined
     expect(traceIds.every(Boolean)).toBe(true);
     expect(traceIds.every((id) => id === traceIds[0])).toBe(true);
+  });
+});
+
+describe('AutoblocksCallbackHandler (prefixes and separators)', () => {
+  process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
+
+  afterAll(() => {
+    process.env.AUTOBLOCKS_INGESTION_KEY = undefined;
+  });
+
+  it('allows specifying a message prefix', async () => {
+    const handler = new AutoblocksCallbackHandler({ messagePrefix: 'foo' });
+    const mockPost = mockHandlerPost(handler);
+
+    const llm = new OpenAI();
+    await llm.predict('hi!', { callbacks: [handler] });
+
+    const calls = mockPost.mock.calls;
+    expect(calls.length).toEqual(2);
+
+    const messages = calls.map((call) => call[1].message);
+    expect(messages).toEqual(['foo.llm.start', 'foo.llm.end']);
+  });
+
+  it('allows specifying a message prefix and a message separator', async () => {
+    const handler = new AutoblocksCallbackHandler({
+      messagePrefix: 'foo',
+      messageSeparator: '-',
+    });
+    const mockPost = mockHandlerPost(handler);
+
+    const llm = new OpenAI();
+    await llm.predict('hi!', { callbacks: [handler] });
+
+    const calls = mockPost.mock.calls;
+    expect(calls.length).toEqual(2);
+
+    const messages = calls.map((call) => call[1].message);
+    expect(messages).toEqual(['foo-llm-start', 'foo-llm-end']);
+  });
+
+  it('allows specifying an empty message prefix', async () => {
+    const handler = new AutoblocksCallbackHandler({ messagePrefix: '' });
+    const mockPost = mockHandlerPost(handler);
+
+    const llm = new OpenAI();
+    await llm.predict('hi!', { callbacks: [handler] });
+
+    const calls = mockPost.mock.calls;
+    expect(calls.length).toEqual(2);
+
+    const messages = calls.map((call) => call[1].message);
+    expect(messages).toEqual(['llm.start', 'llm.end']);
+  });
+
+  it('allows specifying a message separator', async () => {
+    const handler = new AutoblocksCallbackHandler({ messageSeparator: '-' });
+    const mockPost = mockHandlerPost(handler);
+
+    const llm = new OpenAI();
+    await llm.predict('hi!', { callbacks: [handler] });
+
+    const calls = mockPost.mock.calls;
+    expect(calls.length).toEqual(2);
+
+    const messages = calls.map((call) => call[1].message);
+    expect(messages).toEqual(['langchain-llm-start', 'langchain-llm-end']);
+  });
+
+  it('ignores empty message separators', async () => {
+    const handler = new AutoblocksCallbackHandler({ messageSeparator: '' });
+    const mockPost = mockHandlerPost(handler);
+
+    const llm = new OpenAI();
+    await llm.predict('hi!', { callbacks: [handler] });
+
+    const calls = mockPost.mock.calls;
+    expect(calls.length).toEqual(2);
+
+    const messages = calls.map((call) => call[1].message);
+    expect(messages).toEqual(['langchain.llm.start', 'langchain.llm.end']);
   });
 });
