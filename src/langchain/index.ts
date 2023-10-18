@@ -14,13 +14,10 @@ import { AUTOBLOCKS_INGESTION_KEY, readEnv } from '../util';
 export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   name = 'autoblocks_handler';
 
-  private tracer: AutoblocksTracer;
+  private _tracer: AutoblocksTracer;
   private traceId: string | undefined = undefined;
 
-  constructor(args?: {
-    traceId?: string;
-    properties?: Record<string, unknown>;
-  }) {
+  constructor() {
     super();
 
     const ingestionKey = readEnv(AUTOBLOCKS_INGESTION_KEY);
@@ -29,8 +26,6 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
         `You must set the ${AUTOBLOCKS_INGESTION_KEY} environment variable in order to use AutoblocksCallbackHandler.`,
       );
     }
-
-    this.traceId = args?.traceId;
 
     let langchainVersion: string | undefined = undefined;
 
@@ -41,21 +36,24 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
       // Couldn't determine version
     }
 
-    const mergedProperties = {
-      ...args?.properties,
-      __langchainVersion: langchainVersion,
-      __langchainLanguage: 'javascript',
-    };
-
-    this.tracer = new AutoblocksTracer(ingestionKey, {
-      properties: mergedProperties,
+    this._tracer = new AutoblocksTracer(ingestionKey, {
+      properties: {
+        __langchainVersion: langchainVersion,
+        __langchainLanguage: 'javascript',
+      },
     });
   }
 
   private onStart(runId: string) {
-    if (!this.traceId) {
-      this.traceId = runId;
+    if (this.tracer.traceId) {
+      // Trace ID is being managed by the user
+      return;
+    } else if (this.traceId) {
+      // Trace ID has already been set by this handler
+      return;
     }
+
+    this.traceId = runId;
   }
 
   private onEnd(runId: string) {
@@ -72,6 +70,10 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
       traceId: this.traceId,
       properties,
     });
+  }
+
+  get tracer(): AutoblocksTracer {
+    return this._tracer;
   }
 
   async handleChatModelStart(
@@ -274,7 +276,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    this.onStart(runId);
+    // Agent callbacks are only called within a chain run so we don't call onStart within this handler
 
     await this.sendEvent('langchain.agent.action', {
       action,
@@ -297,7 +299,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
       tags,
     });
 
-    this.onEnd(runId);
+    // Agent callbacks are only called within a chain run so we don't call onEnd within this handler
   }
 
   async handleRetrieverStart(
