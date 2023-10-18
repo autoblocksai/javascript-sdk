@@ -52,14 +52,29 @@ jobs:
       - name: Publish
         run: yalc publish
 
+      - name: Delete top level node_modules
+        run: rm -rf node_modules
+
       - name: Test CJS imports
         working-directory: e2e/test-import-cjs
-        run: yalc add @autoblocks/client && npm run start
+        run: yalc add @autoblocks/client && npm install && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test CJS imports with langchain installed
+        working-directory: e2e/test-import-cjs-langchain
+        run: yalc add @autoblocks/client && npm install && npm run start
         env:
           AUTOBLOCKS_INGESTION_KEY: test
 
       - name: Test ESM imports
         working-directory: e2e/test-import-esm
-        run: yalc add @autoblocks/client && npm run start
+        run: yalc add @autoblocks/client && npm install && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test ESM imports with langchain installed
+        working-directory: e2e/test-import-esm-langchain
+        run: yalc add @autoblocks/client && npm install && npm run start
         env:
           AUTOBLOCKS_INGESTION_KEY: test

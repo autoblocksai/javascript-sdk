@@ -1,0 +1,15 @@
+{
+  "name": "test-import-esm-langchain",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "langchain": "*"
+  }
+}
