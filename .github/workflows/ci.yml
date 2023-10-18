@@ -61,8 +61,20 @@ jobs:
         env:
           AUTOBLOCKS_INGESTION_KEY: test
 
+      - name: Test CJS imports with langchain installed
+        working-directory: e2e/test-import-cjs-langchain
+        run: yalc add @autoblocks/client && npm install && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
+
       - name: Test ESM imports
         working-directory: e2e/test-import-esm
+        run: yalc add @autoblocks/client && npm install && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test ESM imports with langchain installed
+        working-directory: e2e/test-import-esm-langchain
         run: yalc add @autoblocks/client && npm install && npm run start
         env:
           AUTOBLOCKS_INGESTION_KEY: test

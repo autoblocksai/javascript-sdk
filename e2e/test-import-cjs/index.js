@@ -1,5 +1,15 @@
 const { AutoblocksTracer } = require('@autoblocks/client');
-const { AutoblocksCallbackHandler } = require('@autoblocks/client/langchain');
 
 console.log(new AutoblocksTracer('test'));
-console.log(new AutoblocksCallbackHandler());
+
+const assertLangchainImportThrowsError = () => {
+  try {
+    require('@autoblocks/client/langchain');
+  } catch {
+    return;
+  }
+
+  throw new Error('Should not be able to import langchain module');
+};
+
+assertLangchainImportThrowsError();
