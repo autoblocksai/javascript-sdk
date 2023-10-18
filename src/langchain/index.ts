@@ -14,13 +14,13 @@ import { AUTOBLOCKS_INGESTION_KEY, readEnv } from '../util';
 export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   name = 'autoblocks_handler';
 
-  private tracer: AutoblocksTracer;
+  private readonly _tracer: AutoblocksTracer;
   private traceId: string | undefined = undefined;
 
-  constructor(args?: {
-    traceId?: string;
-    properties?: Record<string, unknown>;
-  }) {
+  private readonly messagePrefix: string = 'langchain';
+  private readonly messageSeparator: string = '.';
+
+  constructor(args?: { messagePrefix?: string; messageSeparator?: string }) {
     super();
 
     const ingestionKey = readEnv(AUTOBLOCKS_INGESTION_KEY);
@@ -29,8 +29,6 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
         `You must set the ${AUTOBLOCKS_INGESTION_KEY} environment variable in order to use AutoblocksCallbackHandler.`,
       );
     }
-
-    this.traceId = args?.traceId;
 
     let langchainVersion: string | undefined = undefined;
 
@@ -41,21 +39,39 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
       // Couldn't determine version
     }
 
-    const mergedProperties = {
-      ...args?.properties,
-      __langchainVersion: langchainVersion,
-      __langchainLanguage: 'javascript',
-    };
-
-    this.tracer = new AutoblocksTracer(ingestionKey, {
-      properties: mergedProperties,
+    this._tracer = new AutoblocksTracer(ingestionKey, {
+      properties: {
+        __langchainVersion: langchainVersion,
+        __langchainLanguage: 'javascript',
+      },
     });
+
+    // Allow messagePrefix to be an empty string (which will mean there is no prefix)
+    if (typeof args?.messagePrefix === 'string') {
+      this.messagePrefix = args.messagePrefix;
+    }
+    // Require messageSeparator to be a non-empty string
+    if (typeof args?.messageSeparator === 'string') {
+      if (args.messageSeparator.length === 0) {
+        console.warn(
+          `Ignoring empty messageSeparator; defaulting to "${this.messageSeparator}"`,
+        );
+      } else {
+        this.messageSeparator = args.messageSeparator;
+      }
+    }
   }
 
   private onStart(runId: string) {
-    if (!this.traceId) {
-      this.traceId = runId;
+    if (this.tracer.traceId) {
+      // Trace ID is being managed by the user
+      return;
+    } else if (this.traceId) {
+      // Trace ID has already been set by this handler
+      return;
     }
+
+    this.traceId = runId;
   }
 
   private onEnd(runId: string) {
@@ -65,13 +81,20 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   }
 
   private async sendEvent(
-    message: string,
+    messageParts: string[],
     properties: Record<string, unknown>,
   ) {
+    const message = [this.messagePrefix, ...messageParts]
+      .filter(Boolean)
+      .join(this.messageSeparator);
     await this.tracer.sendEvent(message, {
       traceId: this.traceId,
       properties,
     });
+  }
+
+  get tracer(): AutoblocksTracer {
+    return this._tracer;
   }
 
   async handleChatModelStart(
@@ -86,7 +109,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   ) {
     this.onStart(runId);
 
-    await this.sendEvent('langchain.chatmodel.start', {
+    await this.sendEvent(['chatmodel', 'start'], {
       llm,
       messages,
       runId,
@@ -110,7 +133,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   ) {
     this.onStart(runId);
 
-    await this.sendEvent('langchain.llm.start', {
+    await this.sendEvent(['llm', 'start'], {
       llm,
       prompts,
       runId,
@@ -128,7 +151,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.llm.end', {
+    await this.sendEvent(['llm', 'end'], {
       output,
       runId,
       parentRunId,
@@ -144,7 +167,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.llm.error', {
+    await this.sendEvent(['llm', 'error'], {
       err,
       runId,
       parentRunId,
@@ -166,7 +189,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   ) {
     this.onStart(runId);
 
-    await this.sendEvent('langchain.chain.start', {
+    await this.sendEvent(['chain', 'start'], {
       chain,
       inputs,
       runId,
@@ -185,7 +208,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     tags?: string[] | undefined,
     kwargs?: { inputs?: Record<string, unknown> | undefined } | undefined,
   ) {
-    await this.sendEvent('langchain.chain.end', {
+    await this.sendEvent(['chain', 'end'], {
       outputs,
       runId,
       parentRunId,
@@ -203,7 +226,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     tags?: string[] | undefined,
     kwargs?: { inputs?: Record<string, unknown> | undefined } | undefined,
   ) {
-    await this.sendEvent('langchain.chain.error', {
+    await this.sendEvent(['chain', 'error'], {
       err,
       runId,
       parentRunId,
@@ -225,7 +248,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   ) {
     this.onStart(runId);
 
-    await this.sendEvent('langchain.tool.start', {
+    await this.sendEvent(['tool', 'start'], {
       tool,
       input,
       runId,
@@ -242,7 +265,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.tool.end', {
+    await this.sendEvent(['tool', 'end'], {
       output,
       runId,
       parentRunId,
@@ -258,7 +281,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.tool.error', {
+    await this.sendEvent(['tool', 'error'], {
       err,
       runId,
       parentRunId,
@@ -274,9 +297,9 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    this.onStart(runId);
+    // Agent callbacks are only called within a chain run so we don't call onStart within this handler
 
-    await this.sendEvent('langchain.agent.action', {
+    await this.sendEvent(['agent', 'action'], {
       action,
       runId,
       parentRunId,
@@ -290,14 +313,14 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.agent.end', {
+    await this.sendEvent(['agent', 'end'], {
       action,
       runId,
       parentRunId,
       tags,
     });
 
-    this.onEnd(runId);
+    // Agent callbacks are only called within a chain run so we don't call onEnd within this handler
   }
 
   async handleRetrieverStart(
@@ -311,7 +334,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   ) {
     this.onStart(runId);
 
-    await this.sendEvent('langchain.retriever.start', {
+    await this.sendEvent(['retriever', 'start'], {
       retriever,
       query,
       runId,
@@ -328,7 +351,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.retriever.end', {
+    await this.sendEvent(['retriever', 'end'], {
       documents,
       runId,
       parentRunId,
@@ -344,7 +367,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
     parentRunId?: string | undefined,
     tags?: string[] | undefined,
   ) {
-    await this.sendEvent('langchain.retriever.error', {
+    await this.sendEvent(['retriever', 'error'], {
       err,
       runId,
       parentRunId,
