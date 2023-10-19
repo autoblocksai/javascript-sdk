@@ -60,9 +60,8 @@ function makeWrapper(func: any): any {
   };
 }
 
-function patch() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const openAiModule: typeof import('openai') = require('openai');
+async function patch() {
+  const openAiModule = await import('openai');
   openAiModule.OpenAI.Completions.prototype.create = makeWrapper(
     openAiModule.OpenAI.Completions.prototype.create,
   );
@@ -71,7 +70,7 @@ function patch() {
   );
 }
 
-export function traceOpenAI(): AutoblocksTracer {
+export async function traceOpenAI(): Promise<AutoblocksTracer> {
   if (traceOpenAI.called) {
     return tracer;
   }
@@ -83,9 +82,9 @@ export function traceOpenAI(): AutoblocksTracer {
   }
 
   try {
-    patch();
-  } catch {
-    console.warn("Couldn't patch openai module");
+    await patch();
+  } catch (err) {
+    console.warn(`Couldn't patch openai module: ${err}`);
   }
 
   traceOpenAI.called = true;
