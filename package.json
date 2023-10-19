@@ -32,7 +32,6 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint --ext .ts --max-warnings 0 .",
     "test": "TZ=UTC jest",
-    "test:e2e": "tsx e2e/test-api-client/index.ts",
     "prepare": "husky install"
   },
   "homepage": "https://github.com/autoblocksai/javascript-sdk",

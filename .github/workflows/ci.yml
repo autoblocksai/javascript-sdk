@@ -37,19 +37,13 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Run e2e tests
-        run: npm run test:e2e
-        env:
-          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
-          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
-
       - name: Run build
         run: npm run build
 
       - name: Install yalc
         run: npm install -g yalc
 
-      - name: Publish
+      - name: Yalc publish
         run: yalc publish
 
       - name: Delete top level node_modules
@@ -78,3 +72,18 @@ jobs:
         run: yalc add @autoblocks/client && npm install && npm run start
         env:
           AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test ESM imports & openai tracer
+        working-directory: e2e/test-trace-openai-esm
+        run: yalc add @autoblocks/client && npm install && npm run start
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
+
+      - name: Test ESM imports & API client
+        working-directory: e2e/test-api-client-esm
+        run: yalc add @autoblocks/client && npm install && npm run start
+        env:
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
