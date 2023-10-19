@@ -1,17 +1,21 @@
 import crypto from 'crypto';
 import { OpenAI } from 'openai';
-import { traceOpenAI } from '../src';
+import { AutoblocksTracer, traceOpenAI } from '../src';
 
 jest.setTimeout(10000);
 
 describe('traceOpenAI', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
 
-  const tracer = traceOpenAI();
+  let tracer: AutoblocksTracer;
 
-  // Call multiple times to make sure we aren't patching openai multiple times
-  traceOpenAI();
-  traceOpenAI();
+  beforeAll(async () => {
+    tracer = await traceOpenAI();
+
+    // Call multiple times to make sure the patch is idempotent
+    await traceOpenAI();
+    await traceOpenAI();
+  });
 
   const openai = new OpenAI();
 
