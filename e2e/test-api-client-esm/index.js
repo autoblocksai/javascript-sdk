@@ -3,7 +3,7 @@ import {
   AutoblocksAPIClient,
   AutoblocksTracer,
   SystemEventFilterKey,
-} from '../../src';
+} from '@autoblocks/client';
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
@@ -12,7 +12,7 @@ const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 const E2E_TESTS_VIEW_ID = 'cllmlk8py0003l608vd83dc03';
 const E2E_TESTS_EXPECTED_MESSAGE = 'sdk.e2e';
 
-const sleep = (seconds: number) =>
+const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 const main = async () => {
