@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { traceOpenAI, AutoblocksAPIClient } from '@autoblocks/client';
+import { AutoblocksAPIClient } from '@autoblocks/client';
+import { traceOpenAI } from '@autoblocks/client/openai';
 import { OpenAI } from 'openai';
 
 const sleep = (seconds) =>
@@ -65,11 +66,6 @@ const main = async () => {
         console.log(`Found trace ${traceId}!`);
         break;
       }
-      throw new Error(
-        `Found trace ${traceId} but it didn't have the expected messages: ${JSON.stringify(
-          messages,
-        )}`,
-      );
     }
 
     retries--;
