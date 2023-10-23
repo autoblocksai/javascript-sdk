@@ -5,3 +5,4 @@ pnpm-lock.yaml
 .prettierignore
 .gitignore
 assets/
+*.svg
