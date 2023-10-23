@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { OpenAI } from 'openai';
-import { AutoblocksTracer, traceOpenAI } from '../src';
+import { AutoblocksTracer } from '../src';
+import { traceOpenAI } from '../src/openai';
 
 jest.setTimeout(10000);
 

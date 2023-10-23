@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { traceOpenAI, AutoblocksAPIClient } from '@autoblocks/client';
+import { AutoblocksAPIClient } from '@autoblocks/client';
+import { traceOpenAI } from '@autoblocks/client/openai';
 import { OpenAI } from 'openai';
 
 const sleep = (seconds) =>

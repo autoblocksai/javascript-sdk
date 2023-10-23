@@ -13,12 +13,19 @@
     "./langchain": {
       "require": "./dist/langchain/index.js",
       "import": "./dist/langchain/index.mjs"
+    },
+    "./openai": {
+      "require": "./dist/openai/index.js",
+      "import": "./dist/openai/index.mjs"
     }
   },
   "typesVersions": {
     "*": {
       "langchain": [
         "./dist/langchain/index.d.ts"
+      ],
+      "openai": [
+        "./dist/openai/index.d.ts"
       ]
     }
   },
