@@ -72,9 +72,7 @@ export class AutoblocksAPIClient {
       headers: {
         Authorization: `Bearer ${apiToken}`,
       },
-      timeout: args?.timeout
-        ? convertTimeDeltaToMilliSeconds(args.timeout)
-        : undefined,
+      timeout: convertTimeDeltaToMilliSeconds(args?.timeout || { seconds: 10 }),
     });
   }
 

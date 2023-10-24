@@ -13,6 +13,7 @@ describe('Autoblocks Client', () => {
         headers: {
           Authorization: 'Bearer mock-api-token',
         },
+        timeout: 10,
       });
     });
 
