@@ -104,7 +104,7 @@ async function run() {
   }
 
   // Simulate user feedback
-  await ab.sendEvent('user.feedback', {
+  await tracer.sendEvent('user.feedback', {
     properties: {
       feedback: 'good',
     },
