@@ -24,7 +24,9 @@ const main = async () => {
   }
 
   const tracer = new AutoblocksTracer(AUTOBLOCKS_INGESTION_KEY);
-  const client = new AutoblocksAPIClient(AUTOBLOCKS_API_KEY);
+  const client = new AutoblocksAPIClient(AUTOBLOCKS_API_KEY, {
+    timeout: { seconds: 30 },
+  });
 
   // Make sure our view exists
   const views = await client.getViews();

@@ -1,22 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
-import { makeReplayHeaders } from './util';
+import {
+  makeReplayHeaders,
+  type TimeDelta,
+  convertTimeDeltaToMilliSeconds,
+} from './util';
 
 type EventProperties = Record<string, unknown>;
-
-interface TimeDelta {
-  minutes?: number;
-  seconds?: number;
-  milliseconds?: number;
-}
-
-const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
-  const minutes = delta.minutes || 0;
-  const seconds = delta.seconds || 0;
-  const milliseconds = delta.milliseconds || 0;
-
-  const totalSeconds = minutes * 60 + seconds;
-  return totalSeconds * 1000 + milliseconds;
-};
 
 export class AutoblocksTracer {
   private client: AxiosInstance;

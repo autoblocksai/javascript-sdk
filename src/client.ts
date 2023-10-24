@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { type TimeDelta, convertTimeDeltaToMilliSeconds } from './util';
 
 export interface View {
   id: string;
@@ -60,12 +61,20 @@ export enum SystemEventFilterKey {
 export class AutoblocksAPIClient {
   private client: AxiosInstance;
 
-  constructor(apiToken: string) {
+  constructor(
+    apiToken: string,
+    args?: {
+      timeout?: TimeDelta;
+    },
+  ) {
     this.client = axios.create({
       baseURL: 'https://api.autoblocks.ai',
       headers: {
         Authorization: `Bearer ${apiToken}`,
       },
+      timeout: args?.timeout
+        ? convertTimeDeltaToMilliSeconds(args.timeout)
+        : undefined,
     });
   }
 

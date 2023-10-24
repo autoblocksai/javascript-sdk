@@ -28,7 +28,9 @@ const main = async () => {
   });
 
   // Use the REST API to find the trace we just sent
-  const client = new AutoblocksAPIClient(process.env.AUTOBLOCKS_API_KEY);
+  const client = new AutoblocksAPIClient(AUTOBLOCKS_API_KEY, {
+    timeout: { seconds: 30 },
+  });
 
   let retries = 10;
 
