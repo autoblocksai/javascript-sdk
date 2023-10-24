@@ -25,9 +25,7 @@ export class AutoblocksTracer {
       headers: {
         Authorization: `Bearer ${ingestionToken}`,
       },
-      timeout: args?.timeout
-        ? convertTimeDeltaToMilliSeconds(args.timeout)
-        : undefined,
+      timeout: convertTimeDeltaToMilliSeconds(args?.timeout || { seconds: 5 }),
     });
     this._traceId = args?.traceId;
     this.properties = args?.properties || {};
