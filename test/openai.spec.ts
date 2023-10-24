@@ -3,7 +3,7 @@ import { OpenAI } from 'openai';
 import { AutoblocksTracer } from '../src';
 import { traceOpenAI } from '../src/openai';
 
-jest.setTimeout(10000);
+jest.setTimeout(60000);
 
 describe('traceOpenAI', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';

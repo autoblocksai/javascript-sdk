@@ -17,7 +17,7 @@ describe('Autoblocks Tracer', () => {
         headers: {
           Authorization: 'Bearer mock-ingestion-token',
         },
-        timeout: undefined,
+        timeout: 5000,
       });
     });
 
