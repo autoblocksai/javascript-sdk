@@ -42,8 +42,16 @@
     "prepare": "husky install"
   },
   "homepage": "https://github.com/autoblocksai/javascript-sdk",
-  "bugs": "https://github.com/autoblocksai/javascript-sdk/issues",
-  "author": "Autoblocks",
+  "bugs": {
+    "url": "https://github.com/autoblocksai/javascript-sdk/issues",
+    "email": "support@autoblocks.ai"
+  },
+  "repository": "github:autoblocksai/javascript-sdk",
+  "author": {
+    "name": "Autoblocks Engineering",
+    "email": "engineering@autoblocks.ai",
+    "url": "https://www.autoblocks.ai"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.3",
