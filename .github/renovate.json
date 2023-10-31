@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "schedule:weekly"],
+  "reviewers": ["team:engineering"],
+  "ignorePaths": ["e2e/**"],
+  "packageRules": [
+    {
+      "groupName": "all non-major dev dependencies",
+      "groupSlug": "all-minor-patch-dev",
+      "matchDepTypes": ["devDependencies"],
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ]
+}
