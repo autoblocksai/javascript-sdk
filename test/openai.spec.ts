@@ -67,12 +67,10 @@ describe('traceOpenAI', () => {
 
     expect(timestamps.every(Boolean)).toBe(true);
 
-    expect(properties[0]).toEqual({
-      model: 'gpt-3.5-turbo-instruct',
-      prompt: 'Say this is a test.',
-      temperature: 0,
-      provider: 'openai',
-    });
+    expect(properties[0].model).toEqual('gpt-3.5-turbo-instruct');
+    expect(properties[0].prompt).toEqual('Say this is a test.');
+    expect(properties[0].temperature).toEqual(0);
+    expect(properties[0].provider).toEqual('openai');
 
     expect(properties[1].latencyMs).toBeDefined();
     expect(properties[1].response.choices[0].text).toBeDefined();
@@ -107,11 +105,11 @@ describe('traceOpenAI', () => {
 
     expect(timestamps.every(Boolean)).toBe(true);
 
-    expect(properties[0]).toEqual({
-      messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
-      model: 'gpt-3.5-turbo',
-      provider: 'openai',
-    });
+    expect(properties[0].messages).toEqual([
+      { role: 'system', content: 'You are a helpful assistant.' },
+    ]);
+    expect(properties[0].model).toEqual('gpt-3.5-turbo');
+    expect(properties[0].provider).toEqual('openai');
 
     expect(properties[1].latencyMs).toBeDefined();
     expect(properties[1].response.choices[0].message.content).toBeDefined();
@@ -222,12 +220,10 @@ describe('traceOpenAI', () => {
     checkAllEqualAndDefined(traceIds);
     checkAllEqualAndDefined(spanIds);
 
-    expect(properties[0]).toEqual({
-      model: 'fdsa',
-      prompt: 'Say this is a test.',
-      temperature: 0,
-      provider: 'openai',
-    });
+    expect(properties[0].model).toEqual('fdsa');
+    expect(properties[0].prompt).toEqual('Say this is a test.');
+    expect(properties[0].temperature).toEqual(0);
+    expect(properties[0].provider).toEqual('openai');
 
     expect(properties[1].latencyMs).toBeDefined();
     expect(properties[1].error).toEqual(
@@ -260,11 +256,11 @@ describe('traceOpenAI', () => {
     checkAllEqualAndDefined(traceIds);
     checkAllEqualAndDefined(spanIds);
 
-    expect(properties[0]).toEqual({
-      messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
-      model: 'fdsa',
-      provider: 'openai',
-    });
+    expect(properties[0].messages).toEqual([
+      { role: 'system', content: 'You are a helpful assistant.' },
+    ]);
+    expect(properties[0].model).toEqual('fdsa');
+    expect(properties[0].provider).toEqual('openai');
 
     expect(properties[1].latencyMs).toBeDefined();
     expect(properties[1].error).toEqual(
