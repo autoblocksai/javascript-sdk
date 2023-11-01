@@ -30,7 +30,8 @@ function makeWrapper(func: any): any {
 
     await tracer.sendEvent('ai.completion.request', {
       traceId,
-      properties: { spanId, ...args[0] },
+      spanId,
+      properties: args[0],
     });
 
     const start = Date.now();
@@ -47,19 +48,19 @@ function makeWrapper(func: any): any {
       if (error) {
         await tracer.sendEvent('ai.completion.error', {
           traceId,
+          spanId,
           properties: {
             latencyMs,
             error: error.toString(),
-            spanId,
           },
         });
       } else {
         await tracer.sendEvent('ai.completion.response', {
           traceId,
+          spanId,
           properties: {
             latencyMs,
             response,
-            spanId,
           },
         });
       }

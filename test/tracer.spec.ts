@@ -278,6 +278,70 @@ describe('Autoblocks Tracer', () => {
         { headers: undefined },
       );
     });
+
+    it('sends the spanId as a property', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        spanId: 'my-span-id',
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: { spanId: 'my-span-id' },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it('sends the parentSpanId as a property', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        parentSpanId: 'my-parent-span-id',
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: { parentSpanId: 'my-parent-span-id' },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it('sends the spanId and parentSpanId as a property', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        spanId: 'my-span-id',
+        parentSpanId: 'my-parent-span-id',
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: {
+            spanId: 'my-span-id',
+            parentSpanId: 'my-parent-span-id',
+          },
+        },
+        { headers: undefined },
+      );
+    });
   });
 
   describe('Error Handling', () => {
