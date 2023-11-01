@@ -23,9 +23,14 @@ function makeWrapper(func: any): any {
       traceId = crypto.randomUUID();
     }
 
+    // Similar to the comment above, we don't set this via tracer.updateProperties
+    // because the tracer is returned from this function and meant to be used by the
+    // end user for additional events, and those events should not belong to this span.
+    const spanId = crypto.randomUUID();
+
     await tracer.sendEvent('ai.completion.request', {
       traceId,
-      properties: args[0],
+      properties: { spanId, ...args[0] },
     });
 
     const start = Date.now();
@@ -45,6 +50,7 @@ function makeWrapper(func: any): any {
           properties: {
             latencyMs,
             error: error.toString(),
+            spanId,
           },
         });
       } else {
@@ -53,6 +59,7 @@ function makeWrapper(func: any): any {
           properties: {
             latencyMs,
             response,
+            spanId,
           },
         });
       }
