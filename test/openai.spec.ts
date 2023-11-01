@@ -5,6 +5,11 @@ import { traceOpenAI } from '../src/openai';
 
 jest.setTimeout(60000);
 
+const checkAllEqualAndDefined = (xs: string[]) => {
+  expect(xs.every((x) => x === xs[0])).toBe(true);
+  expect(xs.every(Boolean)).toBe(true);
+};
+
 describe('traceOpenAI', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
 
@@ -50,14 +55,15 @@ describe('traceOpenAI', () => {
     const traceIds = calls.map((call) => call[1].traceId);
     const timestamps = calls.map((call) => call[1].timestamp);
     const properties = calls.map((call) => call[1].properties);
+    const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual([
       'ai.completion.request',
       'ai.completion.response',
     ]);
 
-    expect(traceIds[0]).toEqual(traceIds[1]);
-    expect(traceIds[0].length).toEqual(36);
+    checkAllEqualAndDefined(traceIds);
+    checkAllEqualAndDefined(spanIds);
 
     expect(timestamps.every(Boolean)).toBe(true);
 
@@ -89,14 +95,15 @@ describe('traceOpenAI', () => {
     const traceIds = calls.map((call) => call[1].traceId);
     const timestamps = calls.map((call) => call[1].timestamp);
     const properties = calls.map((call) => call[1].properties);
+    const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual([
       'ai.completion.request',
       'ai.completion.response',
     ]);
 
-    expect(traceIds[0]).toEqual(traceIds[1]);
-    expect(traceIds[0].length).toEqual(36);
+    checkAllEqualAndDefined(traceIds);
+    checkAllEqualAndDefined(spanIds);
 
     expect(timestamps.every(Boolean)).toBe(true);
 
@@ -172,6 +179,7 @@ describe('traceOpenAI', () => {
 
     const messages = calls.map((call) => call[1].message);
     const traceIds = calls.map((call) => call[1].traceId);
+    const spanIds = calls.map((call) => call[1].properties.spanId);
 
     expect(messages).toEqual([
       'ai.completion.request',
@@ -179,9 +187,14 @@ describe('traceOpenAI', () => {
       'ai.completion.request',
       'ai.completion.response',
     ]);
+
     expect(traceIds[0]).toEqual(traceIds[1]);
     expect(traceIds[2]).toEqual(traceIds[3]);
     expect(traceIds[0]).not.toEqual(traceIds[2]);
+
+    expect(spanIds[0]).toEqual(spanIds[1]);
+    expect(spanIds[2]).toEqual(spanIds[3]);
+    expect(spanIds[0]).not.toEqual(spanIds[2]);
   });
 
   it('completions.create (error)', async () => {
@@ -200,9 +213,14 @@ describe('traceOpenAI', () => {
     expect(calls.length).toEqual(2);
 
     const messages = calls.map((call) => call[1].message);
+    const traceIds = calls.map((call) => call[1].traceId);
     const properties = calls.map((call) => call[1].properties);
+    const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual(['ai.completion.request', 'ai.completion.error']);
+
+    checkAllEqualAndDefined(traceIds);
+    checkAllEqualAndDefined(spanIds);
 
     expect(properties[0]).toEqual({
       model: 'fdsa',
@@ -233,9 +251,14 @@ describe('traceOpenAI', () => {
     expect(calls.length).toEqual(2);
 
     const messages = calls.map((call) => call[1].message);
+    const traceIds = calls.map((call) => call[1].traceId);
     const properties = calls.map((call) => call[1].properties);
+    const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual(['ai.completion.request', 'ai.completion.error']);
+
+    checkAllEqualAndDefined(traceIds);
+    checkAllEqualAndDefined(spanIds);
 
     expect(properties[0]).toEqual({
       messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
