@@ -54,6 +54,8 @@ export class AutoblocksTracer {
     message: string,
     args?: {
       traceId?: string;
+      spanId?: string;
+      parentSpanId?: string;
       timestamp?: string;
       properties?: EventProperties;
     },
@@ -63,6 +65,8 @@ export class AutoblocksTracer {
     const properties = {
       ...this.properties,
       ...(args?.properties || {}),
+      spanId: args?.spanId,
+      parentSpanId: args?.parentSpanId,
     };
 
     let replayHeaders = undefined;
@@ -90,6 +94,8 @@ export class AutoblocksTracer {
     message: string,
     args?: {
       traceId?: string;
+      spanId?: string;
+      parentSpanId?: string;
       timestamp?: string;
       properties?: EventProperties;
     },
