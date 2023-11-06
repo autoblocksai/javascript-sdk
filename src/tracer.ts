@@ -76,13 +76,14 @@ export class AutoblocksTracer {
       );
     }
 
-    const properties = {
-      ...this.properties,
-      ...(args?.properties || {}),
-      spanId: args?.spanId,
-      parentSpanId: args?.parentSpanId,
-      ...(args?.prompts ? { prompts: args.prompts } : {}),
-    };
+    const properties = Object.assign(
+      {},
+      this.properties,
+      args?.properties,
+      args?.spanId ? { spanId: args.spanId } : {},
+      args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
+      args?.prompts ? { prompts: args.prompts } : {},
+    );
 
     let replayHeaders = undefined;
     try {
