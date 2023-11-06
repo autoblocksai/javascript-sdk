@@ -18,7 +18,7 @@ jest.setTimeout(60000);
 // Used to verify we're sending the correct version
 // This will need to be updated if we update our version of
 // langchain in devDependencies
-const CURRENT_LANGCHAIN_VERSION = '0.0.175';
+const CURRENT_LANGCHAIN_VERSION = '0.0.181';
 
 const mockHandlerPost = (handler: AutoblocksCallbackHandler) => {
   const mockPost = jest
