@@ -342,6 +342,75 @@ describe('Autoblocks Tracer', () => {
         { headers: undefined },
       );
     });
+
+    it('sends prompts as properties', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: {
+          hello: 'world',
+          prompts: 'i will be overwritten',
+        },
+        prompts: [
+          {
+            id: 'my-prompt-id',
+            template: 'my-prompt-template',
+            properties: {
+              name: 'my-prompt-name',
+            },
+          },
+        ],
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: {
+            hello: 'world',
+            prompts: [
+              {
+                id: 'my-prompt-id',
+                template: 'my-prompt-template',
+                properties: {
+                  name: 'my-prompt-name',
+                },
+              },
+            ],
+          },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it("doesn't unset prompts property if not provided in top-level field", async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: {
+          hello: 'world',
+          prompts: 'i will NOT be overwritten',
+        },
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: {
+            hello: 'world',
+            prompts: 'i will NOT be overwritten',
+          },
+        },
+        { headers: undefined },
+      );
+    });
   });
 
   describe('Error Handling', () => {
