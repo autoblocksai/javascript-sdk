@@ -7,6 +7,14 @@ import {
 
 type EventProperties = Record<string, unknown>;
 
+interface SendEventArgs {
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
+  timestamp?: string;
+  properties?: EventProperties;
+}
+
 export class AutoblocksTracer {
   private client: AxiosInstance;
   private _traceId: string | undefined;
@@ -52,13 +60,7 @@ export class AutoblocksTracer {
 
   private async sendEventUnsafe(
     message: string,
-    args?: {
-      traceId?: string;
-      spanId?: string;
-      parentSpanId?: string;
-      timestamp?: string;
-      properties?: EventProperties;
-    },
+    args?: SendEventArgs,
   ): Promise<string> {
     const traceId = args?.traceId || this.traceId;
     const timestamp = args?.timestamp || new Date().toISOString();
@@ -92,13 +94,7 @@ export class AutoblocksTracer {
 
   public async sendEvent(
     message: string,
-    args?: {
-      traceId?: string;
-      spanId?: string;
-      parentSpanId?: string;
-      timestamp?: string;
-      properties?: EventProperties;
-    },
+    args?: SendEventArgs,
   ): Promise<{ traceId?: string }> {
     try {
       const traceId = await this.sendEventUnsafe(message, args);
