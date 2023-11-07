@@ -299,12 +299,76 @@ describe('Autoblocks Tracer', () => {
       );
     });
 
+    it('sends the spanId as a property', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        spanId: 'my-span-id',
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: { spanId: 'my-span-id' },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it("doesn't unset spanId sent from properties", async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: {
+          spanId: 'my-span-id',
+        },
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: { spanId: 'my-span-id' },
+        },
+        { headers: undefined },
+      );
+    });
+
     it('sends the parentSpanId as a property', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-token');
 
       await tracer.sendEvent('mock-message', {
         traceId: 'my-trace-id',
         parentSpanId: 'my-parent-span-id',
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: { parentSpanId: 'my-parent-span-id' },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it("doesn't unset parentSpanId sent from properties", async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: {
+          parentSpanId: 'my-parent-span-id',
+        },
       });
 
       expect(mockPost).toHaveBeenCalledWith(
@@ -337,6 +401,75 @@ describe('Autoblocks Tracer', () => {
           properties: {
             spanId: 'my-span-id',
             parentSpanId: 'my-parent-span-id',
+          },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it('sends prompts as properties', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: {
+          hello: 'world',
+          prompts: 'i will be overwritten',
+        },
+        prompts: [
+          {
+            id: 'my-prompt-id',
+            template: 'my-prompt-template',
+            properties: {
+              name: 'my-prompt-name',
+            },
+          },
+        ],
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: {
+            hello: 'world',
+            prompts: [
+              {
+                id: 'my-prompt-id',
+                template: 'my-prompt-template',
+                properties: {
+                  name: 'my-prompt-name',
+                },
+              },
+            ],
+          },
+        },
+        { headers: undefined },
+      );
+    });
+
+    it("doesn't unset prompts property if not provided in top-level field", async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: {
+          hello: 'world',
+          prompts: 'i will NOT be overwritten',
+        },
+      });
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/',
+        {
+          message: 'mock-message',
+          traceId: 'my-trace-id',
+          timestamp,
+          properties: {
+            hello: 'world',
+            prompts: 'i will NOT be overwritten',
           },
         },
         { headers: undefined },

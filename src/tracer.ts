@@ -5,7 +5,20 @@ import {
   convertTimeDeltaToMilliSeconds,
 } from './util';
 
-type EventProperties = Record<string, unknown>;
+type ArbitraryProperties = Record<string | number, unknown>;
+
+interface SendEventArgs {
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
+  timestamp?: string;
+  properties?: ArbitraryProperties;
+  prompts?: {
+    id: string | number;
+    template: string;
+    properties?: ArbitraryProperties;
+  }[];
+}
 
 export class AutoblocksTracer {
   private client: AxiosInstance;
@@ -16,7 +29,7 @@ export class AutoblocksTracer {
     ingestionToken: string,
     args?: {
       traceId?: string;
-      properties?: EventProperties;
+      properties?: ArbitraryProperties;
       timeout?: TimeDelta;
     },
   ) {
@@ -39,11 +52,11 @@ export class AutoblocksTracer {
     this._traceId = traceId;
   }
 
-  public setProperties(properties: EventProperties) {
+  public setProperties(properties: ArbitraryProperties) {
     this.properties = properties;
   }
 
-  public updateProperties(properties: EventProperties) {
+  public updateProperties(properties: ArbitraryProperties) {
     this.properties = {
       ...this.properties,
       ...properties,
@@ -52,22 +65,25 @@ export class AutoblocksTracer {
 
   private async sendEventUnsafe(
     message: string,
-    args?: {
-      traceId?: string;
-      spanId?: string;
-      parentSpanId?: string;
-      timestamp?: string;
-      properties?: EventProperties;
-    },
+    args?: SendEventArgs,
   ): Promise<string> {
     const traceId = args?.traceId || this.traceId;
     const timestamp = args?.timestamp || new Date().toISOString();
-    const properties = {
-      ...this.properties,
-      ...(args?.properties || {}),
-      spanId: args?.spanId,
-      parentSpanId: args?.parentSpanId,
-    };
+
+    if (args?.properties?.prompts && args?.prompts) {
+      console.warn(
+        'Ignoring the `prompts` field on the `properties` argument since it is also specified as a top-level argument.',
+      );
+    }
+
+    const properties = Object.assign(
+      {},
+      this.properties,
+      args?.properties,
+      args?.spanId ? { spanId: args.spanId } : {},
+      args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
+      args?.prompts ? { prompts: args.prompts } : {},
+    );
 
     let replayHeaders = undefined;
     try {
@@ -92,13 +108,7 @@ export class AutoblocksTracer {
 
   public async sendEvent(
     message: string,
-    args?: {
-      traceId?: string;
-      spanId?: string;
-      parentSpanId?: string;
-      timestamp?: string;
-      properties?: EventProperties;
-    },
+    args?: SendEventArgs,
   ): Promise<{ traceId?: string }> {
     try {
       const traceId = await this.sendEventUnsafe(message, args);
