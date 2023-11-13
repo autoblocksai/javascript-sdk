@@ -319,3 +319,14 @@ export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   const totalSeconds = minutes * 60 + seconds;
   return totalSeconds * 1000 + milliseconds;
 };
+
+export type ArbitraryProperties = Record<string | number, unknown>;
+
+export interface PromptTracking {
+  id: string | number;
+  templates: {
+    id: string | number;
+    template: string;
+    properties?: ArbitraryProperties;
+  }[];
+}

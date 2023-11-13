@@ -1,0 +1,26 @@
+{
+  "name": "test-prompt-manager-ts",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "jest",
+    "gen-prompt-template-types": "autoblocks gen-prompt-template-types"
+  },
+  "dependencies": {
+    "@types/jest": "*",
+    "jest": "*",
+    "openai": "*",
+    "ts-jest": "*"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "autoblocks": {
+    "templatesDirectory": "autoblocks-templates"
+  }
+}

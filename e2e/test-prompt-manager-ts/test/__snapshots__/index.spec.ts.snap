@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`main builds prompts for feature A 1`] = `"Always respond in Spanish."`;
+
+exports[`main builds prompts for feature A 2`] = `
+"You are a helpful assistant.
+
+Always respond in Spanish."
+`;
+
+exports[`main builds prompts for feature A 3`] = `"Hello, Nicole!"`;
+
+exports[`main builds prompts for feature B 1`] = `"Always respond in Portuguese."`;
+
+exports[`main builds prompts for feature B 2`] = `
+"You are a very helpful assistant.
+
+Always respond in Portuguese."
+`;
+
+exports[`main builds prompts for feature B 3`] = `"I am 32 years old. How old am I?"`;

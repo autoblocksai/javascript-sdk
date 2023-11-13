@@ -2,13 +2,20 @@
   "name": "@autoblocks/client",
   "version": "0.0.0-automated",
   "description": "JavaScript client for Autoblocks",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "bin": {
+    "autoblocks": "./bin/cli.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
+    },
+    "./prompts": {
+      "require": "./dist/prompts/index.js",
+      "import": "./dist/prompts/index.mjs"
     },
     "./langchain": {
       "require": "./dist/langchain/index.js",
@@ -21,6 +28,9 @@
   },
   "typesVersions": {
     "*": {
+      "prompts": [
+        "./dist/prompts/index.d.ts"
+      ],
       "langchain": [
         "./dist/langchain/index.d.ts"
       ],
@@ -30,6 +40,7 @@
     }
   },
   "files": [
+    "bin",
     "dist",
     "LICENSE",
     "README.md"
