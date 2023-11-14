@@ -1,1 +1,1 @@
-I am ${age} years old. How old am I?
+I am {{ age }} years old. How old am I?

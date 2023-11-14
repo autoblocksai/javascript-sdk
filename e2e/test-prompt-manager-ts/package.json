@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "start": "jest",
-    "gen-prompt-template-types": "autoblocks gen-prompt-template-types"
+    "ab-prompts-generate": "autoblocks prompts generate"
   },
   "dependencies": {
     "@types/jest": "*",

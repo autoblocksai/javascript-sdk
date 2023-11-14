@@ -1,1 +1,1 @@
-Always respond in ${language}.
+Always respond in {{ language }}.

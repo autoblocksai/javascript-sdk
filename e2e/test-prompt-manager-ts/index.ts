@@ -14,8 +14,6 @@ export enum PromptTrackingId {
 }
 
 export async function main() {
-  await promptManager.init();
-
   // Build prompt(s) for task A
   const builderA = promptManager.makeBuilder(PromptTrackingId.A);
 

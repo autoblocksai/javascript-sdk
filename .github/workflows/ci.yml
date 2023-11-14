@@ -105,7 +105,7 @@ jobs:
         run: |
           yalc add @autoblocks/client && \
           npm install && \
-          npm run gen-prompt-template-types && \
+          npm run ab-prompts-generate && \
           npm run start
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

@@ -75,7 +75,8 @@ export class PromptBuilder {
     let rendered = template;
 
     Object.entries(params).forEach(([key, value]) => {
-      rendered = rendered.replace(`\${${key}}`, `${value}`);
+      const re = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
+      rendered = rendered.replace(re, `${value}`);
     });
 
     // Record that the template was used
