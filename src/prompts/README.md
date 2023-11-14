@@ -5,7 +5,7 @@ It provides several advantages over traditional prompt building techniques:
 
 ## 1. Prompts are kept in text files
 
-Prompts are kept in text files, not code, so you don't need to awkwardly indent multiline strings within objects and functions
+Prompts are kept in text files, not code, so you don't need to awkwardly indent multiline strings within objects and functions:
 
 :x:
 
@@ -27,9 +27,9 @@ I can write things normally in a text file!
 I don't have to awkwardly indent my text to the left!
 ```
 
-## 2. Prompt building is type-safe, so you don't have to worry about typos or missing placeholder values
+## 2. Prompt building is type-safe
 
-The placeholders in your prompt templates are automatically extracted and turned into TypeScript types, so you don't have to worry about typos or missing placeholder values.
+The placeholders in your templates are automatically extracted and turned into TypeScript types, so you don't have to worry about typos or missing placeholder values.
 
 If you have the below template in a file called `feature-a/system`:
 
@@ -46,11 +46,11 @@ builder.build('feature-a/system', {
 });
 ```
 
-<img width="551" alt="Screenshot 2023-11-14 at 3 00 52 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/488d2143-53b7-4d40-b317-fa3afcc2c9a5">
+<img width="551" alt="Screenshot 2023-11-14 at 3 00 52 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/488d2143-53b7-4d40-b317-fa3afcc2c9a5"> <br/>
 
-<img width="272" alt="Screenshot 2023-11-14 at 3 06 44 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/cd0d8c08-6542-45ca-a209-8400d3ae46af">
+<img width="272" alt="Screenshot 2023-11-14 at 3 06 44 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/cd0d8c08-6542-45ca-a209-8400d3ae46af"> <br/>
 
-<img width="270" alt="Screenshot 2023-11-14 at 3 03 44 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/c009eff2-f481-469f-b806-4f255532cfe7">
+<img width="270" alt="Screenshot 2023-11-14 at 3 03 44 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/c009eff2-f481-469f-b806-4f255532cfe7"> <br/>
 
 <img width="886" alt="Screenshot 2023-11-14 at 3 03 01 PM" src="https://github.com/autoblocksai/javascript-sdk/assets/7498009/7c19e0af-e238-4d1e-8cdf-59377b6af0f7">
 
@@ -58,7 +58,7 @@ builder.build('feature-a/system', {
 
 The most powerful feature of the Autoblocks Prompt SDK is the automated versioning based on which templates you used in the process of building prompt(s) for a given LLM request.
 
-For each component of your application that makes an LLM request, choose a unique, human-readable identifier to represent that task.
+For each component of your application that makes an LLM request, choose a human-readable identifier to represent that task.
 When you use this identifier to initialize a new builder instance, the SDK will keep track of which templates you used in the process of building the prompt(s) for that request.
 
 This means you can make **any change** and it will result in a new version for that feature or task.
@@ -104,10 +104,10 @@ const messages = [
   {
     role: 'system',
     content: builder.build('feature-a/system', {
-      // Placeholder value for the {{ languageRequirement }} placeholder
+      // Replacement value for the {{ languageRequirement }} placeholder
       // is the result of another rendered template
       languageRequirement: builder.build('common/language', {
-        // Placeholder value for the {{ language }} placeholder is a constant
+        // Replacement value for the {{ language }} placeholder is a constant
         language: 'Spanish',
       }),
     }),
@@ -115,7 +115,7 @@ const messages = [
   {
     role: 'user',
     content: builder.build('feature-a/user', {
-      // Placeholder value for the {{ name }} placeholder is a constant
+      // Replacement value for the {{ name }} placeholder is a constant
       name: 'Alice',
     }),
   },
@@ -228,7 +228,7 @@ My age is {{      age       }}
 
 > **_HINT:_** Placeholders aren't always replaced with constants. They can also be replaced with the value of another rendered template.
 
-## Run the CLI to generate the types
+## Run the CLI to generate types
 
 ```bash
 autoblocks prompts generate
@@ -246,7 +246,7 @@ Note: You'll likely want to add this to your `package.json` scripts so that it i
 
 ## Initialize a builder
 
-Like explained above, you should initialize a new builder any time you're making an LLM request. Use an identifier to represent the task you're performing when initializing the builder.
+You should initialize a new builder any time you're making an LLM request. Use an identifier to represent the task you're performing when initializing the builder.
 
 ```ts
 import { AutoblocksPromptBuilder } from '@autoblocks/client/prompts';
@@ -291,4 +291,4 @@ await tracer.sendEvent('ai.response', {
 });
 ```
 
-Autoblocks will show you how your LLM performance changes over time based on which templates you used in the process of building the prompt(s) for that request.
+Autoblocks will show you how your LLM performance changes over time as you update your templates.
