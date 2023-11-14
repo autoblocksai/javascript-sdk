@@ -13,6 +13,10 @@
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     },
+    "./prompts-cli": {
+      "require": "./dist/prompts-cli/index.js",
+      "import": "./dist/prompts-cli/index.mjs"
+    },
     "./prompts": {
       "require": "./dist/prompts/index.js",
       "import": "./dist/prompts/index.mjs"
@@ -28,6 +32,9 @@
   },
   "typesVersions": {
     "*": {
+      "prompts-cli": [
+        "./dist/prompts-cli/index.d.ts"
+      ],
       "prompts": [
         "./dist/prompts/index.d.ts"
       ],

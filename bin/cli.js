@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
-const { PromptTemplateManager } = require('../dist/prompts');
+const { PromptsCLI } = require('../dist/prompts-cli');
 
 async function main() {
   // TODO: use something like yargs to parse args
-  if (process.argv[2] === 'gen-prompt-template-types') {
-    const mgr = new PromptTemplateManager();
-    await mgr.init({ generateTypes: true });
+  // This is called via `autoblocks prompts generate`
+  if (process.argv[2] === 'prompts' && process.argv[3] === 'generate') {
+    const cli = new PromptsCLI();
+    await cli.run();
+  } else {
+    console.error(`Unknown command: ${process.argv.slice(2).join(' ')}`);
   }
 }
 
