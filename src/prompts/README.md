@@ -63,21 +63,40 @@ When you use this identifier to initialize a new builder instance, the SDK will 
 
 This means you can make **any change** and it will result in a new version for that feature or task.
 
+For example, assume we have the below templates:
+
+`common/language`:
+
+```txt
+Always respond in {{ language }}.
+```
+
+`feature-a/system`:
+
+```txt
+You are a helpful assistant.
+
+{{ languageRequirement }}
+```
+
+`feature-a/user`:
+
+```txt
+Hello, my name is {{ name }}!
+```
+
 ```ts
 enum PromptTrackingId {
   FEATURE_A = 'feature-a',
   FEATURE_B = 'feature-b',
 }
 
-// Create the template manager once
-const mgr = new PromptTemplateManager();
-
 // Create a new builder anytime you're about to build
-// prompt(s) for an LLM request. Use the unique identifier
+// prompt(s) for an LLM request. Use an identifier
 // that represents the task you're performing. Autoblocks
 // will automatically track version changes and how LLM
 // performance is changing over time
-const builder = mgr.makeBuilder(PromptTrackingId.FEATURE_A);
+const builder = new AutoblocksPromptBuilder(PromptTrackingId.FEATURE_A);
 
 // Use the builder to build prompt(s) programatically
 // using any combination of templates you want
@@ -85,7 +104,10 @@ const messages = [
   {
     role: 'system',
     content: builder.build('feature-a/system', {
+      // Placeholder value for the {{ languageRequirement }} placeholder
+      // is the result of another rendered template
       languageRequirement: builder.build('common/language', {
+        // Placeholder value for the {{ language }} placeholder is a constant
         language: 'Spanish',
       }),
     }),
@@ -93,6 +115,7 @@ const messages = [
   {
     role: 'user',
     content: builder.build('feature-a/user', {
+      // Placeholder value for the {{ name }} placeholder is a constant
       name: 'Alice',
     }),
   },
@@ -112,15 +135,125 @@ await tracer.sendEvent('ai.response', {
 
 If you make a change to **any** of the below templates, it will result in a new version for `PromptTrackingId.FEATURE_A`:
 
+- `common/language`
 - `feature-a/system`
 - `feature-a/user`
-- `common/language`
 
 Additionally, if you introduce a new template, it would also result in a new version:
 
 ```ts
-const builder = mgr.makeBuilder(PromptTrackingId.FEATURE_A);
+const builder = new AutoblocksPromptBuilder(PromptTrackingId.FEATURE_A);
 
+const messages = [
+  {
+    role: 'system',
+    content: builder.build('feature-a/system', {
+      languageRequirement: builder.build('common/language', {
+        language: 'Spanish',
+      }),
+      // New template, so we'll see a new version for FEATURE_A
+      // when we deploy this change.
+      toneRequirement: builder.build('common/tone', {
+        tone: 'friendly',
+      }),
+    }),
+  },
+  {
+    role: 'user',
+    content: builder.build('feature-a/user', {
+      name: 'Alice',
+    }),
+  },
+];
+```
+
+# Getting Started
+
+## Install
+
+```bash
+npm install @autoblocks/client
+```
+
+```bash
+yarn add @autoblocks/client
+```
+
+```bash
+pnpm add @autoblocks/client
+```
+
+## Configure your templates directory
+
+Tell us where your templates directory is:
+
+`package.json`:
+
+```json
+"autoblocks": {
+  "templatesDirectory": "autoblocks-templates"
+}
+```
+
+## Create templates
+
+Add templates to your templates directory.
+
+```
+package.json
+autoblocks-templates/
+  common/
+    language
+    tone
+  feature-a/
+    system
+    user
+  feature-b/
+    system
+    user
+```
+
+These are just plain text files with placeholders. Placeholders should be surrounded by double curly braces:
+
+```txt
+This is a template with a {{ placeholder }}.
+```
+
+Placeholders can have arbitrary whitespace, so this is also valid:
+
+```txt
+My name is {{name}}.
+My age is {{      age       }}
+```
+
+> **_HINT:_** Placeholders aren't always replaced with constants. They can also be replaced with the value of another rendered template.
+
+## Run the CLI to generate the types
+
+```bash
+autoblocks prompts generate
+```
+
+Note: You'll likely want to add this to your `package.json` scripts so that it is easier to run:
+
+`package.json`:
+
+```json
+"scripts": {
+  "ab-prompts-gen": "autoblocks prompts generate"
+}
+```
+
+## Initialize a builder
+
+Like explained above, you should initialize a new builder any time you're making an LLM request. Use an identifier to represent the task you're performing when initializing the builder.
+
+```ts
+import { AutoblocksPromptBuilder } from '@autoblocks/client/prompts';
+
+const builder = new AutoblocksPromptBuilder('feature-a');
+
+// Use the builder however you want to compose your prompt(s)
 const messages = [
   {
     role: 'system',
@@ -142,100 +275,7 @@ const messages = [
 ];
 ```
 
-## Getting Started
-
-### Install
-
-```bash
-npm install @autoblocks/client
-```
-
-```bash
-yarn add @autoblocks/client
-```
-
-```bash
-pnpm add @autoblocks/client
-```
-
-### Configure your templates directory
-
-Tell us where your templates directory is:
-
-`package.json`:
-
-```json
-"autoblocks": {
-  "templatesDirectory": "autoblocks-templates"
-}
-```
-
-### Create templates
-
-Add templates to your templates directory.
-
-```
-package.json
-autoblocks-templates/
-  common/
-    language
-    tone
-  feature-a/
-    system
-    user
-  feature-b/
-    system
-    user
-```
-
-These are just plain text files with placeholders. Placeholders should be surrounded by double curly braces.
-
-```txt
-This is a template with a {{ placeholder }}.
-```
-
-Placeholders can have arbitrary whitespace, so this is also valid:
-
-```txt
-My name is {{name}}.
-My age is {{      age       }}
-```
-
-### Run the CLI to generate the types and templates
-
-```bash
-autoblocks prompts generate
-```
-
-Note: You will probably need to run this with `npm exec` or `yarn run`. You'll likely want to add it to your `package.json` scripts so that it is easier to run:
-
-`package.json`:
-
-```json
-"scripts": {
-  "ab-prompts-gen": "autoblocks prompts generate"
-}
-```
-
-### Initialize the template manager
-
-```ts
-import { PromptTemplateManager } from '@autoblocks/client/prompts';
-
-const promptManager = new PromptTemplateManager();
-```
-
-### Initialize a builder
-
-Like explained above, you should initialize a new builder any time you're making an LLM request. Use an identifier to represent the task you're performing when initializing the builder.
-
-```ts
-const builder = promptManager.makeBuilder('feature-a');
-
-// Use the builder however you want to compose your prompt(s)
-```
-
-### Send usage data with LLM response event
+## Send template usage data with the LLM response event
 
 When you send an LLM response event, you should include the usage data from the builder:
 

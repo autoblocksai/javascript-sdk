@@ -1,1 +1,1 @@
-export { PromptTemplateManager, type PromptBuilder } from './manager';
+export { AutoblocksPromptBuilder } from './builder';

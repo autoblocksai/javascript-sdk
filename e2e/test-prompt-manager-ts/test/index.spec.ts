@@ -1,10 +1,8 @@
-import { PromptTemplateManager } from '@autoblocks/client/prompts';
+import { AutoblocksPromptBuilder } from '@autoblocks/client/prompts';
 
-const promptManager = new PromptTemplateManager();
-
-describe('PromptTemplateManager', () => {
+describe('AutoblocksPromptBuilder', () => {
   it('handles placeholders', () => {
-    const builder = promptManager.makeBuilder('1');
+    const builder = new AutoblocksPromptBuilder('1');
 
     builder.build('placeholder-test', {
       placeholder: 'I am the placeholder value',
@@ -42,7 +40,7 @@ Invalid JS names:
   });
 
   it('handles nested templates', () => {
-    const builder = promptManager.makeBuilder('2');
+    const builder = new AutoblocksPromptBuilder('2');
 
     builder.build('nested/nested/nested', { value: 'I am the value' });
 

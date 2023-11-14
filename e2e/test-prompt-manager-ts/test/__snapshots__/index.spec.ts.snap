@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PromptTemplateManager handles nested templates 1`] = `"I am I am the value!"`;
+exports[`AutoblocksPromptBuilder handles nested templates 1`] = `"I am I am the value!"`;
 
-exports[`PromptTemplateManager handles placeholders 1`] = `
+exports[`AutoblocksPromptBuilder handles placeholders 1`] = `
 "It should work with placeholders that have no spaces:
 I am the placeholder value
 
