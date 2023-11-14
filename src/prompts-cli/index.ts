@@ -38,7 +38,7 @@ const autogenerationConfigs: AutogenerationConfig[] = [
           } else {
             generated += `\n  '${path}': {`;
             placeholders.map((placeholder) => {
-              generated += `\n    ${placeholder}: string;`;
+              generated += `\n    '${placeholder}': string;`;
             });
             generated += '\n  };';
           }
@@ -265,9 +265,7 @@ export class PromptsCLI {
           // Find all placeholder names in the template. They look like: {{ placeholder }}
           // They can have arbitrary whitespace between the leading {{ and trailing }},
           // so e.g. {{placeholder}} is also valid.
-          const placeholders = fileContent.match(
-            /\{\{\s*[a-zA-Z0-9_]+\s*\}\}/g,
-          );
+          const placeholders = fileContent.match(/\{\{\s*\S+\s*\}\}/g);
 
           // Get the placeholder names, e.g. `placeholder` from `{{ placeholder }}`
           // by removing the `{{` and `}}` on each side and trimming off the whitespace.

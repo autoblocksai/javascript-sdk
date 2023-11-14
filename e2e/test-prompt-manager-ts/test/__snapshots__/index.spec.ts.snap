@@ -13,5 +13,8 @@ Camel case:
 I am the camel case value
 
 Snake case:
-I am the snake case value"
+I am the snake case value
+
+Invalid JS names:
+I am not a valid JS variable name but that is ok"
 `;

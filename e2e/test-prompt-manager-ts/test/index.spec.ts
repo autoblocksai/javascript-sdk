@@ -10,6 +10,7 @@ describe('PromptTemplateManager', () => {
       placeholder: 'I am the placeholder value',
       camelCase: 'I am the camel case value',
       snake_case: 'I am the snake case value',
+      '123invalid-var-name': 'I am not a valid JS variable name but that is ok',
     });
 
     expect(builder.usage()).toEqual({
@@ -27,7 +28,10 @@ Camel case:
 {{ camelCase }}
 
 Snake case:
-{{ snake_case }}`,
+{{ snake_case }}
+
+Invalid JS names:
+{{ 123invalid-var-name }}`,
         },
       ],
     });

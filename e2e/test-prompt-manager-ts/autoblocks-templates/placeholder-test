@@ -9,3 +9,6 @@ Camel case:
 
 Snake case:
 {{ snake_case }}
+
+Invalid JS names:
+{{ 123invalid-var-name }}
