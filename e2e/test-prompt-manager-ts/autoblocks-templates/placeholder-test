@@ -1,0 +1,11 @@
+It should work with placeholders that have no spaces:
+{{placeholder}}
+
+With spaces:
+{{ placeholder }}
+
+Camel case:
+{{ camelCase }}
+
+Snake case:
+{{ snake_case }}

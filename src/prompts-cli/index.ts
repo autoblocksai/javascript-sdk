@@ -274,11 +274,12 @@ export class PromptsCLI {
           const placeholderNames = (placeholders ?? []).map((placeholder) => {
             return placeholder.slice(2, -2).trim();
           });
+          const uniquePlaceholderNames = Array.from(new Set(placeholderNames));
 
           console.log(`Found template ${relativePath}`);
-          console.log(`  Placeholders: ${placeholderNames.join(', ')}`);
+          console.log(`  Placeholders: ${uniquePlaceholderNames.join(', ')}`);
 
-          this.templatePlaceholders[relativePath] = placeholderNames;
+          this.templatePlaceholders[relativePath] = uniquePlaceholderNames;
         }
       }),
     );

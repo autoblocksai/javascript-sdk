@@ -1,21 +1,58 @@
-import { promptManager, main, PromptTrackingId } from '../index';
+import { PromptTemplateManager } from '@autoblocks/client/prompts';
 
-jest.mock('@autoblocks/client');
-jest.setTimeout(30000);
+const promptManager = new PromptTemplateManager();
 
-describe('main', () => {
-  it('builds prompts for feature A', async () => {
-    await main();
+describe('PromptTemplateManager', () => {
+  it('handles placeholders', () => {
+    const builder = promptManager.makeBuilder('1');
 
-    promptManager.snapshots(PromptTrackingId.A).forEach((snapshot) => {
+    builder.build('placeholder-test', {
+      placeholder: 'I am the placeholder value',
+      camelCase: 'I am the camel case value',
+      snake_case: 'I am the snake case value',
+    });
+
+    expect(builder.usage()).toEqual({
+      id: '1',
+      templates: [
+        {
+          id: 'placeholder-test',
+          template: `It should work with placeholders that have no spaces:
+{{placeholder}}
+
+With spaces:
+{{ placeholder }}
+
+Camel case:
+{{ camelCase }}
+
+Snake case:
+{{ snake_case }}`,
+        },
+      ],
+    });
+
+    builder.snapshots().forEach((snapshot) => {
       expect(snapshot).toMatchSnapshot();
     });
   });
 
-  it('builds prompts for feature B', async () => {
-    await main();
+  it('handles nested templates', () => {
+    const builder = promptManager.makeBuilder('2');
 
-    promptManager.snapshots(PromptTrackingId.B).forEach((snapshot) => {
+    builder.build('nested/nested/nested', { value: 'I am the value' });
+
+    expect(builder.usage()).toEqual({
+      id: '2',
+      templates: [
+        {
+          id: 'nested/nested/nested',
+          template: 'I am {{ value }}!',
+        },
+      ],
+    });
+
+    builder.snapshots().forEach((snapshot) => {
       expect(snapshot).toMatchSnapshot();
     });
   });

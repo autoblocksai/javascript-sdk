@@ -1,21 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`main builds prompts for feature A 1`] = `"Always respond in Spanish."`;
+exports[`PromptTemplateManager handles nested templates 1`] = `"I am I am the value!"`;
 
-exports[`main builds prompts for feature A 2`] = `
-"You are a helpful assistant.
+exports[`PromptTemplateManager handles placeholders 1`] = `
+"It should work with placeholders that have no spaces:
+I am the placeholder value
 
-Always respond in Spanish."
+With spaces:
+I am the placeholder value
+
+Camel case:
+I am the camel case value
+
+Snake case:
+I am the snake case value"
 `;
-
-exports[`main builds prompts for feature A 3`] = `"Hello, Nicole!"`;
-
-exports[`main builds prompts for feature B 1`] = `"Always respond in Portuguese."`;
-
-exports[`main builds prompts for feature B 2`] = `
-"You are a very helpful assistant.
-
-Always respond in Portuguese."
-`;
-
-exports[`main builds prompts for feature B 3`] = `"I am 32 years old. How old am I?"`;
