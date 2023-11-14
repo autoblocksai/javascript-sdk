@@ -189,7 +189,7 @@ export class PromptTemplateManager {
 
     Object.entries(this.templatePlaceholders)
       .sort(([pathA], [pathB]) => (pathA < pathB ? -1 : 1))
-      .map(([path, placeholders]) => {
+      .forEach(([path, placeholders]) => {
         if (placeholders.length === 0) {
           generated += `\n  '${path}': Record<string, never>;`;
         } else {
@@ -351,7 +351,7 @@ export class PromptBuilder {
 
     let rendered = template;
 
-    Object.entries(params).map(([key, value]) => {
+    Object.entries(params).forEach(([key, value]) => {
       rendered = rendered.replace(`\${${key}}`, `${value}`);
     });
 
