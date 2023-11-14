@@ -107,5 +107,3 @@ jobs:
           npm install && \
           npm run ab-prompts-generate && \
           npm run start
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
