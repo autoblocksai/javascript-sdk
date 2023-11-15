@@ -39,7 +39,7 @@ export class AutoblocksPromptBuilder {
     let rendered = template;
 
     for (const [key, value] of Object.entries(params ?? {})) {
-      const re = new RegExp(`\\{\\{\s*${key}\s*\\}\\}`, 'g');
+      const re = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
       rendered = rendered.replace(re, `${value}`);
     }
 
