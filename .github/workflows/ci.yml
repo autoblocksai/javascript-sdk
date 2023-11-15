@@ -99,3 +99,11 @@ jobs:
         env:
           AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
           AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
+
+      - name: Test Prompt Manager & TypeScript
+        working-directory: e2e/test-prompt-manager-ts
+        run: |
+          yalc add @autoblocks/client && \
+          npm install && \
+          npm run ab-prompts-generate && \
+          npm run start

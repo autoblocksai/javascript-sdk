@@ -3,7 +3,7 @@ import { OpenAI } from 'openai';
 import { AutoblocksTracer } from '../src';
 import { traceOpenAI } from '../src/openai';
 
-jest.setTimeout(60000);
+jest.setTimeout(100000);
 
 const checkAllEqualAndDefined = (xs: string[]) => {
   expect(xs.every((x) => x === xs[0])).toBe(true);

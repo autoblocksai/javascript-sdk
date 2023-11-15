@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AutoblocksPromptBuilder handles nested templates 1`] = `"I am I am the value!"`;
+
+exports[`AutoblocksPromptBuilder handles placeholders 1`] = `
+"It should work with placeholders that have no spaces:
+I am the placeholder value
+
+With spaces:
+I am the placeholder value
+
+Camel case:
+I am the camel case value
+
+Snake case:
+I am the snake case value
+
+Invalid JS names:
+I am not a valid JS variable name but that is ok"
+`;

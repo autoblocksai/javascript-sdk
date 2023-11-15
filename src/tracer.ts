@@ -2,10 +2,10 @@ import axios, { AxiosInstance } from 'axios';
 import {
   makeReplayHeaders,
   type TimeDelta,
+  type PromptTracking,
+  type ArbitraryProperties,
   convertTimeDeltaToMilliSeconds,
 } from './util';
-
-type ArbitraryProperties = Record<string | number, unknown>;
 
 interface SendEventArgs {
   traceId?: string;
@@ -13,11 +13,7 @@ interface SendEventArgs {
   parentSpanId?: string;
   timestamp?: string;
   properties?: ArbitraryProperties;
-  prompts?: {
-    id: string | number;
-    template: string;
-    properties?: ArbitraryProperties;
-  }[];
+  promptTracking?: PromptTracking;
 }
 
 export class AutoblocksTracer {
@@ -70,9 +66,9 @@ export class AutoblocksTracer {
     const traceId = args?.traceId || this.traceId;
     const timestamp = args?.timestamp || new Date().toISOString();
 
-    if (args?.properties?.prompts && args?.prompts) {
+    if (args?.properties?.promptTracking && args?.promptTracking) {
       console.warn(
-        'Ignoring the `prompts` field on the `properties` argument since it is also specified as a top-level argument.',
+        'Ignoring the `promptTracking` field on the `properties` argument since it is also specified as a top-level argument.',
       );
     }
 
@@ -82,7 +78,7 @@ export class AutoblocksTracer {
       args?.properties,
       args?.spanId ? { spanId: args.spanId } : {},
       args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
-      args?.prompts ? { prompts: args.prompts } : {},
+      args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
 
     let replayHeaders = undefined;
