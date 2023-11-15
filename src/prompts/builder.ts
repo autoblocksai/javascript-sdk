@@ -38,10 +38,10 @@ export class AutoblocksPromptBuilder {
 
     let rendered = template;
 
-    Object.entries(params ?? {}).forEach(([key, value]) => {
-      const re = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
+    for (const [key, value] of Object.entries(params ?? {})) {
+      const re = new RegExp(`\\{\\{\s*${key}\s*\\}\\}`, 'g');
       rendered = rendered.replace(re, `${value}`);
-    });
+    }
 
     // Record that the template was used
     this.templatesUsed[path] = template;
