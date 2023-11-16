@@ -105,5 +105,5 @@ jobs:
         run: |
           yalc add @autoblocks/client && \
           npm install && \
-          npm run ab-prompts-generate && \
+          npm run gen && \
           npm run start

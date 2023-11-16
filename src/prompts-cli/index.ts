@@ -224,9 +224,6 @@ export class PromptsCLI {
           });
           const uniquePlaceholderNames = Array.from(new Set(placeholderNames));
 
-          console.log(`Found template ${relativePath}`);
-          console.log(`  Placeholders: ${uniquePlaceholderNames.join(', ')}`);
-
           this.templatePlaceholders[relativePath] = uniquePlaceholderNames;
         }
       }),
@@ -263,11 +260,10 @@ export class PromptsCLI {
   }
 
   async run(): Promise<void> {
+    const startTime = Date.now();
+
     const templatesDirectory =
       await this.findTemplatesDirectoryFromNearestPackageJson();
-
-    console.log(`Found templates directory: ${templatesDirectory}`);
-    console.log('Generating types...');
 
     await this.walkDirectory({
       directoryName: templatesDirectory,
@@ -277,5 +273,9 @@ export class PromptsCLI {
     await Promise.all(
       autogenerationConfigs.map((config) => this.handleConfig(config)),
     );
+
+    const duration = Date.now() - startTime;
+    const numTemplates = Object.keys(this.templates).length;
+    console.log(`✓ Compiled in ${duration}ms (${numTemplates} templates)`);
   }
 }
