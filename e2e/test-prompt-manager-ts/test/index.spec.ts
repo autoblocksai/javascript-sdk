@@ -58,4 +58,12 @@ Invalid JS names:
       expect(snapshot).toMatchSnapshot();
     });
   });
+
+  it('handles templates without placeholders', () => {
+    const builder = new AutoblocksPromptBuilder('3');
+
+    const value = builder.build('no-placeholders');
+
+    expect(value).toEqual("I don't have any placeholders");
+  });
 });
