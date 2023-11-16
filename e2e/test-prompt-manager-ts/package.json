@@ -8,11 +8,13 @@
   "type": "module",
   "scripts": {
     "start": "jest",
-    "ab-prompts-generate": "autoblocks prompts generate"
+    "gen": "autoblocks prompts generate",
+    "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
   },
   "dependencies": {
     "@types/jest": "*",
     "jest": "*",
+    "nodemon": "*",
     "openai": "*",
     "ts-jest": "*"
   },
@@ -21,6 +23,6 @@
     "testEnvironment": "node"
   },
   "autoblocks": {
-    "templatesDirectory": "autoblocks-templates"
+    "templatesDirectory": "prompt-templates"
   }
 }

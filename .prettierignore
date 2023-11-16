@@ -5,5 +5,5 @@ pnpm-lock.yaml
 .prettierignore
 .gitignore
 assets/
-autoblocks-templates/
+prompt-templates/
 *.snap
