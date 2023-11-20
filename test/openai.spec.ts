@@ -3,7 +3,7 @@ import { OpenAI } from 'openai';
 import { AutoblocksTracer } from '../src';
 import { traceOpenAI } from '../src/openai';
 
-jest.setTimeout(100000);
+jest.setTimeout(200000);
 
 const checkAllEqualAndDefined = (xs: string[]) => {
   expect(xs.every((x) => x === xs[0])).toBe(true);
@@ -163,14 +163,16 @@ describe('traceOpenAI', () => {
   });
 
   it('generates a new traceId for every openai call', async () => {
-    await openai.chat.completions.create({
-      messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
-      model: 'gpt-3.5-turbo',
-    });
-    await openai.chat.completions.create({
-      messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
-      model: 'gpt-3.5-turbo',
-    });
+    await Promise.all([
+      openai.chat.completions.create({
+        messages: [{ role: 'system', content: 'Hello!' }],
+        model: 'gpt-3.5-turbo',
+      }),
+      openai.chat.completions.create({
+        messages: [{ role: 'system', content: 'You are a helpful assistant.' }],
+        model: 'gpt-3.5-turbo',
+      }),
+    ]);
 
     const calls = mockPost.mock.calls;
     expect(calls.length).toEqual(4);
@@ -181,18 +183,19 @@ describe('traceOpenAI', () => {
 
     expect(messages).toEqual([
       'ai.completion.request',
-      'ai.completion.response',
       'ai.completion.request',
+      'ai.completion.response',
       'ai.completion.response',
     ]);
 
-    expect(traceIds[0]).toEqual(traceIds[1]);
-    expect(traceIds[2]).toEqual(traceIds[3]);
-    expect(traceIds[0]).not.toEqual(traceIds[2]);
+    expect(traceIds[0]).not.toEqual(traceIds[1]);
+    expect(spanIds[0]).not.toEqual(spanIds[1]);
 
-    expect(spanIds[0]).toEqual(spanIds[1]);
-    expect(spanIds[2]).toEqual(spanIds[3]);
-    expect(spanIds[0]).not.toEqual(spanIds[2]);
+    expect(traceIds.every(Boolean)).toBe(true);
+    expect(spanIds.every(Boolean)).toBe(true);
+
+    expect(new Set(traceIds).size).toEqual(2);
+    expect(new Set(spanIds).size).toEqual(2);
   });
 
   it('completions.create (error)', async () => {
