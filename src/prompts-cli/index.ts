@@ -144,15 +144,15 @@ export class PromptsCLI {
    * Find nearest package.json file that has an autoblocks.templatesDirectory field.
    */
   private async findTemplatesDirectoryFromNearestPackageJson(): Promise<string> {
-    let currentDir = __dirname;
-
+    import path from 'path';
+    
+    // ...
+    
     while (currentDir) {
-      if (!currentDir.includes(THIS_PACKAGE_DIRECTORY_NAME)) {
-        let content: string | undefined = undefined;
-
-        try {
-          content = await fs.readFile(`${currentDir}/package.json`, 'utf-8');
-        } catch {
+      // ...
+    
+      currentDir = path.dirname(currentDir);
+    }
           // File does not exist, continue to the parent directory
         }
 
