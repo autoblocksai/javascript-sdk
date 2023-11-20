@@ -9,7 +9,11 @@ import {
   LLMResult,
 } from 'langchain/dist/schema';
 import { AutoblocksTracer } from '../tracer';
-import { AUTOBLOCKS_INGESTION_KEY, readEnv } from '../util';
+import {
+  AUTOBLOCKS_INGESTION_KEY,
+  type ArbitraryProperties,
+  readEnv,
+} from '../util';
 
 export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   name = 'autoblocks_handler';
@@ -82,7 +86,7 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
 
   private async sendEvent(
     messageParts: string[],
-    properties: Record<string, unknown>,
+    properties: ArbitraryProperties,
   ) {
     const message = [this.messagePrefix, ...messageParts]
       .filter(Boolean)
