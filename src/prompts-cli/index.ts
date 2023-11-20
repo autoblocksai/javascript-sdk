@@ -144,18 +144,17 @@ export class PromptsCLI {
    * Find nearest package.json file that has an autoblocks.templatesDirectory field.
    */
   private async findTemplatesDirectoryFromNearestPackageJson(): Promise<string> {
-    let currentDir = __dirname;
-
+    let packageContent: string | undefined = undefined;
+    try {
+      packageContent = await fs.readFile(`${currentDir}/package.json`, 'utf-8');
+    } catch {
+      // File does not exist, continue to the parent directory
+    }
+    
     while (currentDir) {
       if (!currentDir.includes(THIS_PACKAGE_DIRECTORY_NAME)) {
-        let content: string | undefined = undefined;
-
-        try {
-          content = await fs.readFile(`${currentDir}/package.json`, 'utf-8');
-        } catch {
-          // File does not exist, continue to the parent directory
-        }
-
+        let content = packageContent;
+    
         if (content) {
           const packageObj: { autoblocks?: { templatesDirectory?: string } } =
             JSON.parse(content);
@@ -174,7 +173,7 @@ export class PromptsCLI {
           }
         }
       }
-
+    
       const lastSlashIdx = currentDir.lastIndexOf('/');
       if (lastSlashIdx === 0) {
         if (currentDir === '/') {
@@ -190,6 +189,7 @@ export class PromptsCLI {
         // the next iteration to be /Users.
         currentDir = currentDir.slice(0, lastSlashIdx);
       }
+    }
     }
 
     throw new Error(
