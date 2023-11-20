@@ -146,7 +146,7 @@ export class PromptsCLI {
   private async findTemplatesDirectoryFromNearestPackageJson(): Promise<string> {
     let currentDir = __dirname;
 
-    while (currentDir !== '/') {
+    while (currentDir) {
       if (!currentDir.includes(THIS_PACKAGE_DIRECTORY_NAME)) {
         let content: string | undefined = undefined;
 
@@ -175,7 +175,16 @@ export class PromptsCLI {
         }
       }
 
-      currentDir = currentDir.slice(0, currentDir.lastIndexOf('/'));
+      const lastSlashIdx = currentDir.lastIndexOf('/');
+      if (lastSlashIdx === 0) {
+        // Current directory is something like /Users, so we want the next
+        // iteration to be /.
+        currentDir = '/';
+      } else {
+        // Current directory is something like /Users/nicole, so we want
+        // the next iteration to be /Users.
+        currentDir = currentDir.slice(0, lastSlashIdx);
+      }
     }
 
     throw new Error(
