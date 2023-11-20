@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-
+import { readFileSync } from 'fs';
 import { AutoblocksCallbackHandler } from '../src/langchain/index';
 
 import { LLMChain } from 'langchain/chains';
@@ -16,9 +16,9 @@ import { DynamicTool } from 'langchain/tools';
 jest.setTimeout(60000);
 
 // Used to verify we're sending the correct version
-// This will need to be updated if we update our version of
-// langchain in devDependencies
-const CURRENT_LANGCHAIN_VERSION = '0.0.181';
+const CURRENT_LANGCHAIN_VERSION = JSON.parse(
+  readFileSync('node_modules/langchain/package.json', 'utf8'),
+).version;
 
 const mockHandlerPost = (handler: AutoblocksCallbackHandler) => {
   const mockPost = jest
