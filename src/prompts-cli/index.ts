@@ -177,9 +177,14 @@ export class PromptsCLI {
 
       const lastSlashIdx = currentDir.lastIndexOf('/');
       if (lastSlashIdx === 0) {
-        // Current directory is something like /Users, so we want the next
-        // iteration to be /.
-        currentDir = '/';
+        if (currentDir === '/') {
+          // We've reached the root directory.
+          break;
+        } else {
+          // Current directory is something like /Users, so we want the next
+          // iteration to be /.
+          currentDir = '/';
+        }
       } else {
         // Current directory is something like /Users/nicole, so we want
         // the next iteration to be /Users.
