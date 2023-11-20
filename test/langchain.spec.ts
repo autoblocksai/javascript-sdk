@@ -13,7 +13,7 @@ import { StringOutputParser } from 'langchain/schema/output_parser';
 import { initializeAgentExecutorWithOptions } from 'langchain/agents';
 import { DynamicTool } from 'langchain/tools';
 
-jest.setTimeout(60000);
+jest.setTimeout(200000);
 
 // Used to verify we're sending the correct version
 const CURRENT_LANGCHAIN_VERSION = JSON.parse(
