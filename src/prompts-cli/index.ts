@@ -146,7 +146,7 @@ export class PromptsCLI {
   private async findTemplatesDirectoryFromNearestPackageJson(): Promise<string> {
     let currentDir = __dirname;
 
-    while (currentDir !== '/') {
+    while (currentDir) {
       if (!currentDir.includes(THIS_PACKAGE_DIRECTORY_NAME)) {
         let content: string | undefined = undefined;
 
