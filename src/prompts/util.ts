@@ -28,8 +28,8 @@ export function replaceOptionalPlaceholders(template: string): string {
         spaceAfter &&
         spaceAfter.split('').every((c) => c === '\n')
       ) {
-        const nBefore = spaceBefore.length;
-        const nAfter = spaceAfter.length;
+        const nBefore = (spaceBefore.match(/\n/g) || []).length;
+        const nAfter = (spaceAfter.match(/\n/g) || []).length;
 
         if (nBefore === 1 && nAfter === 1) {
           // on its own line but surrounded by text above and below
