@@ -19,7 +19,7 @@ interface SendEventArgs {
 export class AutoblocksTracer {
   private client: AxiosInstance;
   private _traceId: string | undefined;
-  private properties: Record<string, unknown>;
+  private properties: ArbitraryProperties;
 
   constructor(
     ingestionToken: string,

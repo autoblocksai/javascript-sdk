@@ -500,4 +500,23 @@ describe('Autoblocks Tracer', () => {
       expect(traceId).toBeUndefined();
     });
   });
+
+  describe('Types', () => {
+    it('allows sending an interface as properties', async () => {
+      interface Something {
+        x: string;
+      }
+
+      const something: Something = { x: 'hello' };
+
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      await tracer.sendEvent('mock-message', {
+        traceId: 'my-trace-id',
+        properties: something,
+      });
+
+      // No assertions necessary, this test is just checking that the types work
+    });
+  });
 });
