@@ -43,11 +43,11 @@ const autogenerationConfigs: AutogenerationConfig[] = [
           } else {
             generated += `\n  '${path}': {`;
             placeholders.forEach((placeholder) => {
-              if (placeholder.endsWith('?')) {
-                generated += `\n    '${placeholder.slice(0, -1)}'?: string;`;
-              } else {
-                generated += `\n    '${placeholder}': string;`;
-              }
+              placeholders.forEach((placeholder) => {
+                generated += placeholder.endsWith('?') ? `
+                  '${placeholder.slice(0, -1)}'?: string;` : `
+                  '${placeholder}': string;`;
+              });
             });
             generated += '\n  };';
           }
