@@ -319,17 +319,3 @@ export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   const totalSeconds = minutes * 60 + seconds;
   return totalSeconds * 1000 + milliseconds;
 };
-
-// Use any here so that interfaces can be assigned to this type.
-// https://stackoverflow.com/q/65799316
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ArbitraryProperties = Record<string | number, any>;
-
-export interface PromptTracking {
-  id: string | number;
-  templates: {
-    id: string | number;
-    template: string;
-    properties?: ArbitraryProperties;
-  }[];
-}

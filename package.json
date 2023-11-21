@@ -28,6 +28,10 @@
     "./openai": {
       "require": "./dist/openai/index.js",
       "import": "./dist/openai/index.mjs"
+    },
+    "./ai-jsx": {
+      "require": "./dist/ai-jsx/index.js",
+      "import": "./dist/ai-jsx/index.mjs"
     }
   },
   "typesVersions": {
@@ -43,6 +47,9 @@
       ],
       "openai": [
         "./dist/openai/index.d.ts"
+      ],
+      "ai-jsx": [
+        "./dist/ai-jsx/index.d.ts"
       ]
     }
   },
@@ -54,7 +61,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc --skipLibCheck --noEmit",
     "format": "prettier --write .",
     "lint": "eslint --ext .ts --max-warnings 0 .",
     "test": "TZ=UTC jest",
@@ -73,9 +80,12 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@tsconfig/node18": "^18.2.2",
     "@types/jest": "^29.5.3",
+    "@types/react": "^18.2.37",
     "@typescript-eslint/eslint-plugin": "^6.2.1",
     "@typescript-eslint/parser": "^6.2.1",
+    "ai-jsx": "^0.28.1",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",

@@ -1,0 +1,236 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ai-jsx handles nested completions 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are an expert in colors. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What do you get when you mix red with blue?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles nested completions 2`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "purple",
+          "role": "assistant",
+        },
+      },
+    ],
+    "parentSpanId": Any<String>,
+    "promptTracking": {
+      "id": "determine-color-combination",
+      "templates": [
+        {
+          "id": "determine-color-combination/system",
+          "template": "You are an expert in colors. Always respond with one word in all lowercase letters and no punctuation.",
+        },
+        {
+          "id": "determine-color-combination/user",
+          "template": "What do you get when you mix red with {{ get-thing-color }}?",
+        },
+      ],
+    },
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles nested completions 3`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What color is the sky?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles nested completions 4`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "blue",
+          "role": "assistant",
+        },
+      },
+    ],
+    "parentSpanId": Any<String>,
+    "promptTracking": {
+      "id": "get-thing-color",
+      "templates": [
+        {
+          "id": "get-thing-color/system",
+          "template": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        },
+        {
+          "id": "get-thing-color/user",
+          "template": "What color is the {{ thing }}?",
+        },
+      ],
+    },
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles placeholders 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What color is the sky?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles placeholders 2`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "blue",
+          "role": "assistant",
+        },
+      },
+    ],
+    "parentSpanId": Any<String>,
+    "promptTracking": {
+      "id": "my-tracker-id",
+      "templates": [
+        {
+          "id": "my-tracker-id/system",
+          "template": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        },
+        {
+          "id": "my-tracker-id/user",
+          "template": "What color is the {{ thing }}?",
+        },
+      ],
+    },
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx works with no tracker id 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What color is the sky?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx works with no tracker id 2`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "blue",
+          "role": "assistant",
+        },
+      },
+    ],
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
