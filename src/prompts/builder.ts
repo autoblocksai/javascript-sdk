@@ -33,15 +33,15 @@ export class AutoblocksPromptBuilder {
 
     let rendered = template;
 
+    const re = new RegExp(`\{\{\s*(\S+)[?]?\s*\}\}`, 'g');
     Object.entries(params).forEach(([key, value]) => {
-      const re = new RegExp(`\\{\\{\\s*${key}[?]?\\s*\\}\\}`, 'g');
-      rendered = rendered.replace(re, `${value}`);
+      rendered = rendered.replace(re, (match, p1) => {
+        if (p1 === key) {
+          return `${value}`;
+        }
+        return match;
+      });
     });
-
-    // Replace any remaining optional placeholders
-    rendered = replaceOptionalPlaceholders(rendered);
-
-    // Trim whitespace
     rendered = rendered.trim();
 
     // Record that the template was used
