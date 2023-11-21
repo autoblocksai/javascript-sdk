@@ -11,6 +11,7 @@ const config = {
   rules: {
     'prettier/prettier': 'error',
   },
+  ignorePatterns: ['dist/**'],
 };
 
 module.exports = config;
