@@ -31,7 +31,7 @@ jobs:
           cache: npm
 
       - name: Validate renovate config
-        run: npx --package renovate renovate-config-validator
+        run: npx --package renovate renovate-config-validator --strict
 
       - name: Install dependencies
         run: npm ci
