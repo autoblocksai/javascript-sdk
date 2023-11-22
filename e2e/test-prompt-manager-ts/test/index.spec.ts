@@ -1,9 +1,19 @@
 import { AutoblocksPromptBuilder } from '@autoblocks/client/prompts';
 
 describe('AutoblocksPromptBuilder', () => {
-  it('handles placeholders', () => {
-    const builder = new AutoblocksPromptBuilder('1');
+  let builder: AutoblocksPromptBuilder;
 
+  beforeEach(() => {
+    builder = new AutoblocksPromptBuilder('test');
+  });
+
+  afterEach(() => {
+    builder.snapshots().forEach((snapshot) => {
+      expect(snapshot).toMatchSnapshot();
+    });
+  });
+
+  it('handles placeholders', () => {
     builder.build('placeholder-test', {
       placeholder: 'I am the placeholder value',
       camelCase: 'I am the camel case value',
@@ -12,7 +22,7 @@ describe('AutoblocksPromptBuilder', () => {
     });
 
     expect(builder.usage()).toEqual({
-      id: '1',
+      id: 'test',
       templates: [
         {
           id: 'placeholder-test',
@@ -33,19 +43,13 @@ Invalid JS names:
         },
       ],
     });
-
-    builder.snapshots().forEach((snapshot) => {
-      expect(snapshot).toMatchSnapshot();
-    });
   });
 
   it('handles nested templates', () => {
-    const builder = new AutoblocksPromptBuilder('2');
-
     builder.build('nested/nested/nested', { value: 'I am the value' });
 
     expect(builder.usage()).toEqual({
-      id: '2',
+      id: 'test',
       templates: [
         {
           id: 'nested/nested/nested',
@@ -53,9 +57,55 @@ Invalid JS names:
         },
       ],
     });
+  });
 
-    builder.snapshots().forEach((snapshot) => {
-      expect(snapshot).toMatchSnapshot();
+  it('handles templates without placeholders', () => {
+    builder.build('no-placeholders', {});
+  });
+
+  it('collapses optional placeholders at start', () => {
+    builder.build('optionals/start', {});
+  });
+
+  it('replaces optional placeholders at start', () => {
+    builder.build('optionals/start', { optional: 'hello' });
+  });
+
+  it('collapses optional placeholders at end', () => {
+    builder.build('optionals/end', {});
+  });
+
+  it('replaces optional placeholders at end', () => {
+    builder.build('optionals/end', { optional: 'hello' });
+  });
+
+  it('collapses optional placeholders in the middle', () => {
+    builder.build('optionals/middle', {});
+  });
+
+  it('replaces optional placeholders in the middle', () => {
+    builder.build('optionals/middle', { optional: 'hello' });
+  });
+
+  it('collapses optional placeholders in the middle surrounded by other text', () => {
+    builder.build('optionals/surrounded', {});
+  });
+
+  it('replaces optional placeholders in the middle surrounded by other text', () => {
+    builder.build('optionals/surrounded', { optional: 'hello' });
+  });
+
+  it('replaces inline optional placeholders', () => {
+    builder.build('optionals/inline', {});
+  });
+
+  it('replaces inline optional placeholders with a value', () => {
+    builder.build('optionals/inline', { optional: 'hello' });
+  });
+
+  it('handles optional placeholder names that are not valid JS values', () => {
+    builder.build('optionals/hyphens', {
+      'optional-param-with-hyphens': 'hello',
     });
   });
 });

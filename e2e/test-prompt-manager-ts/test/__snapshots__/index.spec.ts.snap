@@ -1,6 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AutoblocksPromptBuilder collapses optional placeholders at end 1`] = `"optional placeholder is at the end"`;
+
+exports[`AutoblocksPromptBuilder collapses optional placeholders at start 1`] = `"optional placeholder is at the start"`;
+
+exports[`AutoblocksPromptBuilder collapses optional placeholders in the middle 1`] = `
+"optional placeholder is in the middle
+
+optional placeholder is in the middle"
+`;
+
+exports[`AutoblocksPromptBuilder collapses optional placeholders in the middle surrounded by other text 1`] = `
+"optional placeholder is surrounded
+optional placeholder is surrounded"
+`;
+
 exports[`AutoblocksPromptBuilder handles nested templates 1`] = `"I am I am the value!"`;
+
+exports[`AutoblocksPromptBuilder handles optional placeholder names that are not valid JS values 1`] = `"I have a placeholder name hello that isn't a valid JS value"`;
 
 exports[`AutoblocksPromptBuilder handles placeholders 1`] = `
 "It should work with placeholders that have no spaces:
@@ -17,4 +34,36 @@ I am the snake case value
 
 Invalid JS names:
 I am not a valid JS variable name but that is ok"
+`;
+
+exports[`AutoblocksPromptBuilder handles templates without placeholders 1`] = `"I have no placeholders"`;
+
+exports[`AutoblocksPromptBuilder replaces inline optional placeholders 1`] = `"optional placeholder is inlined"`;
+
+exports[`AutoblocksPromptBuilder replaces inline optional placeholders with a value 1`] = `"optional placeholder is hello inlined"`;
+
+exports[`AutoblocksPromptBuilder replaces optional placeholders at end 1`] = `
+"optional placeholder is at the end
+
+hello"
+`;
+
+exports[`AutoblocksPromptBuilder replaces optional placeholders at start 1`] = `
+"hello
+
+optional placeholder is at the start"
+`;
+
+exports[`AutoblocksPromptBuilder replaces optional placeholders in the middle 1`] = `
+"optional placeholder is in the middle
+
+hello
+
+optional placeholder is in the middle"
+`;
+
+exports[`AutoblocksPromptBuilder replaces optional placeholders in the middle surrounded by other text 1`] = `
+"optional placeholder is surrounded
+hello
+optional placeholder is surrounded"
 `;
