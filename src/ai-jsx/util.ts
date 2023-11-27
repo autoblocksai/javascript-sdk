@@ -309,30 +309,35 @@ export async function processCompletedRootSpan(rootSpan: ABSpan) {
           },
         });
 
-        events.push({
-          message: 'ai.completion.response',
-          args: {
-            traceId,
-            spanId: completionSpanId,
-            parentSpanId: parentCompletionSpanId,
-            timestamp: span.endTime,
-            properties: {
-              choices: responseMessages.map((m) => ({
-                message: { role: m.role, content: m.content },
-              })),
-              usage: {
-                completion_tokens: responseMessages.reduce(
-                  (acc, m) => acc + (m.tokens || 0),
-                  0,
-                ),
+        if (span.endTime) {
+          events.push({
+            message: 'ai.completion.response',
+            args: {
+              traceId,
+              spanId: completionSpanId,
+              parentSpanId: parentCompletionSpanId,
+              timestamp: span.endTime,
+              properties: {
+                latency:
+                  new Date(span.endTime).getTime() -
+                  new Date(span.startTime).getTime(),
+                choices: responseMessages.map((m) => ({
+                  message: { role: m.role, content: m.content },
+                })),
+                usage: {
+                  completion_tokens: responseMessages.reduce(
+                    (acc, m) => acc + (m.tokens || 0),
+                    0,
+                  ),
+                },
+                provider: 'openai',
               },
-              provider: 'openai',
+              promptTracking: trackerId
+                ? makeTemplatesForCompletion(trackerId, span)
+                : undefined,
             },
-            promptTracking: trackerId
-              ? makeTemplatesForCompletion(trackerId, span)
-              : undefined,
-          },
-        });
+          });
+        }
       }
 
       if (trackerId) {

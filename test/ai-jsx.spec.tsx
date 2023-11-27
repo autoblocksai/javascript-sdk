@@ -17,6 +17,7 @@ interface SentEvent {
   properties: {
     spanId: string;
     parentSpanId?: string;
+    latency?: number;
     [key: string]: unknown;
   };
 }
@@ -82,23 +83,29 @@ describe('ai-jsx', () => {
       expect(pair[0].message).toEqual('ai.completion.request');
       expect(pair[1].message).toEqual('ai.completion.response');
       expect(pair[0].timestamp < pair[1].timestamp).toBe(true);
+      expect(pair[1].properties.latency).toBeDefined();
+      expect(pair[1].properties.latency).toBeGreaterThan(0);
     }
 
     for (const request of events) {
-      if (!request.properties.parentSpanId) {
-        // Make this a string since expect.any(String) doesn't match on undefined
-        // and there is no matcher for "string | undefined"
-        request.properties.parentSpanId = 'undefined';
-      }
-
-      expect(request).toMatchSnapshot({
+      const matchers = {
         traceId: expect.any(String),
         timestamp: expect.any(String),
         properties: {
+          latency: expect.any(Number),
           spanId: expect.any(String),
           parentSpanId: expect.any(String),
         },
-      });
+      };
+
+      if (request.properties.parentSpanId === undefined) {
+        delete matchers.properties.parentSpanId;
+      }
+      if (request.properties.latency === undefined) {
+        delete matchers.properties.latency;
+      }
+
+      expect(request).toMatchSnapshot(matchers);
     }
   });
 

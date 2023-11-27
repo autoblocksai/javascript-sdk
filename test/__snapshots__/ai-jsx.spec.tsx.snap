@@ -15,7 +15,6 @@ exports[`ai-jsx handles nested completions 1`] = `
       },
     ],
     "model": "gpt-3.5-turbo",
-    "parentSpanId": Any<String>,
     "provider": "openai",
     "spanId": Any<String>,
     "temperature": 0,
@@ -37,7 +36,7 @@ exports[`ai-jsx handles nested completions 2`] = `
         },
       },
     ],
-    "parentSpanId": Any<String>,
+    "latency": Any<Number>,
     "promptTracking": {
       "id": "determine-color-combination",
       "templates": [
@@ -99,6 +98,7 @@ exports[`ai-jsx handles nested completions 4`] = `
         },
       },
     ],
+    "latency": Any<Number>,
     "parentSpanId": Any<String>,
     "promptTracking": {
       "id": "get-thing-color",
@@ -139,7 +139,6 @@ exports[`ai-jsx handles placeholders 1`] = `
       },
     ],
     "model": "gpt-3.5-turbo",
-    "parentSpanId": Any<String>,
     "provider": "openai",
     "spanId": Any<String>,
     "temperature": 0,
@@ -161,7 +160,7 @@ exports[`ai-jsx handles placeholders 2`] = `
         },
       },
     ],
-    "parentSpanId": Any<String>,
+    "latency": Any<Number>,
     "promptTracking": {
       "id": "my-tracker-id",
       "templates": [
@@ -201,7 +200,6 @@ exports[`ai-jsx works with no tracker id 1`] = `
       },
     ],
     "model": "gpt-3.5-turbo",
-    "parentSpanId": Any<String>,
     "provider": "openai",
     "spanId": Any<String>,
     "temperature": 0,
@@ -223,7 +221,7 @@ exports[`ai-jsx works with no tracker id 2`] = `
         },
       },
     ],
-    "parentSpanId": Any<String>,
+    "latency": Any<Number>,
     "provider": "openai",
     "spanId": Any<String>,
     "usage": {
