@@ -79,6 +79,9 @@
     "url": "https://www.autoblocks.ai"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.2",
     "@types/jest": "^29.5.3",
