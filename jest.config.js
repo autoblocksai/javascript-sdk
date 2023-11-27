@@ -8,10 +8,5 @@ module.exports = {
   clearMocks: true,
   resetMocks: true,
   resetModules: true,
-  testPathIgnorePatterns: [
-    'node_modules',
-    'e2e',
-    // langchain requires node >= 18
-    ...(nodeMajorVersion < 18 ? ['langchain.spec.ts'] : []),
-  ],
+  testPathIgnorePatterns: ['node_modules', 'e2e'],
 };
