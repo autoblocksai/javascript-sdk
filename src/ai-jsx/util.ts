@@ -9,6 +9,7 @@ import {
   AssistantMessage,
 } from 'ai-jsx/core/completion';
 import { OpenAIChatModel } from 'ai-jsx/lib/openai';
+import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import { AutoblocksTracer } from '../tracer';
 import { readEnv, AUTOBLOCKS_INGESTION_KEY } from '../util';
 
@@ -27,6 +28,13 @@ export function AutoblocksPlaceholder(props: AutoblocksPlaceholderProps) {
 
 export function makeComponentName(f: AnyComponent): string {
   return `<${f.name}>`;
+}
+
+function isChatModelSpan(span: AutoblocksSpan): boolean {
+  return (
+    span.name === makeComponentName(OpenAIChatModel) ||
+    span.name === makeComponentName(AnthropicChatModel)
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -90,7 +98,7 @@ function makeTemplateString(span: AutoblocksSpan | string): string {
   } else if (span.name === makeComponentName(AutoblocksPlaceholder)) {
     const props = span.props as AutoblocksPlaceholderProps;
     return `{{ ${props.name} }}`;
-  } else if (span.name === makeComponentName(OpenAIChatModel)) {
+  } else if (isChatModelSpan(span)) {
     // There is a nested completion not wrapped in a placeholder
     const name = parseTrackerIdFromProps(span.props) || 'completion';
     return `{{ ${name} }}`;
@@ -162,7 +170,7 @@ function makeMessagesForCompletion(
       }
 
       // Stop if we encounter another chat component
-      if (child.name === makeComponentName(OpenAIChatModel)) {
+      if (isChatModelSpan(child)) {
         continue;
       }
 
@@ -215,7 +223,7 @@ function makeTemplatesForCompletion(
       }
 
       // Stop if we encounter another chat component
-      if (child.name === makeComponentName(OpenAIChatModel)) {
+      if (isChatModelSpan(child)) {
         continue;
       }
 
@@ -250,6 +258,18 @@ function makeAutoblocksEventsForCompletion(args: {
 }): AutoblocksEvent[] {
   if (!args.completionSpan.endTime) {
     console.warn(`Completion span ${args.completionSpan.id} has no end time.`);
+    return [];
+  }
+
+  const provider = {
+    [makeComponentName(OpenAIChatModel)]: 'openai',
+    [makeComponentName(AnthropicChatModel)]: 'anthropic',
+  }[args.completionSpan.name];
+
+  if (!provider) {
+    console.warn(
+      `Couldn't determine provider from completion span ${args.completionSpan.id}.`,
+    );
     return [];
   }
 
@@ -293,7 +313,7 @@ function makeAutoblocksEventsForCompletion(args: {
           role: m.role,
           content: m.content,
         })),
-        provider: 'openai',
+        provider,
       },
     },
   };
@@ -318,7 +338,7 @@ function makeAutoblocksEventsForCompletion(args: {
             0,
           ),
         },
-        provider: 'openai',
+        provider,
       },
       promptTracking: args.trackerId
         ? makeTemplatesForCompletion(args.trackerId, args.completionSpan)
@@ -337,7 +357,7 @@ export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
   const walk = (span: AutoblocksSpan, parentCompletionSpanId?: string) => {
     let completionSpanId: string | undefined = parentCompletionSpanId;
 
-    if (span.name === makeComponentName(OpenAIChatModel)) {
+    if (isChatModelSpan(span)) {
       completionSpanId = span.id;
       const trackerId = parseTrackerIdFromProps(span.props);
 
