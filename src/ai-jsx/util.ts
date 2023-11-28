@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import crypto from 'crypto';
 import type { AutoblocksSpan, AutoblocksPlaceholderProps } from './types';
 import type { PromptTracking, SendEventArgs } from '../types';
 import { Component } from 'ai-jsx';
@@ -124,89 +125,58 @@ interface AIMessage {
   tokens?: number;
 }
 
-interface MemoizedMessage {
-  memoizedId: string | undefined;
-  message: AIMessage;
-}
-
-function makeMemoizedMessagesArray(
-  span: AutoblocksSpan,
-  components: AnyComponent[],
-): MemoizedMessage[] {
-  const componentNames = components.map(makeComponentName);
-  const messages: MemoizedMessage[] = [];
-
-  let content: string | undefined = undefined;
-  let role: AIMessage['role'] | undefined = undefined;
-  let tokens: number | undefined = undefined;
-
-  if (componentNames.includes(span.name)) {
-    content = makeMessageString(span);
-
-    switch (span.name) {
-      case makeComponentName(SystemMessage):
-        role = 'system';
-        break;
-      case makeComponentName(UserMessage):
-        role = 'user';
-        break;
-      case makeComponentName(AssistantMessage):
-        role = 'assistant';
-        tokens = countMessageTokens(span);
-        break;
-    }
-  }
-
-  if (content && role) {
-    messages.push({
-      memoizedId: span.memoizedId,
-      message: { content, role, tokens },
-    });
-  }
-
-  for (const child of span.children) {
-    if (typeof child === 'string') {
-      continue;
-    }
-
-    // Stop if we encounter another chat component
-    if (child.name === makeComponentName(OpenAIChatModel)) {
-      continue;
-    }
-
-    messages.push(...makeMemoizedMessagesArray(child, components));
-  }
-
-  return messages;
-}
-
-/**
- * Keep the last message from each memoizedId.
- */
 function makeMessagesArrayFrom(
-  span: AutoblocksSpan,
+  chatSpan: AutoblocksSpan,
   components: AnyComponent[],
 ): AIMessage[] {
-  const memoized = makeMemoizedMessagesArray(span, components);
+  const componentNames = components.map(makeComponentName);
+  const messagesById = new Map<string, AIMessage>();
 
-  const seenMemoizedIds = new Set<string>();
-  const dedupedMessages: AIMessage[] = [];
+  const walk = (span: AutoblocksSpan) => {
+    let content: string | undefined = undefined;
+    let role: AIMessage['role'] | undefined = undefined;
+    let tokens: number | undefined = undefined;
 
-  for (const memo of memoized.reverse()) {
-    if (memo.memoizedId === undefined) {
-      dedupedMessages.push(memo.message);
-      continue;
+    if (componentNames.includes(span.name)) {
+      content = makeMessageString(span);
+
+      switch (span.name) {
+        case makeComponentName(SystemMessage):
+          role = 'system';
+          break;
+        case makeComponentName(UserMessage):
+          role = 'user';
+          break;
+        case makeComponentName(AssistantMessage):
+          role = 'assistant';
+          tokens = countMessageTokens(span);
+          break;
+      }
     }
 
-    if (seenMemoizedIds.has(memo.memoizedId)) {
-      continue;
+    if (content && role) {
+      const id = span.memoizedId || crypto.randomUUID();
+      messagesById.set(id, { content, role, tokens });
     }
 
-    seenMemoizedIds.add(memo.memoizedId);
-    dedupedMessages.push(memo.message);
-  }
+    for (const child of span.children) {
+      if (typeof child === 'string') {
+        continue;
+      }
 
-  return dedupedMessages.reverse();
+      // Stop if we encounter another chat component
+      if (child.name === makeComponentName(OpenAIChatModel)) {
+        continue;
+      }
+
+      walk(child);
+    }
+  };
+
+  walk(chatSpan);
+
+  // Returns the values in insertion order
+  return [...messagesById.values()];
 }
 
 function makeTemplatesForCompletion(
