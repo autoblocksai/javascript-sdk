@@ -125,11 +125,9 @@ interface AIMessage {
   tokens?: number;
 }
 
-function makeMessagesArrayFrom(
-  chatSpan: AutoblocksSpan,
-  components: AnyComponent[],
+function makeMessagesForCompletion(
+  completionSpan: AutoblocksSpan,
 ): AIMessage[] {
-  const componentNames = components.map(makeComponentName);
   const messagesById = new Map<string, AIMessage>();
 
   const walk = (span: AutoblocksSpan) => {
@@ -137,21 +135,20 @@ function makeMessagesArrayFrom(
     let role: AIMessage['role'] | undefined = undefined;
     let tokens: number | undefined = undefined;
 
-    if (componentNames.includes(span.name)) {
-      content = makeMessageString(span);
-
-      switch (span.name) {
-        case makeComponentName(SystemMessage):
-          role = 'system';
-          break;
-        case makeComponentName(UserMessage):
-          role = 'user';
-          break;
-        case makeComponentName(AssistantMessage):
-          role = 'assistant';
-          tokens = countMessageTokens(span);
-          break;
-      }
+    switch (span.name) {
+      case makeComponentName(SystemMessage):
+        content = makeMessageString(span);
+        role = 'system';
+        break;
+      case makeComponentName(UserMessage):
+        content = makeMessageString(span);
+        role = 'user';
+        break;
+      case makeComponentName(AssistantMessage):
+        content = makeMessageString(span);
+        role = 'assistant';
+        tokens = countMessageTokens(span);
+        break;
     }
 
     if (content && role) {
@@ -173,7 +170,7 @@ function makeMessagesArrayFrom(
     }
   };
 
-  walk(chatSpan);
+  walk(completionSpan);
 
   // Returns the values in insertion order
   return [...messagesById.values()];
@@ -231,6 +228,99 @@ function makeTemplatesForCompletion(
   return tracking;
 }
 
+interface AutoblocksEvent {
+  message: string;
+  args: SendEventArgs;
+}
+
+function makeAutoblocksEventsForCompletion(args: {
+  traceId: string;
+  completionSpan: AutoblocksSpan;
+  trackerId?: string;
+  parentCompletionSpanId?: string;
+}): AutoblocksEvent[] {
+  if (!args.completionSpan.endTime) {
+    console.warn(`Completion span ${args.completionSpan.id} has no end time.`);
+    return [];
+  }
+
+  const messages = makeMessagesForCompletion(args.completionSpan);
+
+  if (messages.length < 2) {
+    console.warn(
+      `Completion span ${args.completionSpan.id} has only ${messages.length} messages.`,
+    );
+    return [];
+  }
+
+  const lastMessage = messages[messages.length - 1];
+
+  // The last message should be an assistant message
+  if (!lastMessage || lastMessage.role !== 'assistant') {
+    console.warn(
+      `Completion span ${args.completionSpan.id}'s last message is not an assistant message.`,
+    );
+    return [];
+  }
+
+  // The request messages are all but the last message, and the response message
+  // is the last message.
+  const requestMessages = messages.slice(0, -1);
+  const responseMessages = messages.slice(-1);
+
+  const requestEvent = {
+    message: 'ai.completion.request',
+    args: {
+      traceId: args.traceId,
+      spanId: args.completionSpan.id,
+      parentSpanId: args.parentCompletionSpanId,
+      timestamp: args.completionSpan.startTime,
+      properties: {
+        ...Object.fromEntries(
+          Object.entries(
+            args.completionSpan.props as Record<string, unknown>,
+          ).filter(([k]) => k !== AUTOBLOCKS_TRACKER_ID_PROP_NAME),
+        ),
+        messages: requestMessages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        })),
+        provider: 'openai',
+      },
+    },
+  };
+
+  const responseEvent = {
+    message: 'ai.completion.response',
+    args: {
+      traceId: args.traceId,
+      spanId: args.completionSpan.id,
+      parentSpanId: args.parentCompletionSpanId,
+      timestamp: args.completionSpan.endTime,
+      properties: {
+        latency:
+          new Date(args.completionSpan.endTime).getTime() -
+          new Date(args.completionSpan.startTime).getTime(),
+        choices: responseMessages.map((m) => ({
+          message: { role: m.role, content: m.content },
+        })),
+        usage: {
+          completion_tokens: responseMessages.reduce(
+            (acc, m) => acc + (m.tokens || 0),
+            0,
+          ),
+        },
+        provider: 'openai',
+      },
+      promptTracking: args.trackerId
+        ? makeTemplatesForCompletion(args.trackerId, args.completionSpan)
+        : undefined,
+    },
+  };
+
+  return [requestEvent, responseEvent];
+}
+
 export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
   const traceId = rootSpan.id;
   const events: { message: string; args: SendEventArgs }[] = [];
@@ -244,70 +334,14 @@ export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
       const trackerId = parseTrackerIdFromProps(span.props);
 
       if (!trackerId || !seenTrackerIds.has(trackerId)) {
-        // TODO: Need to figure out how to differentiate between which messages were
-        // sent in the request and which were part of the response, since they're all
-        // rendered together as children under <ChatCompletion>. For now just assuming
-        // that all system and user messages are part of the request and all assistant
-        // messages are part of the response.
-        const requestMessages = makeMessagesArrayFrom(span, [
-          SystemMessage,
-          UserMessage,
-        ]);
-        const responseMessages = makeMessagesArrayFrom(span, [
-          AssistantMessage,
-        ]);
-
-        events.push({
-          message: 'ai.completion.request',
-          args: {
+        events.push(
+          ...makeAutoblocksEventsForCompletion({
             traceId,
-            spanId: completionSpanId,
-            parentSpanId: parentCompletionSpanId,
-            timestamp: span.startTime,
-            properties: {
-              ...Object.fromEntries(
-                Object.entries(span.props as Record<string, unknown>).filter(
-                  ([k]) => k !== AUTOBLOCKS_TRACKER_ID_PROP_NAME,
-                ),
-              ),
-              messages: requestMessages.map((m) => ({
-                role: m.role,
-                content: m.content,
-              })),
-              provider: 'openai',
-            },
-          },
-        });
-
-        if (span.endTime) {
-          events.push({
-            message: 'ai.completion.response',
-            args: {
-              traceId,
-              spanId: completionSpanId,
-              parentSpanId: parentCompletionSpanId,
-              timestamp: span.endTime,
-              properties: {
-                latency:
-                  new Date(span.endTime).getTime() -
-                  new Date(span.startTime).getTime(),
-                choices: responseMessages.map((m) => ({
-                  message: { role: m.role, content: m.content },
-                })),
-                usage: {
-                  completion_tokens: responseMessages.reduce(
-                    (acc, m) => acc + (m.tokens || 0),
-                    0,
-                  ),
-                },
-                provider: 'openai',
-              },
-              promptTracking: trackerId
-                ? makeTemplatesForCompletion(trackerId, span)
-                : undefined,
-            },
-          });
-        }
+            completionSpan: span,
+            trackerId,
+            parentCompletionSpanId,
+          }),
+        );
       }
 
       if (trackerId) {
