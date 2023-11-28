@@ -1,5 +1,61 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`ai-jsx handles anthropic chat models 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What color is the sky?",
+        "role": "user",
+      },
+      {
+        "content": "For subsequent replies you will adhere to the following instructions: You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "user",
+      },
+      {
+        "content": "Okay, I will do that.",
+        "role": "assistant",
+      },
+    ],
+    "model": "claude-instant-1",
+    "provider": "anthropic",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles anthropic chat models 2`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "blue",
+          "role": "assistant",
+        },
+      },
+    ],
+    "latency": Any<Number>,
+    "provider": "anthropic",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 2,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
 exports[`ai-jsx handles nested completions 1`] = `
 {
   "message": "ai.completion.request",

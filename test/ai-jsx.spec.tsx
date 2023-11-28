@@ -5,6 +5,7 @@ import {
   UserMessage,
   SystemMessage,
 } from 'ai-jsx/core/completion';
+import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import {
   AutoblocksJsxTracer,
   AutoblocksPlaceholder,
@@ -206,5 +207,19 @@ describe('ai-jsx', () => {
       events[0].properties.spanId,
       events[0].properties.spanId,
     ]);
+  });
+
+  it('handles anthropic chat models', async () => {
+    await AI.createRenderContext().render(
+      <AutoblocksJsxTracer>
+        <AnthropicChatModel temperature={0} model="claude-instant-1">
+          <SystemMessage>
+            You are a helpful assistant. Always respond with one word in all
+            lowercase letters and no punctuation.
+          </SystemMessage>
+          <UserMessage>What color is the sky?</UserMessage>
+        </AnthropicChatModel>
+      </AutoblocksJsxTracer>,
+    );
   });
 });
