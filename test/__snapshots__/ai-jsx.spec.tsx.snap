@@ -6,10 +6,6 @@ exports[`ai-jsx handles anthropic chat models 1`] = `
   "properties": {
     "messages": [
       {
-        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
-        "role": "system",
-      },
-      {
         "content": "What color is the sky?",
         "role": "user",
       },

@@ -13,10 +13,23 @@ import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import { AutoblocksTracer } from '../tracer';
 import { readEnv, AUTOBLOCKS_INGESTION_KEY } from '../util';
 
-export const AUTOBLOCKS_TRACKER_ID_PROP_NAME = 'autoblocks-tracker-id';
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyComponent = Component<any>;
+
+interface AIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+  tokens?: number;
+}
+
+interface AutoblocksEvent {
+  message: string;
+  args: SendEventArgs;
+}
+
+type Provider = 'openai' | 'anthropic';
+
+export const AUTOBLOCKS_TRACKER_ID_PROP_NAME = 'autoblocks-tracker-id';
 
 /**
  * Used to wrap a dynamic runtime variable so that the actual value is
@@ -127,14 +140,9 @@ function countMessageTokens(span: AutoblocksSpan | string): number {
   return tokens;
 }
 
-interface AIMessage {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-  tokens?: number;
-}
-
 function makeMessagesForCompletion(
   completionSpan: AutoblocksSpan,
+  provider: Provider,
 ): AIMessage[] {
   const messagesById = new Map<string, AIMessage>();
 
@@ -159,7 +167,11 @@ function makeMessagesForCompletion(
         break;
     }
 
-    if (content && role) {
+    // For Anthropic requests, AI.JSX replaces the system message with a user and
+    // assistant message, so we omit the system message here since it's redundant
+    // with the user and assistant message added by AI.JSX.
+    // https://github.com/fixie-ai/ai-jsx/blob/4cd5eaf88de844d99d93216f199e9334f603a7ae/packages/ai-jsx/src/lib/anthropic.tsx#L109-L124
+    if (content && role && !(provider === 'anthropic' && role === 'system')) {
       const id = span.memoizedId || crypto.randomUUID();
       messagesById.set(id, { content, role, tokens });
     }
@@ -245,9 +257,14 @@ function omit(
   );
 }
 
-interface AutoblocksEvent {
-  message: string;
-  args: SendEventArgs;
+function chatComponentNameToProvider(name: string): Provider | undefined {
+  switch (name) {
+    case makeComponentName(OpenAIChatModel):
+      return 'openai';
+    case makeComponentName(AnthropicChatModel):
+      return 'anthropic';
+  }
+  return undefined;
 }
 
 function makeAutoblocksEventsForCompletion(args: {
@@ -261,10 +278,7 @@ function makeAutoblocksEventsForCompletion(args: {
     return [];
   }
 
-  const provider = {
-    [makeComponentName(OpenAIChatModel)]: 'openai',
-    [makeComponentName(AnthropicChatModel)]: 'anthropic',
-  }[args.completionSpan.name];
+  const provider = chatComponentNameToProvider(args.completionSpan.name);
 
   if (!provider) {
     console.warn(
@@ -273,14 +287,7 @@ function makeAutoblocksEventsForCompletion(args: {
     return [];
   }
 
-  const messages = makeMessagesForCompletion(args.completionSpan);
-
-  if (messages.length < 2) {
-    console.warn(
-      `Completion span ${args.completionSpan.id} has only ${messages.length} messages.`,
-    );
-    return [];
-  }
+  const messages = makeMessagesForCompletion(args.completionSpan, provider);
 
   const lastMessage = messages[messages.length - 1];
 
