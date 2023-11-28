@@ -39,9 +39,7 @@ export function AutoblocksJsxTracer(
           parentId: parentSpan?.id,
           memoizedId: findMemoizedId(renderable.props),
           name: makeComponentName(renderable.tag),
-          props: Object.fromEntries(
-            Object.entries(renderable.props).filter(([k]) => k !== 'children'),
-          ),
+          props: renderable.props,
           startTime: new Date().toISOString(),
           endTime: undefined,
           children: [],

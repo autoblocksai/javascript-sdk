@@ -228,6 +228,15 @@ function makeTemplatesForCompletion(
   return tracking;
 }
 
+function omit(
+  obj: Record<string, unknown>,
+  keys: string[],
+): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !keys.includes(key)),
+  );
+}
+
 interface AutoblocksEvent {
   message: string;
   args: SendEventArgs;
@@ -276,11 +285,10 @@ function makeAutoblocksEventsForCompletion(args: {
       parentSpanId: args.parentCompletionSpanId,
       timestamp: args.completionSpan.startTime,
       properties: {
-        ...Object.fromEntries(
-          Object.entries(
-            args.completionSpan.props as Record<string, unknown>,
-          ).filter(([k]) => k !== AUTOBLOCKS_TRACKER_ID_PROP_NAME),
-        ),
+        ...omit(args.completionSpan.props, [
+          'children',
+          AUTOBLOCKS_TRACKER_ID_PROP_NAME,
+        ]),
         messages: requestMessages.map((m) => ({
           role: m.role,
           content: m.content,

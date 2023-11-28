@@ -10,7 +10,8 @@ export interface AutoblocksSpan {
   parentId: string | undefined;
   memoizedId: string | undefined;
   name: string;
-  props: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  props: Record<string, any>;
   startTime: string;
   endTime: string | undefined;
   children: (AutoblocksSpan | string)[];
