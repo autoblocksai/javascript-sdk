@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type { ABSpan, AutoblocksPlaceholderProps } from './types';
+import type { AutoblocksSpan, AutoblocksPlaceholderProps } from './types';
 import type { PromptTracking, SendEventArgs } from '../types';
 import { Component } from 'ai-jsx';
 import {
@@ -83,7 +83,7 @@ function parseTrackerIdFromProps(props: unknown): string | undefined {
   }
 }
 
-function makeTemplateString(span: ABSpan | string): string {
+function makeTemplateString(span: AutoblocksSpan | string): string {
   if (typeof span === 'string') {
     return span;
   } else if (span.name === makeComponentName(AutoblocksPlaceholder)) {
@@ -98,7 +98,7 @@ function makeTemplateString(span: ABSpan | string): string {
   }
 }
 
-function makeMessageString(span: ABSpan | string): string {
+function makeMessageString(span: AutoblocksSpan | string): string {
   if (typeof span === 'string') {
     return span;
   } else {
@@ -106,7 +106,7 @@ function makeMessageString(span: ABSpan | string): string {
   }
 }
 
-function countMessageTokens(span: ABSpan | string): number {
+function countMessageTokens(span: AutoblocksSpan | string): number {
   let tokens = 0;
   if (typeof span === 'string') {
     tokens++;
@@ -130,7 +130,7 @@ interface MemoizedMessage {
 }
 
 function makeMemoizedMessagesArray(
-  span: ABSpan,
+  span: AutoblocksSpan,
   components: AnyComponent[],
 ): MemoizedMessage[] {
   const componentNames = components.map(makeComponentName);
@@ -184,7 +184,7 @@ function makeMemoizedMessagesArray(
  * Keep the last message from each memoizedId.
  */
 function makeMessagesArrayFrom(
-  span: ABSpan,
+  span: AutoblocksSpan,
   components: AnyComponent[],
 ): AIMessage[] {
   const memoized = makeMemoizedMessagesArray(span, components);
@@ -211,7 +211,7 @@ function makeMessagesArrayFrom(
 
 function makeTemplatesForCompletion(
   trackerId: string,
-  completionSpan: ABSpan,
+  completionSpan: AutoblocksSpan,
 ): PromptTracking | undefined {
   const tracking: PromptTracking = {
     id: trackerId,
@@ -220,7 +220,7 @@ function makeTemplatesForCompletion(
 
   const seenMemoizedIds = new Set<string>();
 
-  const walk = (span: ABSpan) => {
+  const walk = (span: AutoblocksSpan) => {
     if (
       span.children.length > 0 &&
       (span.name === makeComponentName(SystemMessage) ||
@@ -261,12 +261,12 @@ function makeTemplatesForCompletion(
   return tracking;
 }
 
-export async function processCompletedRootSpan(rootSpan: ABSpan) {
+export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
   const traceId = rootSpan.id;
   const events: { message: string; args: SendEventArgs }[] = [];
   const seenTrackerIds = new Set<string>();
 
-  const walk = (span: ABSpan, parentCompletionSpanId?: string) => {
+  const walk = (span: AutoblocksSpan, parentCompletionSpanId?: string) => {
     let completionSpanId: string | undefined = parentCompletionSpanId;
 
     if (span.name === makeComponentName(OpenAIChatModel)) {

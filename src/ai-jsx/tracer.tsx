@@ -7,7 +7,7 @@ import {
   processCompletedRootSpan,
   makeComponentName,
 } from './util';
-import type { ABSpan } from './types';
+import type { AutoblocksSpan } from './types';
 
 export function AutoblocksJsxTracer(
   props: {
@@ -15,7 +15,7 @@ export function AutoblocksJsxTracer(
   },
   { wrapRender }: AIJSX.ComponentContext,
 ) {
-  const currentSpanStorage = new AsyncLocalStorage<ABSpan>();
+  const currentSpanStorage = new AsyncLocalStorage<AutoblocksSpan>();
 
   return AIJSX.withContext(
     <>{props.children}</>,

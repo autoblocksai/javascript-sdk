@@ -5,7 +5,7 @@ export interface AutoblocksPlaceholderProps {
   name: string;
 }
 
-export interface ABSpan {
+export interface AutoblocksSpan {
   id: string;
   parentId: string | undefined;
   memoizedId: string | undefined;
@@ -13,5 +13,5 @@ export interface ABSpan {
   props: unknown;
   startTime: string;
   endTime: string | undefined;
-  children: (ABSpan | string)[];
+  children: (AutoblocksSpan | string)[];
 }
