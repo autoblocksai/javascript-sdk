@@ -53,8 +53,7 @@ describe('ai-jsx', () => {
 
   const sentEvents = () => mockPost.mock.calls.map((c) => c[1]) as SentEvent[];
 
-  const makeSpanPairs = () => {
-    const events = sentEvents();
+  const makeSpanPairs = (events: SentEvent[]) => {
     const pairs: Record<string, SentEvent[]> = {};
     for (const event of events) {
       if (!pairs[event.properties.spanId]) {
@@ -65,7 +64,8 @@ describe('ai-jsx', () => {
     return pairs;
   };
 
-  afterEach(() => {
+  // This needs to return a function b/c ???
+  const makeAssertions = () => () => {
     const events = sentEvents();
 
     // All events should have the same trace id
@@ -76,7 +76,7 @@ describe('ai-jsx', () => {
     expect(events.length).toBeGreaterThan(0);
     expect(events.length % 2).toBe(0);
 
-    const pairs = makeSpanPairs();
+    const pairs = makeSpanPairs(events);
     expect(Object.keys(pairs).length).toEqual(events.length / 2);
 
     for (const pair of Object.values(pairs)) {
@@ -108,7 +108,7 @@ describe('ai-jsx', () => {
 
       expect(request).toMatchSnapshot(matchers);
     }
-  });
+  };
 
   it('works with no tracker id', async () => {
     await AI.createRenderContext().render(
@@ -122,6 +122,8 @@ describe('ai-jsx', () => {
         </ChatCompletion>
       </AutoblocksJsxTracer>,
     );
+
+    makeAssertions()();
   });
 
   it('handles placeholders', async () => {
@@ -143,6 +145,8 @@ describe('ai-jsx', () => {
         </ChatCompletion>
       </AutoblocksJsxTracer>,
     );
+
+    makeAssertions()();
   });
 
   it('handles nested completions', async () => {
@@ -207,6 +211,8 @@ describe('ai-jsx', () => {
       events[0].properties.spanId,
       events[0].properties.spanId,
     ]);
+
+    makeAssertions()();
   });
 
   it('handles anthropic chat models', async () => {
@@ -222,4 +228,6 @@ describe('ai-jsx', () => {
       </AutoblocksJsxTracer>,
     );
   });
+
+  makeAssertions()();
 });
