@@ -52,6 +52,46 @@ exports[`ai-jsx handles anthropic chat models 2`] = `
 }
 `;
 
+exports[`ai-jsx handles errors 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+    ],
+    "model": "unsupported-model",
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles errors 2`] = `
+{
+  "message": "ai.completion.error",
+  "properties": {
+    "error": "AI.JSX(1032): OpenAI API Error: 404 The model \`unsupported-model\` does not exist.
+
+It's unclear whether this was caused by a bug in AI.JSX, in your code, or is an expected runtime error.
+    
+Need help? 
+* Discord: https://discord.com/channels/1065011484125569147/1121125525142904862
+* Docs: https://docs.ai-jsx.com/
+* GH: https://github.com/fixie-ai/ai-jsx/issues",
+    "latency": Any<Number>,
+    "spanId": Any<String>,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
 exports[`ai-jsx handles nested completions 1`] = `
 {
   "message": "ai.completion.request",

@@ -296,7 +296,6 @@ function makeAutoblocksEventsForCompletion(args: {
     console.warn(
       `Completion span ${args.completionSpan.id}'s last message is not an assistant message.`,
     );
-    return [];
   }
 
   // The request messages are all but the last message, and the response message
@@ -304,7 +303,9 @@ function makeAutoblocksEventsForCompletion(args: {
   const requestMessages = messages.slice(0, -1);
   const responseMessages = messages.slice(-1);
 
-  const requestEvent = {
+  const events: AutoblocksEvent[] = [];
+
+  events.push({
     message: 'ai.completion.request',
     args: {
       traceId: args.traceId,
@@ -323,37 +324,55 @@ function makeAutoblocksEventsForCompletion(args: {
         provider,
       },
     },
-  };
+  });
 
-  const responseEvent = {
-    message: 'ai.completion.response',
-    args: {
-      traceId: args.traceId,
-      spanId: args.completionSpan.id,
-      parentSpanId: args.parentCompletionSpanId,
-      timestamp: args.completionSpan.endTime,
-      properties: {
-        latency:
-          new Date(args.completionSpan.endTime).getTime() -
-          new Date(args.completionSpan.startTime).getTime(),
-        choices: responseMessages.map((m) => ({
-          message: { role: m.role, content: m.content },
-        })),
-        usage: {
-          completion_tokens: responseMessages.reduce(
-            (acc, m) => acc + (m.tokens || 0),
-            0,
-          ),
+  const latency =
+    new Date(args.completionSpan.endTime).getTime() -
+    new Date(args.completionSpan.startTime).getTime();
+
+  if (args.completionSpan.error) {
+    events.push({
+      message: 'ai.completion.error',
+      args: {
+        traceId: args.traceId,
+        spanId: args.completionSpan.id,
+        parentSpanId: args.parentCompletionSpanId,
+        timestamp: args.completionSpan.endTime,
+        properties: {
+          latency,
+          error: args.completionSpan.error,
         },
-        provider,
       },
-      promptTracking: args.trackerId
-        ? makeTemplatesForCompletion(args.trackerId, args.completionSpan)
-        : undefined,
-    },
-  };
+    });
+  } else {
+    events.push({
+      message: 'ai.completion.response',
+      args: {
+        traceId: args.traceId,
+        spanId: args.completionSpan.id,
+        parentSpanId: args.parentCompletionSpanId,
+        timestamp: args.completionSpan.endTime,
+        properties: {
+          latency,
+          choices: responseMessages.map((m) => ({
+            message: { role: m.role, content: m.content },
+          })),
+          usage: {
+            completion_tokens: responseMessages.reduce(
+              (acc, m) => acc + (m.tokens || 0),
+              0,
+            ),
+          },
+          provider,
+        },
+        promptTracking: args.trackerId
+          ? makeTemplatesForCompletion(args.trackerId, args.completionSpan)
+          : undefined,
+      },
+    });
+  }
 
-  return [requestEvent, responseEvent];
+  return events;
 }
 
 export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {

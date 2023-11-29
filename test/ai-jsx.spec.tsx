@@ -82,7 +82,11 @@ describe('ai-jsx', () => {
     for (const pair of Object.values(pairs)) {
       expect(pair.length).toEqual(2);
       expect(pair[0].message).toEqual('ai.completion.request');
-      expect(pair[1].message).toEqual('ai.completion.response');
+      expect(
+        ['ai.completion.response', 'ai.completion.error'].includes(
+          pair[1].message,
+        ),
+      ).toBe(true);
       expect(pair[0].timestamp < pair[1].timestamp).toBe(true);
       expect(pair[1].properties.latency).toBeDefined();
       expect(pair[1].properties.latency).toBeGreaterThan(0);
@@ -227,7 +231,27 @@ describe('ai-jsx', () => {
         </AnthropicChatModel>
       </AutoblocksJsxTracer>,
     );
+
+    makeAssertions()();
   });
 
-  makeAssertions()();
+  it('handles errors', async () => {
+    try {
+      await AI.createRenderContext().render(
+        <AutoblocksJsxTracer>
+          <ChatCompletion temperature={0} model="unsupported-model">
+            <SystemMessage>
+              You are a helpful assistant. Always respond with one word in all
+              lowercase letters and no punctuation.
+            </SystemMessage>
+            <UserMessage>What color is the sky?</UserMessage>
+          </ChatCompletion>
+        </AutoblocksJsxTracer>,
+      );
+    } catch {
+      // expected
+    }
+
+    makeAssertions()();
+  });
 });

@@ -59,6 +59,12 @@ export function AutoblocksJsxTracer(
                 shouldStop,
                 appendOnly,
               );
+            } catch (err) {
+              if (currentSpan) {
+                currentSpan.error = `${err}`;
+              }
+
+              throw err;
             } finally {
               if (currentSpan) {
                 currentSpan.endTime = new Date().toISOString();

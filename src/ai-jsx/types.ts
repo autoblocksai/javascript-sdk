@@ -14,5 +14,6 @@ export interface AutoblocksSpan {
   props: Record<string, any>;
   startTime: string;
   endTime: string | undefined;
+  error?: string;
   children: (AutoblocksSpan | string)[];
 }
