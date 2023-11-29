@@ -1,11 +1,10 @@
 {
-  "include": ["src"],
+  "include": ["src", "test"],
   "exclude": ["node_modules/**/*.ts"],
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
     "module": "commonjs",
-    "rootDir": "src",
     "sourceMap": true,
     "target": "ES2015",
     "strict": true,
@@ -13,6 +12,8 @@
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "ai-jsx"
   }
 }

@@ -9,11 +9,8 @@ import {
   LLMResult,
 } from 'langchain/dist/schema';
 import { AutoblocksTracer } from '../tracer';
-import {
-  AUTOBLOCKS_INGESTION_KEY,
-  type ArbitraryProperties,
-  readEnv,
-} from '../util';
+import { AUTOBLOCKS_INGESTION_KEY, readEnv } from '../util';
+import type { ArbitraryProperties } from '../types';
 
 export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   name = 'autoblocks_handler';

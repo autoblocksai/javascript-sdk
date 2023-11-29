@@ -2,19 +2,9 @@ import axios, { AxiosInstance } from 'axios';
 import {
   makeReplayHeaders,
   type TimeDelta,
-  type PromptTracking,
-  type ArbitraryProperties,
   convertTimeDeltaToMilliSeconds,
 } from './util';
-
-interface SendEventArgs {
-  traceId?: string;
-  spanId?: string;
-  parentSpanId?: string;
-  timestamp?: string;
-  properties?: ArbitraryProperties;
-  promptTracking?: PromptTracking;
-}
+import type { ArbitraryProperties, SendEventArgs } from './types';
 
 export class AutoblocksTracer {
   private client: AxiosInstance;
