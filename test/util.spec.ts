@@ -7,6 +7,7 @@ describe('Headers Builder', () => {
 
     expect(commit.sha.length).toEqual(40);
     expect(commit.message.length).toBeGreaterThan(0);
+    expect(commit.message.includes('\n')).toBe(false);
     expect(commit.committerName.length).toBeGreaterThan(0);
     expect(commit.authorName.length).toBeGreaterThan(0);
     expect(commit.authorEmail.includes('@')).toBe(true);
