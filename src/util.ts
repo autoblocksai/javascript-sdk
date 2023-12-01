@@ -250,8 +250,10 @@ export class HeadersBuilder {
       const [key, value] = [line.slice(0, idx), line.slice(idx + 1)];
 
       if (key === commitMessageKey) {
-        // Once we've reached the commit message key, the remaining lines are the commit message
-        data[commitMessageKey] = [value, ...lines].join('\n');
+        // Once we've reached the commit message key, the remaining lines are the commit message.
+        // We only keep the first line of the commit message, though, since some commit
+        // messages can be very long.
+        data[commitMessageKey] = value;
         break;
       }
 
