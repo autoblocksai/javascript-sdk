@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { AutoblocksTracer } from '../src/index';
+import { AUTOBLOCKS_TRACER_THROW_ON_ERROR } from '../src/util';
 
 jest.mock('axios');
 
@@ -490,6 +491,10 @@ describe('Autoblocks Tracer', () => {
   });
 
   describe('Error Handling', () => {
+    afterEach(() => {
+      delete process.env[AUTOBLOCKS_TRACER_THROW_ON_ERROR];
+    });
+
     it("doesn't throw if axios throws", async () => {
       axiosCreateMock.mockReturnValueOnce({
         post: jest.fn().mockRejectedValueOnce(new Error('mock-error')),
@@ -498,6 +503,23 @@ describe('Autoblocks Tracer', () => {
       const tracer = new AutoblocksTracer('mock-ingestion-token');
       const { traceId } = await tracer.sendEvent('mock-message');
       expect(traceId).toBeUndefined();
+    });
+
+    it('throws if axios throws and AUTOBLOCKS_TRACER_THROW_ON_ERROR is set to 1', async () => {
+      process.env[AUTOBLOCKS_TRACER_THROW_ON_ERROR] = '1';
+
+      axiosCreateMock.mockReturnValueOnce({
+        post: jest.fn().mockRejectedValueOnce(new Error('mock-error')),
+      });
+
+      const tracer = new AutoblocksTracer('mock-ingestion-token');
+
+      try {
+        await tracer.sendEvent('mock-message');
+        fail('Expected sendEvent to throw');
+      } catch {
+        // Expected
+      }
     });
   });
 
