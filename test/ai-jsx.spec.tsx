@@ -219,6 +219,64 @@ describe('ai-jsx', () => {
     makeAssertions()();
   });
 
+  it('handles nested completions w/o tracking IDs', async () => {
+    const GetThingColor = (props: { thing: string }) => {
+      return (
+        <ChatCompletion temperature={0} model="gpt-3.5-turbo">
+          <SystemMessage>
+            You are a helpful assistant. Always respond with one word in all
+            lowercase letters and no punctuation.
+          </SystemMessage>
+          <UserMessage>
+            What color is the{' '}
+            <AutoblocksPlaceholder name="thing">
+              {props.thing}
+            </AutoblocksPlaceholder>
+            ?
+          </UserMessage>
+        </ChatCompletion>
+      );
+    };
+
+    await AI.createRenderContext().render(
+      <AutoblocksJsxTracer>
+        <ChatCompletion temperature={0} model="gpt-3.5-turbo">
+          <SystemMessage>
+            You are an expert in colors. Always respond with one word in all
+            lowercase letters and no punctuation.
+          </SystemMessage>
+          <UserMessage>
+            What do you get when you mix red with <GetThingColor thing="sky" />?
+          </UserMessage>
+        </ChatCompletion>
+      </AutoblocksJsxTracer>,
+    );
+
+    const events = sentEvents();
+    expect(events.map((e) => e.message)).toEqual([
+      'ai.completion.request',
+      'ai.completion.response',
+      'ai.completion.request',
+      'ai.completion.response',
+    ]);
+
+    expect(events.map((e) => e.properties.spanId)).toEqual([
+      events[0].properties.spanId,
+      events[0].properties.spanId,
+      events[2].properties.spanId,
+      events[2].properties.spanId,
+    ]);
+
+    expect(events.map((e) => e.properties.parentSpanId)).toEqual([
+      undefined,
+      undefined,
+      events[0].properties.spanId,
+      events[0].properties.spanId,
+    ]);
+
+    makeAssertions()();
+  });
+
   it('handles anthropic chat models', async () => {
     await AI.createRenderContext().render(
       <AutoblocksJsxTracer>

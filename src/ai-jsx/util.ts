@@ -378,28 +378,28 @@ function makeAutoblocksEventsForCompletion(args: {
 export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
   const traceId = rootSpan.id;
   const events: { message: string; args: SendEventArgs }[] = [];
-  const seenTrackerIds = new Set<string>();
+  const seenMemoizedIds = new Set<string>();
 
   const walk = (span: AutoblocksSpan, parentCompletionSpanId?: string) => {
     let completionSpanId: string | undefined = parentCompletionSpanId;
 
     if (isChatModelSpan(span)) {
       completionSpanId = span.id;
-      const trackerId = parseTrackerIdFromProps(span.props);
+      const { memoizedId } = span;
 
-      if (!trackerId || !seenTrackerIds.has(trackerId)) {
+      if (!memoizedId || !seenMemoizedIds.has(memoizedId)) {
         events.push(
           ...makeAutoblocksEventsForCompletion({
             traceId,
             completionSpan: span,
-            trackerId,
+            trackerId: parseTrackerIdFromProps(span.props),
             parentCompletionSpanId,
           }),
         );
       }
 
-      if (trackerId) {
-        seenTrackerIds.add(trackerId);
+      if (memoizedId) {
+        seenMemoizedIds.add(memoizedId);
       }
     }
 

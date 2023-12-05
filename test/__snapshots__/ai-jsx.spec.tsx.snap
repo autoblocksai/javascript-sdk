@@ -216,6 +216,104 @@ exports[`ai-jsx handles nested completions 4`] = `
 }
 `;
 
+exports[`ai-jsx handles nested completions w/o tracking IDs 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are an expert in colors. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What do you get when you mix red with blue?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles nested completions w/o tracking IDs 2`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "purple",
+          "role": "assistant",
+        },
+      },
+    ],
+    "latency": Any<Number>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles nested completions w/o tracking IDs 3`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What color is the sky?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles nested completions w/o tracking IDs 4`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "blue",
+          "role": "assistant",
+        },
+      },
+    ],
+    "latency": Any<Number>,
+    "parentSpanId": Any<String>,
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
 exports[`ai-jsx handles placeholders 1`] = `
 {
   "message": "ai.completion.request",
