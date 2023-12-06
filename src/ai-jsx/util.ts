@@ -1,8 +1,11 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import crypto from 'crypto';
-import type { AutoblocksSpan, AutoblocksPlaceholderProps } from './types';
+import type {
+  AnyComponent,
+  AutoblocksSpan,
+  AutoblocksPlaceholderProps,
+} from './types';
 import type { PromptTracking, SendEventArgs } from '../types';
-import { Component } from 'ai-jsx';
 import {
   SystemMessage,
   UserMessage,
@@ -12,9 +15,6 @@ import { OpenAIChatModel } from 'ai-jsx/lib/openai';
 import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import { AutoblocksTracer } from '../tracer';
 import { readEnv, AUTOBLOCKS_INGESTION_KEY } from '../util';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyComponent = Component<any>;
 
 interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -29,7 +29,7 @@ interface AutoblocksEvent {
 
 type Provider = 'openai' | 'anthropic';
 
-export const AUTOBLOCKS_TRACKER_ID_PROP_NAME = 'autoblocks-tracker-id';
+const AUTOBLOCKS_TRACKER_ID_PROP_NAME = 'autoblocks-tracker-id';
 
 /**
  * Used to wrap a dynamic runtime variable so that the actual value is
@@ -43,11 +43,16 @@ export function makeComponentName(f: AnyComponent): string {
   return `<${f.name}>`;
 }
 
-function isChatModelSpan(span: AutoblocksSpan): boolean {
-  return (
-    span.name === makeComponentName(OpenAIChatModel) ||
-    span.name === makeComponentName(AnthropicChatModel)
-  );
+export function isChatModelComponent(
+  component: AnyComponent,
+  customChatComponent: AnyComponent | undefined,
+): boolean {
+  const name = makeComponentName(component);
+  return [
+    name === makeComponentName(OpenAIChatModel),
+    name === makeComponentName(AnthropicChatModel),
+    customChatComponent && name === makeComponentName(customChatComponent),
+  ].some((x) => Boolean(x));
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,7 +116,7 @@ function makeTemplateString(span: AutoblocksSpan | string): string {
   } else if (span.name === makeComponentName(AutoblocksPlaceholder)) {
     const props = span.props as AutoblocksPlaceholderProps;
     return `{{ ${props.name} }}`;
-  } else if (isChatModelSpan(span)) {
+  } else if (span.isChatModel) {
     // There is a nested completion not wrapped in a placeholder
     const name = parseTrackerIdFromProps(span.props) || 'completion';
     return `{{ ${name} }}`;
@@ -182,7 +187,7 @@ function makeMessagesForCompletion(
       }
 
       // Stop if we encounter another chat component
-      if (isChatModelSpan(child)) {
+      if (child.isChatModel) {
         continue;
       }
 
@@ -196,10 +201,14 @@ function makeMessagesForCompletion(
   return [...messagesById.values()];
 }
 
-function makeTemplatesForCompletion(
-  trackerId: string,
+export function makeTemplatesForCompletion(
   completionSpan: AutoblocksSpan,
 ): PromptTracking | undefined {
+  const trackerId = parseTrackerIdFromProps(completionSpan.props);
+  if (!trackerId) {
+    return undefined;
+  }
+
   const tracking: PromptTracking = {
     id: trackerId,
     templates: [],
@@ -235,7 +244,7 @@ function makeTemplatesForCompletion(
       }
 
       // Stop if we encounter another chat component
-      if (isChatModelSpan(child)) {
+      if (child.isChatModel) {
         continue;
       }
 
@@ -270,7 +279,6 @@ function chatComponentNameToProvider(name: string): Provider | undefined {
 function makeAutoblocksEventsForCompletion(args: {
   traceId: string;
   completionSpan: AutoblocksSpan;
-  trackerId?: string;
   parentCompletionSpanId?: string;
 }): AutoblocksEvent[] {
   if (!args.completionSpan.endTime) {
@@ -365,9 +373,7 @@ function makeAutoblocksEventsForCompletion(args: {
           },
           provider,
         },
-        promptTracking: args.trackerId
-          ? makeTemplatesForCompletion(args.trackerId, args.completionSpan)
-          : undefined,
+        promptTracking: makeTemplatesForCompletion(args.completionSpan),
       },
     });
   }
@@ -375,7 +381,9 @@ function makeAutoblocksEventsForCompletion(args: {
   return events;
 }
 
-export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
+export async function sendAutoblocksEventsForCompletedRootSpan(
+  rootSpan: AutoblocksSpan,
+) {
   const traceId = rootSpan.id;
   const events: { message: string; args: SendEventArgs }[] = [];
   const seenMemoizedIds = new Set<string>();
@@ -383,7 +391,7 @@ export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
   const walk = (span: AutoblocksSpan, parentCompletionSpanId?: string) => {
     let completionSpanId: string | undefined = parentCompletionSpanId;
 
-    if (isChatModelSpan(span)) {
+    if (span.isChatModel) {
       completionSpanId = span.id;
       const { memoizedId } = span;
 
@@ -392,7 +400,6 @@ export async function processCompletedRootSpan(rootSpan: AutoblocksSpan) {
           ...makeAutoblocksEventsForCompletion({
             traceId,
             completionSpan: span,
-            trackerId: parseTrackerIdFromProps(span.props),
             parentCompletionSpanId,
           }),
         );
