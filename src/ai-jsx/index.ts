@@ -1,2 +1,2 @@
-export { AutoblocksJsxTracer } from './tracer';
+export { AutoblocksJsxTracer, AutoblocksLoggerAttribute } from './tracer';
 export { AutoblocksPlaceholder } from './util';

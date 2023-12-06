@@ -8,8 +8,11 @@ import {
 import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import {
   AutoblocksJsxTracer,
+  AutoblocksLoggerAttribute,
   AutoblocksPlaceholder,
 } from '../src/ai-jsx/index';
+import { OpenAIChatModel } from 'ai-jsx/lib/openai';
+import { LogImplementation } from 'ai-jsx/core/log';
 
 interface SentEvent {
   message: string;
@@ -311,5 +314,123 @@ describe('ai-jsx', () => {
     }
 
     makeAssertions()();
+  });
+
+  it('sets prompt tracking attributes on the logger', async () => {
+    const mockSetAttribute = jest.fn();
+
+    class MockLogger extends LogImplementation {
+      log() {}
+
+      setAttribute(
+        _element: AI.Element<any>,
+        _renderId: string,
+        _key: string,
+        _value: string,
+      ): void {
+        mockSetAttribute(_element, _renderId, _key, _value);
+      }
+    }
+
+    const MyCustomChatModel = OpenAIChatModel;
+
+    const GetThingColor = (props: { thing: string }) => {
+      return (
+        <MyCustomChatModel
+          temperature={0}
+          model="gpt-3.5-turbo"
+          autoblocks-tracker-id="get-thing-color"
+        >
+          <SystemMessage>
+            You are a helpful assistant. Always respond with one word in all
+            lowercase letters and no punctuation.
+          </SystemMessage>
+          <UserMessage>
+            What color is the{' '}
+            <AutoblocksPlaceholder name="thing">
+              {props.thing}
+            </AutoblocksPlaceholder>
+            ?
+          </UserMessage>
+        </MyCustomChatModel>
+      );
+    };
+
+    const GetColorCombo = (props: { color: string; thing: string }) => {
+      return (
+        <MyCustomChatModel
+          temperature={0}
+          model="gpt-3.5-turbo"
+          autoblocks-tracker-id="determine-color-combination"
+        >
+          <SystemMessage>
+            You are an expert in colors. Always respond with one word in all
+            lowercase letters and no punctuation.
+          </SystemMessage>
+          <UserMessage>
+            What do you get when you mix{' '}
+            <AutoblocksPlaceholder name="color">
+              {props.color}
+            </AutoblocksPlaceholder>{' '}
+            with <GetThingColor thing={props.thing} />?
+          </UserMessage>
+        </MyCustomChatModel>
+      );
+    };
+
+    await AI.createRenderContext({ logger: new MockLogger() }).render(
+      <AutoblocksJsxTracer
+        skipSendingEvents={true}
+        customChatModelComponent={MyCustomChatModel}
+      >
+        <GetColorCombo color="red" thing="sky" />
+      </AutoblocksJsxTracer>,
+    );
+
+    const promptTrackingCalls = mockSetAttribute.mock.calls.filter(
+      (c) => c[2] === AutoblocksLoggerAttribute.PROMPT_TRACKING,
+    );
+
+    // There should be two prompt tracking setAttribute calls,
+    // one for each chat model component with an autoblocks-tracker-id
+    // property
+    expect(promptTrackingCalls.length).toEqual(2);
+
+    // The render IDs should both be defined and be different
+    const renderIds = promptTrackingCalls.map((c) => c[1]);
+    expect(renderIds.every(Boolean)).toBe(true);
+    expect(new Set(renderIds).size).toEqual(2);
+
+    // We should have logged the templates for each chat model component
+    expect(JSON.parse(promptTrackingCalls[0][3])).toEqual({
+      id: 'get-thing-color',
+      templates: [
+        {
+          id: 'get-thing-color/system',
+          template:
+            'You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.',
+        },
+        {
+          id: 'get-thing-color/user',
+          template: 'What color is the {{ thing }}?',
+        },
+      ],
+    });
+
+    expect(JSON.parse(promptTrackingCalls[1][3])).toEqual({
+      id: 'determine-color-combination',
+      templates: [
+        {
+          id: 'determine-color-combination/system',
+          template:
+            'You are an expert in colors. Always respond with one word in all lowercase letters and no punctuation.',
+        },
+        {
+          id: 'determine-color-combination/user',
+          template:
+            'What do you get when you mix {{ color }} with {{ get-thing-color }}?',
+        },
+      ],
+    });
   });
 });

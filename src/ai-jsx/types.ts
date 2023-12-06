@@ -1,4 +1,10 @@
-import type { Node } from 'ai-jsx';
+import type { Node, Component, Element } from 'ai-jsx';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyComponent = Component<any>;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyElement = Element<any>;
 
 export interface AutoblocksPlaceholderProps {
   children: Node;
@@ -10,6 +16,7 @@ export interface AutoblocksSpan {
   parentId: string | undefined;
   memoizedId: string | undefined;
   name: string;
+  isChatModel: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props: Record<string, any>;
   startTime: string;
