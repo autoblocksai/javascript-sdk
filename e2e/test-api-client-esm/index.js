@@ -7,9 +7,10 @@ import {
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
-// We've created a view in our CI org to be used in CI tests.
+// We've created a view and a dataset in our CI org to be used in CI tests.
 // It has one filter, message == 'sdk.e2e', and its timespan is "last 1 hour"
 const E2E_TESTS_VIEW_ID = 'cllmlk8py0003l608vd83dc03';
+const E2E_TESTS_DATASET_ID = 'clpup7f9400075us75nin99f0';
 const E2E_TESTS_EXPECTED_MESSAGE = 'sdk.e2e';
 
 const sleep = (seconds) =>
@@ -27,6 +28,18 @@ const main = async () => {
   const client = new AutoblocksAPIClient(AUTOBLOCKS_API_KEY, {
     timeout: { seconds: 30 },
   });
+
+  // Make sure datasets exists
+  const datasets = await client.getDatasets();
+  if (!datasets.some((dataset) => dataset.id === E2E_TESTS_DATASET_ID)) {
+    throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} not found!'`);
+  }
+  const datasetItems = await client.getDatasetItems({
+    datasetId: E2E_TESTS_DATASET_ID,
+  });
+  if (datasetItems.length === 0) {
+    throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} is empty!`);
+  }
 
   // Make sure our view exists
   const views = await client.getViews();
