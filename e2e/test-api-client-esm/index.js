@@ -37,7 +37,7 @@ const main = async () => {
   const dataset = await client.getDataset({
     datasetId: E2E_TESTS_DATASET_ID,
   });
-  if (!dataset || dataset.items.length === 0) {
+  if (dataset.items.length === 0) {
     throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} is empty!`);
   }
 
