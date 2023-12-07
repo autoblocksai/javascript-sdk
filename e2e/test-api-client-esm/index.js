@@ -29,7 +29,7 @@ const main = async () => {
     timeout: { seconds: 30 },
   });
 
-  // Make sure datasets exists
+  // Make sure dataset and items exists
   const datasets = await client.getDatasets();
   if (!datasets.some((dataset) => dataset.id === E2E_TESTS_DATASET_ID)) {
     throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} not found!'`);
