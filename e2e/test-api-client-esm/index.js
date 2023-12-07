@@ -34,10 +34,10 @@ const main = async () => {
   if (!datasets.some((dataset) => dataset.id === E2E_TESTS_DATASET_ID)) {
     throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} not found!'`);
   }
-  const datasetItems = await client.getDatasetItems({
+  const dataset = await client.getDataset({
     datasetId: E2E_TESTS_DATASET_ID,
   });
-  if (datasetItems.length === 0) {
+  if (!dataset || dataset.items.length === 0) {
     throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} is empty!`);
   }
 

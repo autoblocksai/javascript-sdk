@@ -17,6 +17,10 @@ export interface DatasetItem {
   output: string;
 }
 
+export interface DatasetWithItems extends Dataset {
+  items: DatasetItem[];
+}
+
 export interface Event {
   id: string;
   traceId: string;
@@ -128,10 +132,10 @@ export class AutoblocksAPIClient {
     return data;
   }
 
-  public async getDatasetItems(args: {
+  public async getDataset(args: {
     datasetId: string;
-  }): Promise<{ nextCursor?: string; traces: Trace[] }> {
-    const { data } = await this.client.get(`/datasets/${args.datasetId}/items`);
+  }): Promise<DatasetWithItems> {
+    const { data } = await this.client.get(`/datasets/${args.datasetId}`);
     return data;
   }
 }
