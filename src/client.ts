@@ -6,6 +6,21 @@ export interface View {
   name: string;
 }
 
+export interface Dataset {
+  id: string;
+  name: string;
+}
+
+export interface DatasetItem {
+  id: string;
+  input: string;
+  output: string;
+}
+
+export interface DatasetWithItems extends Dataset {
+  items: DatasetItem[];
+}
+
 export interface Event {
   id: string;
   traceId: string;
@@ -109,6 +124,18 @@ export class AutoblocksAPIClient {
       query: args.query,
       cursor: args.cursor,
     });
+    return data;
+  }
+
+  public async getDatasets(): Promise<Dataset[]> {
+    const { data } = await this.client.get('/datasets');
+    return data;
+  }
+
+  public async getDataset(args: {
+    datasetId: string;
+  }): Promise<DatasetWithItems> {
+    const { data } = await this.client.get(`/datasets/${args.datasetId}`);
     return data;
   }
 }
