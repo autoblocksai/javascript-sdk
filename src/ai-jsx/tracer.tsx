@@ -10,10 +10,7 @@ import {
   makeTemplatesForCompletion,
 } from './util';
 import type { AnyComponent, AnyElement, AutoblocksSpan } from './types';
-
-export enum AutoblocksLoggerAttribute {
-  PROMPT_TRACKING = 'autoblocks.promptTracking',
-}
+import { AutoblocksLoggerAttribute } from './enum';
 
 export function AutoblocksJsxTracer(
   props: {
@@ -65,6 +62,7 @@ export function AutoblocksJsxTracer(
             renderable.tag,
             props.customChatModelComponent,
           ),
+          customChatModelComponent: props.customChatModelComponent,
           props: renderable.props,
           startTime: new Date().toISOString(),
           endTime: undefined,

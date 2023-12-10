@@ -10,6 +10,8 @@ import {
   AutoblocksJsxTracer,
   AutoblocksLoggerAttribute,
   AutoblocksPlaceholder,
+  AutoblocksTemplateSelect,
+  AutoblocksTemplateSelectItem,
 } from '../src/ai-jsx/index';
 import { OpenAIChatModel } from 'ai-jsx/lib/openai';
 import { LogImplementation } from 'ai-jsx/core/log';
@@ -144,6 +146,53 @@ describe('ai-jsx', () => {
           <SystemMessage>
             You are a helpful assistant. Always respond with one word in all
             lowercase letters and no punctuation.
+          </SystemMessage>
+          <UserMessage>
+            What color is the{' '}
+            <AutoblocksPlaceholder name="thing">sky</AutoblocksPlaceholder>?
+          </UserMessage>
+        </ChatCompletion>
+      </AutoblocksJsxTracer>,
+    );
+
+    makeAssertions()();
+  });
+
+  it('handles selects', async () => {
+    enum Select {
+      A = 'A',
+      B = 'B',
+    }
+
+    const runtime = () => 'runtime';
+
+    await AI.createRenderContext().render(
+      <AutoblocksJsxTracer>
+        <ChatCompletion
+          temperature={0}
+          model="gpt-3.5-turbo"
+          autoblocks-tracker-id="my-tracker-id"
+        >
+          <SystemMessage>
+            <AutoblocksTemplateSelect
+              name="instructions"
+              selectedItemName={Select.A}
+            >
+              <AutoblocksTemplateSelectItem name={Select.A}>
+                You are a helpful assistant. Always respond with one word in all
+                lowercase letters and no punctuation.
+              </AutoblocksTemplateSelectItem>
+              <AutoblocksTemplateSelectItem name={Select.B}>
+                <>
+                  This template won't be chosen at {runtime()}, but it should
+                  still be included in the list of{' '}
+                  <AutoblocksPlaceholder name="templates">
+                    templates
+                  </AutoblocksPlaceholder>
+                  .
+                </>
+              </AutoblocksTemplateSelectItem>
+            </AutoblocksTemplateSelect>
           </SystemMessage>
           <UserMessage>
             What color is the{' '}
