@@ -96,6 +96,11 @@ export class AutoblocksAPIClient {
     return data;
   }
 
+  public async getTrace(args: { traceId: string }): Promise<Trace> {
+    const { data } = await this.client.get(`/traces/${args.traceId}`);
+    return data;
+  }
+
   public async getTracesFromView(args: {
     viewId: string;
     pageSize: number;
