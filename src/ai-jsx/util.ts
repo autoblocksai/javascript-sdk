@@ -4,6 +4,9 @@ import type {
   AnyComponent,
   AutoblocksSpan,
   AutoblocksPlaceholderProps,
+  AutoblocksTemplateSelectProps,
+  AutoblocksTemplateSelectItemProps,
+  AnyElement,
 } from './types';
 import type { PromptTracking, SendEventArgs } from '../types';
 import {
@@ -15,6 +18,7 @@ import { OpenAIChatModel } from 'ai-jsx/lib/openai';
 import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import { AutoblocksTracer } from '../tracer';
 import { readEnv, AUTOBLOCKS_INGESTION_KEY } from '../util';
+import * as AIJSX from 'ai-jsx';
 
 interface AIMessage {
   role: 'system' | 'user' | 'assistant';
@@ -36,6 +40,38 @@ const AUTOBLOCKS_TRACKER_ID_PROP_NAME = 'autoblocks-tracker-id';
  * replaced in the template with {{ name }}.
  */
 export function AutoblocksPlaceholder(props: AutoblocksPlaceholderProps) {
+  return props.children;
+}
+
+/**
+ * Used to wrap templates that users want to choose between. This allows us to consider
+ * all choices' templates as part of the same prompt tracking object regardless of which
+ * one is chosen at runtime. Otherwise, users would have several active versions of their
+ * prompts at one time (one for each choice).
+ */
+export function AutoblocksTemplateSelect(props: AutoblocksTemplateSelectProps) {
+  if (Array.isArray(props.children)) {
+    const selectedItem = props.children.find((child) => {
+      return (
+        AIJSX.isElement(child) &&
+        child.tag === AutoblocksTemplateSelectItem &&
+        (child.props as AutoblocksTemplateSelectItemProps).name ===
+          props.selectedItemName
+      );
+    });
+    if (selectedItem) {
+      return selectedItem;
+    }
+  }
+  return props.children;
+}
+
+/**
+ * Should be a child of AutoblocksTemplateSelect.
+ */
+export function AutoblocksTemplateSelectItem(
+  props: AutoblocksTemplateSelectItemProps,
+) {
   return props.children;
 }
 
@@ -116,6 +152,9 @@ function makeTemplateString(span: AutoblocksSpan | string): string {
   } else if (span.name === makeComponentName(AutoblocksPlaceholder)) {
     const props = span.props as AutoblocksPlaceholderProps;
     return `{{ ${props.name} }}`;
+  } else if (span.name === makeComponentName(AutoblocksTemplateSelect)) {
+    const props = span.props as AutoblocksTemplateSelectProps;
+    return `{{ ${props.name} }}`;
   } else if (span.isChatModel) {
     // There is a nested completion not wrapped in a placeholder
     const name = parseTrackerIdFromProps(span.props) || 'completion';
@@ -123,6 +162,83 @@ function makeTemplateString(span: AutoblocksSpan | string): string {
   } else {
     return span.children.map(makeTemplateString).filter(Boolean).join('');
   }
+}
+
+function makeTemplateStringForNode(
+  node: unknown,
+  customChatModelComponent: AnyComponent | undefined,
+): string {
+  if (['string', 'boolean', 'number'].includes(typeof node)) {
+    return `${node}`;
+  } else if (AIJSX.isElement(node) && node.tag === AutoblocksPlaceholder) {
+    const props = node.props as AutoblocksPlaceholderProps;
+    return `{{ ${props.name} }}`;
+  } else if (AIJSX.isElement(node) && node.tag === AutoblocksTemplateSelect) {
+    const props = node.props as AutoblocksTemplateSelectProps;
+    return `{{ ${props.name} }}`;
+  } else if (
+    AIJSX.isElement(node) &&
+    isChatModelComponent(node.tag, customChatModelComponent)
+  ) {
+    const name = parseTrackerIdFromProps(node.props) || 'completion';
+    return `{{ ${name} }}`;
+  } else if (AIJSX.isElement(node)) {
+    return makeTemplateStringForNode(
+      node.props.children,
+      customChatModelComponent,
+    );
+  } else if (Array.isArray(node)) {
+    return node
+      .map((n) => makeTemplateStringForNode(n, customChatModelComponent))
+      .join('');
+  } else {
+    console.warn(`Unhandled node: ${node}`);
+    return '';
+  }
+}
+
+function makeTemplatesFromSelectProps(args: {
+  trackerId: string;
+  props: AutoblocksTemplateSelectProps;
+  customChatModelComponent: AnyComponent | undefined;
+}): { id: string; template: string }[] {
+  const templates: { id: string; template: string }[] = [];
+
+  // Find all of the <AutoblocksTemplateSelectItem> children
+  const items: AnyElement[] = [];
+  if (Array.isArray(args.props.children)) {
+    for (const child of args.props.children) {
+      if (
+        AIJSX.isElement(child) &&
+        child.tag === AutoblocksTemplateSelectItem
+      ) {
+        items.push(child);
+      }
+    }
+  } else if (
+    AIJSX.isElement(args.props.children) &&
+    args.props.children.tag === AutoblocksTemplateSelectItem
+  ) {
+    items.push(args.props.children);
+  }
+
+  // Get the template for each <AutoblocksTemplateSelectItem> and
+  // add it to the list of templates
+  for (const item of items) {
+    const template = makeTemplateStringForNode(
+      item,
+      args.customChatModelComponent,
+    );
+    if (template) {
+      const props = item.props as AutoblocksTemplateSelectItemProps;
+      templates.push({
+        id: `${args.trackerId}/${args.props.name}/${props.name}`,
+        template,
+      });
+    }
+  }
+
+  return templates;
 }
 
 function makeMessageString(span: AutoblocksSpan | string): string {
@@ -236,6 +352,19 @@ export function makeTemplatesForCompletion(
         id: `${trackerId}/${suffix}`,
         template: makeTemplateString(span),
       });
+    }
+
+    if (
+      span.children.length > 0 &&
+      span.name === makeComponentName(AutoblocksTemplateSelect)
+    ) {
+      tracking.templates.push(
+        ...makeTemplatesFromSelectProps({
+          trackerId,
+          props: span.props as AutoblocksTemplateSelectProps,
+          customChatModelComponent: completionSpan.customChatModelComponent,
+        }),
+      );
     }
 
     for (const child of span.children) {

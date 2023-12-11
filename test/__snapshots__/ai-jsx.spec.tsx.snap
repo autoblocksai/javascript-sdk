@@ -375,6 +375,75 @@ exports[`ai-jsx handles placeholders 2`] = `
 }
 `;
 
+exports[`ai-jsx handles selects 1`] = `
+{
+  "message": "ai.completion.request",
+  "properties": {
+    "messages": [
+      {
+        "content": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        "role": "system",
+      },
+      {
+        "content": "What color is the sky?",
+        "role": "user",
+      },
+    ],
+    "model": "gpt-3.5-turbo",
+    "provider": "openai",
+    "spanId": Any<String>,
+    "temperature": 0,
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
+exports[`ai-jsx handles selects 2`] = `
+{
+  "message": "ai.completion.response",
+  "properties": {
+    "choices": [
+      {
+        "message": {
+          "content": "blue",
+          "role": "assistant",
+        },
+      },
+    ],
+    "latency": Any<Number>,
+    "promptTracking": {
+      "id": "my-tracker-id",
+      "templates": [
+        {
+          "id": "my-tracker-id/system",
+          "template": "{{ instructions }}",
+        },
+        {
+          "id": "my-tracker-id/instructions/A",
+          "template": "You are a helpful assistant. Always respond with one word in all lowercase letters and no punctuation.",
+        },
+        {
+          "id": "my-tracker-id/instructions/B",
+          "template": "This template won't be chosen at runtime, but it should still be included in the list of {{ templates }}.",
+        },
+        {
+          "id": "my-tracker-id/user",
+          "template": "What color is the {{ thing }}?",
+        },
+      ],
+    },
+    "provider": "openai",
+    "spanId": Any<String>,
+    "usage": {
+      "completion_tokens": 1,
+    },
+  },
+  "timestamp": Any<String>,
+  "traceId": Any<String>,
+}
+`;
+
 exports[`ai-jsx works with no tracker id 1`] = `
 {
   "message": "ai.completion.request",

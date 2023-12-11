@@ -1,2 +1,7 @@
-export { AutoblocksJsxTracer, AutoblocksLoggerAttribute } from './tracer';
-export { AutoblocksPlaceholder } from './util';
+export { AutoblocksJsxTracer } from './tracer';
+export { AutoblocksLoggerAttribute } from './enum';
+export {
+  AutoblocksPlaceholder,
+  AutoblocksTemplateSelect,
+  AutoblocksTemplateSelectItem,
+} from './util';

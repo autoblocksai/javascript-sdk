@@ -11,12 +11,24 @@ export interface AutoblocksPlaceholderProps {
   name: string;
 }
 
+export interface AutoblocksTemplateSelectProps {
+  children: Node;
+  name: string;
+  selectedItemName: string;
+}
+
+export interface AutoblocksTemplateSelectItemProps {
+  children: Node;
+  name: string;
+}
+
 export interface AutoblocksSpan {
   id: string;
   parentId: string | undefined;
   memoizedId: string | undefined;
   name: string;
   isChatModel: boolean;
+  customChatModelComponent: AnyComponent | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props: Record<string, any>;
   startTime: string;
