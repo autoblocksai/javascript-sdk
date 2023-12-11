@@ -7,11 +7,17 @@ import {
 
 const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
-// We've created a view and a dataset in our CI org to be used in CI tests.
-// It has one filter, message == 'sdk.e2e', and its timespan is "last 1 hour"
+// The below are entities in our Autoblocks CI org that we use for testing.
 const E2E_TESTS_VIEW_ID = 'cllmlk8py0003l608vd83dc03';
 const E2E_TESTS_DATASET_ID = 'clpup7f9400075us75nin99f0';
+const E2E_TESTS_TRACE_ID = '4943bb26-3526-4e9c-bcd1-62f08baa621a';
 const E2E_TESTS_EXPECTED_MESSAGE = 'sdk.e2e';
+
+const assertEqual = (x, y) => {
+  if (x !== y) {
+    throw new Error(`Expected ${x} to equal ${y}`);
+  }
+};
 
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -40,6 +46,24 @@ const main = async () => {
   if (dataset.items.length === 0) {
     throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} is empty!`);
   }
+
+  // Test that we can fetch a trace by ID
+  const trace = await client.getTrace({
+    traceId: E2E_TESTS_TRACE_ID,
+  });
+  if (trace.events.length === 0) {
+    throw new Error(`Trace ${E2E_TESTS_TRACE_ID} is empty!`);
+  }
+
+  assertEqual(trace.id, E2E_TESTS_TRACE_ID);
+  assertEqual(trace.events[0].id, 'ee9dd0c7-daa4-4086-8d6c-b9706f435a68');
+  assertEqual(trace.events[0].traceId, E2E_TESTS_TRACE_ID);
+  assertEqual(trace.events[0].message, 'langchain.chain.start');
+  assertEqual(trace.events[0].timestamp, '2023-12-11T12:27:26.831Z');
+  assertEqual(
+    trace.events[0].properties.inputs.input,
+    "What is today's date? What is that date divided by 2?",
+  );
 
   // Make sure our view exists
   const views = await client.getViews();
