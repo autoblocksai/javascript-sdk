@@ -332,9 +332,7 @@ const isLocalReplay = (args: Replay): args is LocalReplay => {
   return (args as LocalReplay).replayId !== undefined;
 };
 
-export const makeReplayHtmlUrl = (
-  args: { replayId: string } | { repo: string; branch: string },
-): string => {
+export const makeReplayHtmlUrl = (args: Replay): string => {
   if (isLocalReplay(args)) {
     const replayId = encodeURIComponent(args.replayId);
     return `https://app.autoblocks.ai/replays/local/run/${replayId}`;
