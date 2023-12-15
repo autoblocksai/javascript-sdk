@@ -1,4 +1,8 @@
-import { HeadersBuilder, parseRepoNameFromOriginUrl } from '../src/util';
+import {
+  HeadersBuilder,
+  parseRepoNameFromOriginUrl,
+  makeReplayHtmlUrl,
+} from '../src/util';
 
 describe('Headers Builder', () => {
   it('getLocalCommitData', async () => {
@@ -59,5 +63,24 @@ describe('Headers Builder', () => {
         ),
       ).toEqual('gitlab-com/www-gitlab-com');
     });
+  });
+});
+
+describe('makeReplayHtmlUrl', () => {
+  it('makes local urls', () => {
+    expect(makeReplayHtmlUrl({ replayId: 'hello, world!' })).toEqual(
+      'https://app.autoblocks.ai/replays/local/run/hello%2C%20world!',
+    );
+  });
+
+  it('makes GitHub urls', () => {
+    expect(
+      makeReplayHtmlUrl({
+        repo: 'autoblocksai/autoblocks',
+        branch: 'my/feature/branch',
+      }),
+    ).toEqual(
+      'https://app.autoblocks.ai/replays/github/repo/autoblocksai%2Fautoblocks/branch/my%2Ffeature%2Fbranch',
+    );
   });
 });

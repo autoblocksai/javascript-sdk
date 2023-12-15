@@ -323,3 +323,23 @@ export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   const totalSeconds = minutes * 60 + seconds;
   return totalSeconds * 1000 + milliseconds;
 };
+
+type LocalReplay = { replayId: string };
+type GitHubReplay = { repo: string; branch: string };
+type Replay = LocalReplay | GitHubReplay;
+
+const isLocalReplay = (args: Replay): args is LocalReplay => {
+  return (args as LocalReplay).replayId !== undefined;
+};
+
+export const makeReplayHtmlUrl = (args: Replay): string => {
+  const baseUrl = 'https://app.autoblocks.ai/replays';
+  if (isLocalReplay(args)) {
+    const replayId = encodeURIComponent(args.replayId);
+    return `${baseUrl}/local/run/${replayId}`;
+  } else {
+    const repo = encodeURIComponent(args.repo);
+    const branch = encodeURIComponent(args.branch);
+    return `${baseUrl}/github/repo/${repo}/branch/${branch}`;
+  }
+};
