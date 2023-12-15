@@ -333,12 +333,13 @@ const isLocalReplay = (args: Replay): args is LocalReplay => {
 };
 
 export const makeReplayHtmlUrl = (args: Replay): string => {
+  const baseUrl = 'https://app.autoblocks.ai/replays';
   if (isLocalReplay(args)) {
     const replayId = encodeURIComponent(args.replayId);
-    return `https://app.autoblocks.ai/replays/local/run/${replayId}`;
+    return `${baseUrl}/local/run/${replayId}`;
   } else {
     const repo = encodeURIComponent(args.repo);
     const branch = encodeURIComponent(args.branch);
-    return `https://app.autoblocks.ai/replays/github/repo/${repo}/branch/${branch}`;
+    return `${baseUrl}/github/repo/${repo}/branch/${branch}`;
   }
 };
