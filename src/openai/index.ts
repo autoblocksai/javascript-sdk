@@ -1,10 +1,13 @@
 import crypto from 'crypto';
 import { AutoblocksTracer } from '../tracer';
-import { readEnv, AUTOBLOCKS_INGESTION_KEY } from '../util';
+import { readEnv, AutoblocksEnvVar } from '../util';
 
-const tracer = new AutoblocksTracer(readEnv(AUTOBLOCKS_INGESTION_KEY) || '', {
-  properties: { provider: 'openai' },
-});
+const tracer = new AutoblocksTracer(
+  readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY) || '',
+  {
+    properties: { provider: 'openai' },
+  },
+);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeWrapper(func: any): any {
@@ -83,9 +86,9 @@ export async function traceOpenAI(): Promise<AutoblocksTracer> {
     return tracer;
   }
 
-  if (!readEnv(AUTOBLOCKS_INGESTION_KEY)) {
+  if (!readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY)) {
     throw new Error(
-      `You must set the ${AUTOBLOCKS_INGESTION_KEY} environment variable in order to use traceOpenAI.`,
+      `You must set the ${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY} environment variable in order to use traceOpenAI.`,
     );
   }
 

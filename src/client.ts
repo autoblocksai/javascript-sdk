@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
-import { type TimeDelta, convertTimeDeltaToMilliSeconds } from './util';
+import { convertTimeDeltaToMilliSeconds } from './util';
+import type { TimeDelta } from './types';
 
 export interface View {
   id: string;

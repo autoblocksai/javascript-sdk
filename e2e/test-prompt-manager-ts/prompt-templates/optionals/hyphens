@@ -1,1 +1,0 @@
-I have a placeholder name {{ optional-param-with-hyphens? }} that isn't a valid JS value

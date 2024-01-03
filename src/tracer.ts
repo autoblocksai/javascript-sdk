@@ -1,12 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
 import {
   makeReplayHeaders,
-  type TimeDelta,
   convertTimeDeltaToMilliSeconds,
   readEnv,
-  AUTOBLOCKS_TRACER_THROW_ON_ERROR,
+  AutoblocksEnvVar,
 } from './util';
-import type { ArbitraryProperties, SendEventArgs } from './types';
+import type { ArbitraryProperties, SendEventArgs, TimeDelta } from './types';
 
 export class AutoblocksTracer {
   private client: AxiosInstance;
@@ -102,7 +101,7 @@ export class AutoblocksTracer {
       const traceId = await this.sendEventUnsafe(message, args);
       return { traceId };
     } catch (err) {
-      if (readEnv(AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
+      if (readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
         throw err;
       }
       console.error(`Error sending event to Autoblocks: ${err}`);

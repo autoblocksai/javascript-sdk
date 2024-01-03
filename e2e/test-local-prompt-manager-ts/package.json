@@ -1,5 +1,5 @@
 {
-  "name": "test-prompt-manager-ts",
+  "name": "test-local-prompt-manager-ts",
   "version": "0.0.0",
   "private": true,
   "engines": {
@@ -7,7 +7,7 @@
   },
   "type": "module",
   "scripts": {
-    "start": "jest",
+    "test": "jest",
     "gen": "autoblocks prompts generate",
     "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
   },
@@ -16,13 +16,14 @@
     "jest": "*",
     "nodemon": "*",
     "openai": "*",
-    "ts-jest": "*"
+    "ts-jest": "*",
+    "typescript": "*"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
   },
   "autoblocks": {
-    "templatesDirectory": "prompt-templates"
+    "promptsDirectory": "prompt-templates"
   }
 }
