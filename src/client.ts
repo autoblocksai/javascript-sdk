@@ -87,13 +87,7 @@ export class AutoblocksAPIClient {
   private client: AxiosInstance;
 
   // Deprecated constructor
-  constructor(
-    apiKey: string,
-    args?: {
-      apiKey?: string;
-      timeout?: TimeDelta;
-    },
-  );
+  constructor(apiKey: string, args?: ClientArgs);
   // Current constructor
   constructor(args?: ClientArgs);
   constructor(keyOrArgs?: string | ClientArgs, maybeArgs?: ClientArgs) {
