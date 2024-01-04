@@ -301,6 +301,7 @@ export const makeReplayHeaders = (): Record<string, string> | undefined => {
   return builder.makeReplayHeaders();
 };
 
+export const AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY';
 export const AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY';
 export const AUTOBLOCKS_TRACER_THROW_ON_ERROR =
   'AUTOBLOCKS_TRACER_THROW_ON_ERROR';
