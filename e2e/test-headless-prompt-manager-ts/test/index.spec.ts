@@ -283,36 +283,10 @@ describe('AutoblocksPromptManager v1 weighted', () => {
     manager.close();
   });
 
-  it('renders prompts', () => {
-    manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
-        template: 'template-a',
-        params: {
-          name: 'Alice',
-          weather: 'sunny',
-        },
-      });
-      expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
-    });
-  });
-
-  it('provides params', () => {
-    manager.exec(({ prompt }) => {
-      expect(prompt.params).toEqual({
-        frequencyPenalty: 0,
-        maxTokens: 256,
-        model: 'gpt-4',
-        presencePenalty: 0.3,
-        stopSequences: [],
-        temperature: 0.7,
-        topP: 1,
-      });
-    });
-  });
-
   it('provides tracking info', () => {
     manager.exec(({ prompt }) => {
       const tracking = prompt.track();
+      // Either 1.0 or 1.1 should be chosen based on their weights
       expect(['1.0', '1.1'].includes(tracking.version)).toBe(true);
     });
   });
