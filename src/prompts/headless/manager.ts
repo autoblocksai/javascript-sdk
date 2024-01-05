@@ -87,8 +87,8 @@ export class AutoblocksHeadlessPromptManager<
       );
     }
 
-    this.refreshTimeout = args.refreshTimeout || { seconds: 5 };
-    this.initTimeout = args.initTimeout || { seconds: 5 };
+    this.refreshTimeout = args.refreshTimeout || { seconds: 30 };
+    this.initTimeout = args.initTimeout || { seconds: 30 };
   }
 
   private makeRequestUrl(args: { minorVersion: string }): string {
