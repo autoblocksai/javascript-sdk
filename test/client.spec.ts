@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { AutoblocksAPIClient } from '../src/index';
-import { AUTOBLOCKS_API_KEY } from '../src/util';
+import { AutoblocksEnvVar } from '../src/util';
 
 jest.mock('axios');
 
@@ -31,7 +31,7 @@ describe('Autoblocks Client', () => {
     });
 
     it('accepts api key as environment variable', () => {
-      process.env[AUTOBLOCKS_API_KEY] = 'mock-api-key';
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY] = 'mock-api-key';
 
       new AutoblocksAPIClient();
 
@@ -43,7 +43,7 @@ describe('Autoblocks Client', () => {
         timeout: 10000,
       });
 
-      delete process.env[AUTOBLOCKS_API_KEY];
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY];
     });
 
     it.each([

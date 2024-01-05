@@ -301,10 +301,11 @@ export const makeReplayHeaders = (): Record<string, string> | undefined => {
   return builder.makeReplayHeaders();
 };
 
-export const AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY';
-export const AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY';
-export const AUTOBLOCKS_TRACER_THROW_ON_ERROR =
-  'AUTOBLOCKS_TRACER_THROW_ON_ERROR';
+export enum AutoblocksEnvVar {
+  AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',
+  AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY',
+  AUTOBLOCKS_TRACER_THROW_ON_ERROR = 'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
+}
 
 export const readEnv = (key: string): string | undefined => {
   return process.env[key];
