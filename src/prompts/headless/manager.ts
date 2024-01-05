@@ -78,17 +78,29 @@ export class AutoblocksHeadlessPromptManager<
       )
     ) {
       const refreshInterval = args.refreshInterval || { seconds: 10 };
-      console.log(
-        `[${this.id}@v${this.majorVersion}] Refreshing latest prompt every ${refreshInterval.seconds} seconds`,
+      const refreshIntervalMs = convertTimeDeltaToMilliSeconds(refreshInterval);
+      this.logger.info(
+        `Refreshing latest prompt every ${Math.round(
+          refreshIntervalMs / 1000,
+        )} seconds`,
       );
       this.refreshIntervalTimer = setInterval(
         this.refreshLatest,
-        convertTimeDeltaToMilliSeconds(refreshInterval),
+        refreshIntervalMs,
       );
     }
 
     this.refreshTimeout = args.refreshTimeout || { seconds: 30 };
     this.initTimeout = args.initTimeout || { seconds: 30 };
+  }
+
+  private get logger() {
+    const prefix = `[${this.id}@v${this.majorVersion}]`;
+    return {
+      info: (message: string) => console.info(`${prefix} ${message}`),
+      warn: (message: string) => console.warn(`${prefix} ${message}`),
+      error: (message: string) => console.error(`${prefix} ${message}`),
+    };
   }
 
   private makeRequestUrl(args: { minorVersion: string }): string {
@@ -123,8 +135,8 @@ export class AutoblocksHeadlessPromptManager<
       const data = await resp.json();
       return zHeadlessPromptSchema.parse(data);
     } catch (err) {
-      console.error(
-        `[${this.id}@v${this.majorVersion}] Failed to fetch v${args.minorVersion}: ${err}`,
+      this.logger.error(
+        `Failed to fetch version v${this.majorVersion}.${args.minorVersion}: ${err}`,
       );
       if (args.throwOnError) {
         throw err;
@@ -145,9 +157,7 @@ export class AutoblocksHeadlessPromptManager<
         throwOnError: false,
       });
       if (!newLatest) {
-        console.warn(
-          `[${this.id}@v${this.majorVersion}] Failed to refresh latest prompt`,
-        );
+        this.logger.warn(`Failed to refresh latest prompt`);
         return;
       }
 
@@ -159,14 +169,12 @@ export class AutoblocksHeadlessPromptManager<
 
       // Log if we're replacing an older version of the prompt
       if (oldLatest && oldLatest.version !== newLatest.version) {
-        console.log(
-          `[${this.id}@${this.majorVersion}] Updated latest prompt from v${oldLatest.version} to v${newLatest.version}`,
+        this.logger.info(
+          `Updated latest prompt from v${oldLatest.version} to v${newLatest.version}`,
         );
       }
     } catch (err) {
-      console.warn(
-        `[${this.id}@v${this.majorVersion}] Failed to refresh latest prompt: ${err}`,
-      );
+      this.logger.warn(`Failed to refresh latest prompt: ${err}`);
     }
   }
 
@@ -193,7 +201,7 @@ export class AutoblocksHeadlessPromptManager<
           promptsMap[minorVersion] = prompt;
         } else {
           throw new Error(
-            `[${this.id}@${this.majorVersion}] Failed to fetch minor version v${minorVersion}`,
+            `Failed to fetch version v${this.majorVersion}.${minorVersion}`,
           );
         }
       });
@@ -201,11 +209,10 @@ export class AutoblocksHeadlessPromptManager<
       // Set the prompts
       this.prompts = promptsMap;
     } catch (err) {
-      console.error(
-        `[${this.id}@${this.majorVersion}] Failed to initialize prompt: ${err}`,
-      );
+      this.logger.error(`Failed to initialize prompt manager: ${err}`);
       throw err;
     }
+    this.logger.info('Successfully initialized prompt manager!');
   }
 
   close(): void {
