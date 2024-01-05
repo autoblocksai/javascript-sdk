@@ -9,7 +9,7 @@ import {
   LLMResult,
 } from 'langchain/dist/schema';
 import { AutoblocksTracer } from '../tracer';
-import { readEnv, AutoblocksEnvVar } from '../util';
+import { AutoblocksEnvVar, readEnv } from '../util';
 import type { ArbitraryProperties } from '../types';
 
 export class AutoblocksCallbackHandler extends BaseCallbackHandler {
