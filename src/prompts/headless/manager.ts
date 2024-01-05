@@ -79,6 +79,11 @@ export class AutoblocksHeadlessPromptManager<
     ) {
       const refreshInterval = args.refreshInterval || { seconds: 10 };
       const refreshIntervalMs = convertTimeDeltaToMilliSeconds(refreshInterval);
+      if (refreshIntervalMs < 1000) {
+        throw new Error(
+          `Refresh interval can't be shorter than 1 second (got ${refreshIntervalMs}ms)`,
+        );
+      }
       this.logger.info(
         `Refreshing latest prompt every ${Math.round(
           refreshIntervalMs / 1000,
