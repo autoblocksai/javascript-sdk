@@ -1,5 +1,10 @@
 import axios, { AxiosInstance } from 'axios';
-import { type TimeDelta, convertTimeDeltaToMilliSeconds } from './util';
+import {
+  type TimeDelta,
+  convertTimeDeltaToMilliSeconds,
+  readEnv,
+  AUTOBLOCKS_API_KEY,
+} from './util';
 
 export interface View {
   id: string;
@@ -73,19 +78,33 @@ export enum SystemEventFilterKey {
   LABEL = 'SYSTEM:label',
 }
 
+interface ClientArgs {
+  apiKey?: string;
+  timeout?: TimeDelta;
+}
+
 export class AutoblocksAPIClient {
   private client: AxiosInstance;
 
-  constructor(
-    apiToken: string,
-    args?: {
-      timeout?: TimeDelta;
-    },
-  ) {
+  // Deprecated constructor
+  constructor(apiKey: string, args?: ClientArgs);
+  // Current constructor
+  constructor(args?: ClientArgs);
+  constructor(keyOrArgs?: string | ClientArgs, maybeArgs?: ClientArgs) {
+    const args = typeof keyOrArgs === 'string' ? maybeArgs : keyOrArgs;
+    const key =
+      typeof keyOrArgs === 'string'
+        ? keyOrArgs
+        : args?.apiKey || readEnv(AUTOBLOCKS_API_KEY);
+    if (!key) {
+      throw new Error(
+        `You must either pass in the API key via 'apiKey' or set the '${AUTOBLOCKS_API_KEY}' environment variable.`,
+      );
+    }
     this.client = axios.create({
       baseURL: 'https://api.autoblocks.ai',
       headers: {
-        Authorization: `Bearer ${apiToken}`,
+        Authorization: `Bearer ${key}`,
       },
       timeout: convertTimeDeltaToMilliSeconds(args?.timeout || { seconds: 10 }),
     });

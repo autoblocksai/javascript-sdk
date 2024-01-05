@@ -2,15 +2,17 @@ import crypto from 'crypto';
 import { AutoblocksTracer } from '../tracer';
 import { readEnv, AUTOBLOCKS_INGESTION_KEY } from '../util';
 
-const tracer = new AutoblocksTracer(readEnv(AUTOBLOCKS_INGESTION_KEY) || '', {
-  properties: { provider: 'openai' },
-});
+let tracer: AutoblocksTracer | undefined = undefined;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeWrapper(func: any): any {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async function wrapper(this: any, ...args: any[]): Promise<any> {
     const original = func.bind(this);
+
+    if (!tracer) {
+      return original(...args);
+    }
 
     let error = undefined;
     let response = undefined;
@@ -79,15 +81,22 @@ async function patch() {
 }
 
 export async function traceOpenAI(): Promise<AutoblocksTracer> {
-  if (traceOpenAI.called) {
+  if (tracer) {
     return tracer;
   }
 
-  if (!readEnv(AUTOBLOCKS_INGESTION_KEY)) {
+  const ingestionKey = readEnv(AUTOBLOCKS_INGESTION_KEY);
+  if (!ingestionKey) {
     throw new Error(
       `You must set the ${AUTOBLOCKS_INGESTION_KEY} environment variable in order to use traceOpenAI.`,
     );
   }
+  tracer = new AutoblocksTracer({
+    ingestionKey,
+    properties: {
+      provider: 'openai',
+    },
+  });
 
   try {
     await patch();
@@ -95,9 +104,5 @@ export async function traceOpenAI(): Promise<AutoblocksTracer> {
     console.warn(`Couldn't patch openai module: ${err}`);
   }
 
-  traceOpenAI.called = true;
-
   return tracer;
 }
-
-traceOpenAI.called = false;

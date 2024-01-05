@@ -559,7 +559,7 @@ export async function sendAutoblocksEventsForCompletedRootSpan(
     return;
   }
 
-  const tracer = new AutoblocksTracer(ingestionKey);
+  const tracer = new AutoblocksTracer({ ingestionKey });
   await Promise.all(
     events.map((event) => tracer.sendEvent(event.message, event.args)),
   );
