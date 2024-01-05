@@ -85,7 +85,7 @@ export class AutoblocksHeadlessPromptManager<
         )} seconds`,
       );
       this.refreshIntervalTimer = setInterval(
-        this.refreshLatest,
+        this.refreshLatest.bind(this),
         refreshIntervalMs,
       );
     }
