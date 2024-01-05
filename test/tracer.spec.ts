@@ -1,9 +1,6 @@
 import axios from 'axios';
 import { AutoblocksTracer } from '../src/index';
-import {
-  AUTOBLOCKS_INGESTION_KEY,
-  AUTOBLOCKS_TRACER_THROW_ON_ERROR,
-} from '../src/util';
+import { AutoblocksEnvVar } from '../src/util';
 
 jest.mock('axios');
 
@@ -38,7 +35,8 @@ describe('Autoblocks Tracer', () => {
     });
 
     it('accepts ingestion key as environment variable', () => {
-      process.env[AUTOBLOCKS_INGESTION_KEY] = 'mock-ingestion-key';
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY] =
+        'mock-ingestion-key';
 
       new AutoblocksTracer();
 
@@ -50,7 +48,7 @@ describe('Autoblocks Tracer', () => {
         timeout: 5000,
       });
 
-      delete process.env[AUTOBLOCKS_INGESTION_KEY];
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY];
     });
 
     it.each([
@@ -544,7 +542,7 @@ describe('Autoblocks Tracer', () => {
 
   describe('Error Handling', () => {
     afterEach(() => {
-      delete process.env[AUTOBLOCKS_TRACER_THROW_ON_ERROR];
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR];
     });
 
     it("doesn't throw if axios throws", async () => {
@@ -558,7 +556,7 @@ describe('Autoblocks Tracer', () => {
     });
 
     it('throws if axios throws and AUTOBLOCKS_TRACER_THROW_ON_ERROR is set to 1', async () => {
-      process.env[AUTOBLOCKS_TRACER_THROW_ON_ERROR] = '1';
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR] = '1';
 
       axiosCreateMock.mockReturnValueOnce({
         post: jest.fn().mockRejectedValueOnce(new Error('mock-error')),

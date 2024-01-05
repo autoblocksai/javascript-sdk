@@ -9,7 +9,7 @@ import {
   LLMResult,
 } from 'langchain/dist/schema';
 import { AutoblocksTracer } from '../tracer';
-import { AUTOBLOCKS_INGESTION_KEY, readEnv } from '../util';
+import { AutoblocksEnvVar, readEnv } from '../util';
 import type { ArbitraryProperties } from '../types';
 
 export class AutoblocksCallbackHandler extends BaseCallbackHandler {
@@ -24,10 +24,10 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
   constructor(args?: { messagePrefix?: string; messageSeparator?: string }) {
     super();
 
-    const ingestionKey = readEnv(AUTOBLOCKS_INGESTION_KEY);
+    const ingestionKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY);
     if (!ingestionKey) {
       throw new Error(
-        `You must set the ${AUTOBLOCKS_INGESTION_KEY} environment variable in order to use AutoblocksCallbackHandler.`,
+        `You must set the ${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY} environment variable in order to use AutoblocksCallbackHandler.`,
       );
     }
 
