@@ -7,23 +7,38 @@ import {
 } from './util';
 import type { ArbitraryProperties, SendEventArgs, TimeDelta } from './types';
 
+interface TracerArgs {
+  ingestionKey?: string;
+  traceId?: string;
+  properties?: ArbitraryProperties;
+  timeout?: TimeDelta;
+}
+
 export class AutoblocksTracer {
   private client: AxiosInstance;
   private _traceId: string | undefined;
   private properties: ArbitraryProperties;
 
-  constructor(
-    ingestionToken: string,
-    args?: {
-      traceId?: string;
-      properties?: ArbitraryProperties;
-      timeout?: TimeDelta;
-    },
-  ) {
+  // Deprecated constructor
+  constructor(ingestionKey?: string, args?: TracerArgs);
+  // Current constructor
+  constructor(args?: TracerArgs);
+  constructor(keyOrArgs?: string | TracerArgs, maybeArgs?: TracerArgs) {
+    const args = typeof keyOrArgs === 'string' ? maybeArgs : keyOrArgs;
+    const key =
+      typeof keyOrArgs === 'string'
+        ? keyOrArgs
+        : args?.ingestionKey ||
+          readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY);
+    if (!key) {
+      throw new Error(
+        `You must either pass in the ingestion key via 'ingestionKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY}' environment variable.`,
+      );
+    }
     this.client = axios.create({
       baseURL: 'https://ingest-event.autoblocks.ai',
       headers: {
-        Authorization: `Bearer ${ingestionToken}`,
+        Authorization: `Bearer ${key}`,
       },
       timeout: convertTimeDeltaToMilliSeconds(args?.timeout || { seconds: 5 }),
     });

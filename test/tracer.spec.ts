@@ -10,16 +10,45 @@ describe('Autoblocks Tracer', () => {
   process.env.GITHUB_ACTIONS = '';
 
   describe('constructor', () => {
-    it('creates a client with the correct parameters', () => {
-      new AutoblocksTracer('mock-ingestion-token');
+    it('accepts ingestion key as first arg (deprecated constructor)', () => {
+      new AutoblocksTracer('mock-ingestion-key');
 
       expect(axios.create).toHaveBeenCalledWith({
         baseURL: 'https://ingest-event.autoblocks.ai',
         headers: {
-          Authorization: 'Bearer mock-ingestion-token',
+          Authorization: 'Bearer mock-ingestion-key',
         },
         timeout: 5000,
       });
+    });
+
+    it('accepts ingestion key in args', () => {
+      new AutoblocksTracer({ ingestionKey: 'mock-ingestion-key' });
+
+      expect(axios.create).toHaveBeenCalledWith({
+        baseURL: 'https://ingest-event.autoblocks.ai',
+        headers: {
+          Authorization: 'Bearer mock-ingestion-key',
+        },
+        timeout: 5000,
+      });
+    });
+
+    it('accepts ingestion key as environment variable', () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY] =
+        'mock-ingestion-key';
+
+      new AutoblocksTracer();
+
+      expect(axios.create).toHaveBeenCalledWith({
+        baseURL: 'https://ingest-event.autoblocks.ai',
+        headers: {
+          Authorization: 'Bearer mock-ingestion-key',
+        },
+        timeout: 5000,
+      });
+
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY];
     });
 
     it.each([
@@ -28,13 +57,34 @@ describe('Autoblocks Tracer', () => {
       [{ milliseconds: 1 }, 1],
       [{ seconds: 1, milliseconds: 1 }, 1001],
       [{ minutes: 1, seconds: 1, milliseconds: 1 }, 61001],
+    ])(
+      "sets the correct timeout for '%s' (deprecated constructor)",
+      (timeout, expected) => {
+        new AutoblocksTracer('mock-ingestion-key', { timeout });
+
+        expect(axios.create).toHaveBeenCalledWith({
+          baseURL: 'https://ingest-event.autoblocks.ai',
+          headers: {
+            Authorization: 'Bearer mock-ingestion-key',
+          },
+          timeout: expected,
+        });
+      },
+    );
+
+    it.each([
+      [{ minutes: 1 }, 60000],
+      [{ seconds: 1 }, 1000],
+      [{ milliseconds: 1 }, 1],
+      [{ seconds: 1, milliseconds: 1 }, 1001],
+      [{ minutes: 1, seconds: 1, milliseconds: 1 }, 61001],
     ])("sets the correct timeout for '%s'", (timeout, expected) => {
-      new AutoblocksTracer('mock-ingestion-token', { timeout });
+      new AutoblocksTracer({ ingestionKey: 'mock-ingestion-key', timeout });
 
       expect(axios.create).toHaveBeenCalledWith({
         baseURL: 'https://ingest-event.autoblocks.ai',
         headers: {
-          Authorization: 'Bearer mock-ingestion-token',
+          Authorization: 'Bearer mock-ingestion-key',
         },
         timeout: expected,
       });
@@ -505,7 +555,7 @@ describe('Autoblocks Tracer', () => {
       expect(traceId).toBeUndefined();
     });
 
-    it(`throws if axios throws and ${AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR} is set to 1`, async () => {
+    it('throws if axios throws and AUTOBLOCKS_TRACER_THROW_ON_ERROR is set to 1', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR] = '1';
 
       axiosCreateMock.mockReturnValueOnce({

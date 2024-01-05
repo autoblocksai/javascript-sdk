@@ -40,7 +40,8 @@ export class AutoblocksCallbackHandler extends BaseCallbackHandler {
       // Couldn't determine version
     }
 
-    this._tracer = new AutoblocksTracer(ingestionKey, {
+    this._tracer = new AutoblocksTracer({
+      ingestionKey,
       properties: {
         __langchainVersion: langchainVersion,
         __langchainLanguage: 'javascript',
