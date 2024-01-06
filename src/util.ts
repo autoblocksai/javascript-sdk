@@ -301,15 +301,25 @@ export const makeReplayHeaders = (): Record<string, string> | undefined => {
   return builder.makeReplayHeaders();
 };
 
-export enum AutoblocksEnvVar {
-  AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',
-  AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY',
-  AUTOBLOCKS_TRACER_THROW_ON_ERROR = 'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
+class EnvVar {
+  readonly name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  get(): string | undefined {
+    return process.env[this.name];
+  }
 }
 
-export const readEnv = (key: string): string | undefined => {
-  return process.env[key];
-};
+export class AutoblocksEnvVar {
+  public static API_KEY = new EnvVar('AUTOBLOCKS_API_KEY');
+  public static INGESTION_KEY = new EnvVar('AUTOBLOCKS_INGESTION_KEY');
+  public static TRACER_THROW_ON_ERROR = new EnvVar(
+    'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
+  );
+}
 
 export interface TimeDelta {
   minutes?: number;

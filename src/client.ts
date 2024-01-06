@@ -2,7 +2,6 @@ import axios, { AxiosInstance } from 'axios';
 import {
   type TimeDelta,
   convertTimeDeltaToMilliSeconds,
-  readEnv,
   AutoblocksEnvVar,
 } from './util';
 
@@ -95,10 +94,10 @@ export class AutoblocksAPIClient {
     const key =
       typeof keyOrArgs === 'string'
         ? keyOrArgs
-        : args?.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
+        : args?.apiKey || AutoblocksEnvVar.API_KEY.get();
     if (!key) {
       throw new Error(
-        `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable.`,
+        `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.API_KEY.name}' environment variable.`,
       );
     }
     this.client = axios.create({

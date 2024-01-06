@@ -3,7 +3,6 @@ import {
   makeReplayHeaders,
   type TimeDelta,
   convertTimeDeltaToMilliSeconds,
-  readEnv,
   AutoblocksEnvVar,
 } from './util';
 import type { ArbitraryProperties, SendEventArgs } from './types';
@@ -29,11 +28,10 @@ export class AutoblocksTracer {
     const key =
       typeof keyOrArgs === 'string'
         ? keyOrArgs
-        : args?.ingestionKey ||
-          readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY);
+        : args?.ingestionKey || AutoblocksEnvVar.INGESTION_KEY.get();
     if (!key) {
       throw new Error(
-        `You must either pass in the ingestion key via 'ingestionKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY}' environment variable.`,
+        `You must either pass in the ingestion key via 'ingestionKey' or set the '${AutoblocksEnvVar.INGESTION_KEY.name}' environment variable.`,
       );
     }
     this.client = axios.create({
@@ -117,7 +115,7 @@ export class AutoblocksTracer {
       const traceId = await this.sendEventUnsafe(message, args);
       return { traceId };
     } catch (err) {
-      if (readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
+      if (AutoblocksEnvVar.TRACER_THROW_ON_ERROR.get() === '1') {
         throw err;
       }
       console.error(`Error sending event to Autoblocks: ${err}`);

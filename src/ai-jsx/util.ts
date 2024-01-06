@@ -17,7 +17,7 @@ import {
 import { OpenAIChatModel } from 'ai-jsx/lib/openai';
 import { AnthropicChatModel } from 'ai-jsx/lib/anthropic';
 import { AutoblocksTracer } from '../tracer';
-import { readEnv, AutoblocksEnvVar } from '../util';
+import { AutoblocksEnvVar } from '../util';
 import * as AIJSX from 'ai-jsx';
 
 interface AIMessage {
@@ -550,11 +550,11 @@ export async function sendAutoblocksEventsForCompletedRootSpan(
 
   walk(rootSpan);
 
-  const ingestionKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY);
+  const ingestionKey = AutoblocksEnvVar.INGESTION_KEY.get();
 
   if (!ingestionKey) {
     console.error(
-      `No ${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY} environment variable set, not sending ${events.length} events.`,
+      `No ${AutoblocksEnvVar.INGESTION_KEY.name} environment variable set, not sending ${events.length} events.`,
     );
     return;
   }

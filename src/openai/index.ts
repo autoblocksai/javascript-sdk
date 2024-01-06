@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { AutoblocksTracer } from '../tracer';
-import { readEnv, AutoblocksEnvVar } from '../util';
+import { AutoblocksEnvVar } from '../util';
 
 let tracer: AutoblocksTracer | undefined = undefined;
 
@@ -85,10 +85,10 @@ export async function traceOpenAI(): Promise<AutoblocksTracer> {
     return tracer;
   }
 
-  const ingestionKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY);
+  const ingestionKey = AutoblocksEnvVar.INGESTION_KEY.get();
   if (!ingestionKey) {
     throw new Error(
-      `You must set the ${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY} environment variable in order to use traceOpenAI.`,
+      `You must set the ${AutoblocksEnvVar.INGESTION_KEY.name} environment variable in order to use traceOpenAI.`,
     );
   }
   tracer = new AutoblocksTracer({
