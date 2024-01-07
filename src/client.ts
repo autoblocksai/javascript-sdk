@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
+import type { TimeDelta } from './types';
 import {
-  type TimeDelta,
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,

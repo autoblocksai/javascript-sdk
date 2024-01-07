@@ -1,12 +1,11 @@
 import axios, { AxiosInstance } from 'axios';
 import {
   makeReplayHeaders,
-  type TimeDelta,
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,
 } from './util';
-import type { ArbitraryProperties, SendEventArgs } from './types';
+import type { ArbitraryProperties, SendEventArgs, TimeDelta } from './types';
 
 interface TracerArgs {
   ingestionKey?: string;

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { TimeDelta } from './types';
 
 enum Provider {
   LOCAL = 'local',
@@ -311,12 +312,6 @@ export const readEnv = (key: string): string | undefined => {
   return process.env[key];
 };
 
-export interface TimeDelta {
-  minutes?: number;
-  seconds?: number;
-  milliseconds?: number;
-}
-
 export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   const minutes = delta.minutes || 0;
   const seconds = delta.seconds || 0;
@@ -345,3 +340,5 @@ export const makeReplayHtmlUrl = (args: Replay): string => {
     return `${baseUrl}/github/repo/${repo}/branch/${branch}`;
   }
 };
+
+export const HEADLESS_PROMPT_LATEST_VERSION = 'latest';

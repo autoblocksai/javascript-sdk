@@ -1,0 +1,26 @@
+{
+  "name": "test-headless-prompt-manager-ts",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "gen": "autoblocks prompts generate",
+    "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
+  },
+  "dependencies": {
+    "@types/jest": "*",
+    "jest": "*",
+    "nodemon": "*",
+    "openai": "*",
+    "ts-jest": "*",
+    "typescript": "*"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}

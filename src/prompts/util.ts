@@ -1,3 +1,21 @@
+export function renderTemplate(args: {
+  template: string;
+  params: Record<string, unknown>;
+}): string {
+  let rendered = args.template;
+
+  Object.entries(args.params).forEach(([key, value]) => {
+    const re = new RegExp(`\\{\\{\\s*${key}[?]?\\s*\\}\\}`, 'g');
+    rendered = rendered.replace(re, `${value}`);
+  });
+
+  // Replace any remaining optional placeholders
+  rendered = replaceOptionalPlaceholders(rendered);
+
+  // Trim whitespace
+  return rendered.trim();
+}
+
 /**
  * Replace any optional placeholders remaining in the template. We try
  * to replace with an amount of whitespace that "makes sense" given what
