@@ -1,47 +1,69 @@
-import axios from 'axios';
 import { AutoblocksAPIClient } from '../src/index';
 import { AutoblocksEnvVar } from '../src/util';
 
-jest.mock('axios');
-
 describe('Autoblocks Client', () => {
+  let mockFetch: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockFetch = jest
+      .spyOn(global, 'fetch')
+      // @ts-expect-error - TS wants me to fully mock a fetch response, but we only
+      // need the json() method
+      .mockResolvedValue({ json: () => Promise.resolve({}) });
+  });
+
   describe('constructor', () => {
-    it('accepts api key as first arg (deprecated constructor)', () => {
-      new AutoblocksAPIClient('mock-api-key');
+    it('accepts api key as first arg (deprecated constructor)', async () => {
+      const client = new AutoblocksAPIClient('mock-api-key');
+      await client.getViews();
 
-      expect(axios.create).toHaveBeenCalledWith({
-        baseURL: 'https://api.autoblocks.ai',
-        headers: {
-          Authorization: 'Bearer mock-api-key',
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.autoblocks.ai/views',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-api-key',
+          },
+          signal: AbortSignal.timeout(60_000),
         },
-        timeout: 10000,
-      });
+      );
     });
 
-    it('accepts api key in args', () => {
-      new AutoblocksAPIClient({ apiKey: 'mock-api-key' });
+    it('accepts api key in args', async () => {
+      const client = new AutoblocksAPIClient({ apiKey: 'mock-api-key' });
+      await client.getViews();
 
-      expect(axios.create).toHaveBeenCalledWith({
-        baseURL: 'https://api.autoblocks.ai',
-        headers: {
-          Authorization: 'Bearer mock-api-key',
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.autoblocks.ai/views',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-api-key',
+          },
+          signal: AbortSignal.timeout(60_000),
         },
-        timeout: 10000,
-      });
+      );
     });
 
-    it('accepts api key as environment variable', () => {
+    it('accepts api key as environment variable', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY] = 'mock-api-key';
 
-      new AutoblocksAPIClient();
+      const client = new AutoblocksAPIClient();
+      await client.getViews();
 
-      expect(axios.create).toHaveBeenCalledWith({
-        baseURL: 'https://api.autoblocks.ai',
-        headers: {
-          Authorization: 'Bearer mock-api-key',
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.autoblocks.ai/views',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-api-key',
+          },
+          signal: AbortSignal.timeout(60_000),
         },
-        timeout: 10000,
-      });
+      );
 
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY];
     });
@@ -54,16 +76,21 @@ describe('Autoblocks Client', () => {
       [{ minutes: 1, seconds: 1, milliseconds: 1 }, 61001],
     ])(
       "sets the correct timeout for '%s' (deprecated constructor)",
-      (timeout, expected) => {
-        new AutoblocksAPIClient('mock-api-token', { timeout });
+      async (timeout, expected) => {
+        const client = new AutoblocksAPIClient('mock-api-key', { timeout });
+        await client.getViews();
 
-        expect(axios.create).toHaveBeenCalledWith({
-          baseURL: 'https://api.autoblocks.ai',
-          headers: {
-            Authorization: 'Bearer mock-api-token',
+        expect(mockFetch).toHaveBeenCalledWith(
+          'https://api.autoblocks.ai/views',
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: 'Bearer mock-api-key',
+            },
+            signal: AbortSignal.timeout(expected),
           },
-          timeout: expected,
-        });
+        );
       },
     );
 
@@ -73,16 +100,24 @@ describe('Autoblocks Client', () => {
       [{ milliseconds: 1 }, 1],
       [{ seconds: 1, milliseconds: 1 }, 1001],
       [{ minutes: 1, seconds: 1, milliseconds: 1 }, 61001],
-    ])("sets the correct timeout for '%s'", (timeout, expected) => {
-      new AutoblocksAPIClient({ apiKey: 'mock-api-key', timeout });
-
-      expect(axios.create).toHaveBeenCalledWith({
-        baseURL: 'https://api.autoblocks.ai',
-        headers: {
-          Authorization: 'Bearer mock-api-key',
-        },
-        timeout: expected,
+    ])("sets the correct timeout for '%s'", async (timeout, expected) => {
+      const client = new AutoblocksAPIClient({
+        apiKey: 'mock-api-key',
+        timeout,
       });
+      await client.getViews();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://api.autoblocks.ai/views',
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-api-key',
+          },
+          signal: AbortSignal.timeout(expected),
+        },
+      );
     });
   });
 });

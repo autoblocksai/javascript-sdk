@@ -20,24 +20,19 @@ const CURRENT_LANGCHAIN_VERSION = JSON.parse(
   readFileSync('node_modules/langchain/package.json', 'utf8'),
 ).version;
 
-const mockHandlerPost = (handler: AutoblocksCallbackHandler) => {
-  const mockPost = jest
-    .fn()
-    .mockResolvedValue({ data: { traceId: 'mock-trace-id' } });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (handler as any).tracer.client.post = mockPost;
-  return mockPost;
-};
-
 describe('AutoblocksCallbackHandler', () => {
   process.env.AUTOBLOCKS_INGESTION_KEY = 'test';
 
   let handler: AutoblocksCallbackHandler;
-  let mockPost: jest.Mock;
+  let mockFetch: jest.SpyInstance;
 
   beforeEach(() => {
     handler = new AutoblocksCallbackHandler();
-    mockPost = mockHandlerPost(handler);
+    mockFetch = jest
+      .spyOn(global, 'fetch')
+      // @ts-expect-error - TS wants me to fully mock a fetch response, but we only
+      // need the json() method
+      .mockResolvedValue({ json: () => Promise.resolve({}) });
   });
 
   afterAll(() => {
@@ -51,12 +46,12 @@ describe('AutoblocksCallbackHandler', () => {
 
     await chain.call({ number: 2 }, { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(4);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const properties = calls.map((call) => call[1].properties);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const properties = calls.map((call) => call.properties);
 
     expect(messages).toEqual([
       'langchain.chain.start',
@@ -110,12 +105,12 @@ describe('AutoblocksCallbackHandler', () => {
       { callbacks: [handler] },
     );
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(20);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const properties = calls.map((call) => call[1].properties);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const properties = calls.map((call) => call.properties);
 
     expect(messages).toEqual([
       'langchain.chain.start',
@@ -165,11 +160,11 @@ describe('AutoblocksCallbackHandler', () => {
     // Second call
     await chain.call({ number: 7 }, { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(8);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
 
     expect(messages).toEqual([
       // First call
@@ -208,11 +203,11 @@ describe('AutoblocksCallbackHandler', () => {
     // Send a custom event via the tracer on the handler
     await handler.tracer.sendEvent('my.custom.event');
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(5);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
 
     expect(messages).toEqual([
       'langchain.chain.start',
@@ -252,11 +247,11 @@ describe('AutoblocksCallbackHandler', () => {
       { callbacks: [handler] },
     );
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(14);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
 
     expect(messages).toEqual([
       'langchain.chain.start',
@@ -288,17 +283,26 @@ describe('AutoblocksCallbackHandler (prefixes and separators)', () => {
     process.env.AUTOBLOCKS_INGESTION_KEY = undefined;
   });
 
+  let mockFetch: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockFetch = jest
+      .spyOn(global, 'fetch')
+      // @ts-expect-error - TS wants me to fully mock a fetch response, but we only
+      // need the json() method
+      .mockResolvedValue({ json: () => Promise.resolve({}) });
+  });
+
   it('allows specifying a message prefix', async () => {
     const handler = new AutoblocksCallbackHandler({ messagePrefix: 'foo' });
-    const mockPost = mockHandlerPost(handler);
 
     const llm = new OpenAI();
     await llm.predict('hi!', { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
+    const messages = calls.map((call) => call.message);
     expect(messages).toEqual(['foo.llm.start', 'foo.llm.end']);
   });
 
@@ -307,57 +311,53 @@ describe('AutoblocksCallbackHandler (prefixes and separators)', () => {
       messagePrefix: 'foo',
       messageSeparator: '-',
     });
-    const mockPost = mockHandlerPost(handler);
 
     const llm = new OpenAI();
     await llm.predict('hi!', { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
+    const messages = calls.map((call) => call.message);
     expect(messages).toEqual(['foo-llm-start', 'foo-llm-end']);
   });
 
   it('allows specifying an empty message prefix', async () => {
     const handler = new AutoblocksCallbackHandler({ messagePrefix: '' });
-    const mockPost = mockHandlerPost(handler);
 
     const llm = new OpenAI();
     await llm.predict('hi!', { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
+    const messages = calls.map((call) => call.message);
     expect(messages).toEqual(['llm.start', 'llm.end']);
   });
 
   it('allows specifying a message separator', async () => {
     const handler = new AutoblocksCallbackHandler({ messageSeparator: '-' });
-    const mockPost = mockHandlerPost(handler);
 
     const llm = new OpenAI();
     await llm.predict('hi!', { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
+    const messages = calls.map((call) => call.message);
     expect(messages).toEqual(['langchain-llm-start', 'langchain-llm-end']);
   });
 
   it('ignores empty message separators', async () => {
     const handler = new AutoblocksCallbackHandler({ messageSeparator: '' });
-    const mockPost = mockHandlerPost(handler);
 
     const llm = new OpenAI();
     await llm.predict('hi!', { callbacks: [handler] });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
+    const messages = calls.map((call) => call.message);
     expect(messages).toEqual(['langchain.llm.start', 'langchain.llm.end']);
   });
 });

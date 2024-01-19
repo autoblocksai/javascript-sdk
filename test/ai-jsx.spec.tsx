@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as AI from 'ai-jsx';
 import {
   ChatCompletion,
@@ -29,9 +28,6 @@ interface SentEvent {
 }
 
 jest.setTimeout(100000);
-jest.mock('axios');
-
-const axiosCreateMock = axios.create as jest.Mock;
 
 const expectAllEqualAndDefined = (xs: string[]) => {
   expect(xs.every((x) => x === xs[0])).toBe(true);
@@ -47,16 +43,19 @@ describe('ai-jsx', () => {
     process.env.AUTOBLOCKS_INGESTION_KEY = undefined;
   });
 
-  let mockPost: jest.Mock;
+  let mockFetch: jest.SpyInstance;
+  const originalFetch = global.fetch;
 
   beforeEach(() => {
-    mockPost = jest
-      .fn()
-      .mockResolvedValue({ data: { traceId: 'mock-trace-id' } });
-    axiosCreateMock.mockReturnValueOnce({ post: mockPost });
+    mockFetch = jest
+      .spyOn(global, 'fetch')
+      .mockImplementation((...args) => originalFetch(...args));
   });
 
-  const sentEvents = () => mockPost.mock.calls.map((c) => c[1]) as SentEvent[];
+  const sentEvents = () =>
+    mockFetch.mock.calls
+      .filter((c) => c[0].startsWith('https://ingest-event.autoblocks.ai'))
+      .map((c) => JSON.parse(c[1].body)) as SentEvent[];
 
   const makeSpanPairs = (events: SentEvent[]) => {
     const pairs: Record<string, SentEvent[]> = {};
