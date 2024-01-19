@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import {
   makeReplayHeaders,
   convertTimeDeltaToMilliSeconds,
@@ -15,9 +14,13 @@ interface TracerArgs {
 }
 
 export class AutoblocksTracer {
-  private client: AxiosInstance;
   private _traceId: string | undefined;
   private properties: ArbitraryProperties;
+
+  private readonly ingestionBaseUrl: string =
+    'https://ingest-event.autoblocks.ai';
+  private readonly ingestionKey: string;
+  private readonly timeoutMs: number;
 
   // Deprecated constructor
   constructor(ingestionKey?: string, args?: TracerArgs);
@@ -35,13 +38,11 @@ export class AutoblocksTracer {
         `You must either pass in the ingestion key via 'ingestionKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY}' environment variable.`,
       );
     }
-    this.client = axios.create({
-      baseURL: 'https://ingest-event.autoblocks.ai',
-      headers: {
-        Authorization: `Bearer ${key}`,
-      },
-      timeout: convertTimeDeltaToMilliSeconds(args?.timeout || { seconds: 5 }),
-    });
+
+    this.ingestionKey = key;
+    this.timeoutMs = convertTimeDeltaToMilliSeconds(
+      args?.timeout || { seconds: 5 },
+    );
     this._traceId = args?.traceId;
     this.properties = args?.properties || {};
   }
@@ -94,17 +95,23 @@ export class AutoblocksTracer {
       // Couldn't make headers
     }
 
-    const { data } = await this.client.post(
-      '/',
-      {
+    const resp = await fetch(this.ingestionBaseUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.ingestionKey}`,
+        ...replayHeaders,
+      },
+      body: JSON.stringify({
         message,
         traceId,
         timestamp,
         properties,
-      },
-      { headers: replayHeaders },
-    );
+      }),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
 
+    const data = await resp.json();
     return data.traceId;
   }
 

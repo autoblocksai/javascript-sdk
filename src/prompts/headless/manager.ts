@@ -40,8 +40,8 @@ export class AutoblocksHeadlessPromptManager<
   private prompts: Record<string, HeadlessPrompt> = {};
 
   private readonly refreshIntervalTimer: NodeJS.Timer | undefined;
-  private readonly refreshTimeout: TimeDelta;
-  private readonly initTimeout: TimeDelta;
+  private readonly refreshTimeoutMs: number;
+  private readonly initTimeoutMs: number;
 
   constructor(args: {
     id: PromptId;
@@ -95,8 +95,12 @@ export class AutoblocksHeadlessPromptManager<
       );
     }
 
-    this.refreshTimeout = args.refreshTimeout || { seconds: 30 };
-    this.initTimeout = args.initTimeout || { seconds: 30 };
+    this.refreshTimeoutMs = convertTimeDeltaToMilliSeconds(
+      args.refreshTimeout || { seconds: 30 },
+    );
+    this.initTimeoutMs = convertTimeDeltaToMilliSeconds(
+      args.initTimeout || { seconds: 30 },
+    );
   }
 
   private get logger() {
@@ -117,14 +121,9 @@ export class AutoblocksHeadlessPromptManager<
 
   private async getPrompt(args: {
     minorVersion: string;
-    timeout: TimeDelta;
+    timeoutMs: number;
     throwOnError: boolean;
   }): Promise<HeadlessPrompt | undefined> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      convertTimeDeltaToMilliSeconds(args.timeout),
-    );
     const url = this.makeRequestUrl({ minorVersion: args.minorVersion });
 
     try {
@@ -134,9 +133,8 @@ export class AutoblocksHeadlessPromptManager<
           'Content-Type': 'application/json',
           Authorization: `Bearer ${this.apiKey}`,
         },
-        signal: controller.signal,
+        signal: AbortSignal.timeout(args.timeoutMs),
       });
-      clearTimeout(timeoutId);
       const data = await resp.json();
       return zHeadlessPromptSchema.parse(data);
     } catch (err) {
@@ -146,8 +144,6 @@ export class AutoblocksHeadlessPromptManager<
       if (args.throwOnError) {
         throw err;
       }
-    } finally {
-      clearTimeout(timeoutId);
     }
 
     return undefined;
@@ -158,7 +154,7 @@ export class AutoblocksHeadlessPromptManager<
       // Get the latest minor version within this prompt's major version
       const newLatest = await this.getPrompt({
         minorVersion: HEADLESS_PROMPT_LATEST_VERSION,
-        timeout: this.refreshTimeout,
+        timeoutMs: this.refreshTimeoutMs,
         throwOnError: false,
       });
       if (!newLatest) {
@@ -189,7 +185,7 @@ export class AutoblocksHeadlessPromptManager<
         this.minorVersionsToRequest.map(async (minorVersion) => {
           const prompt = await this.getPrompt({
             minorVersion,
-            timeout: this.initTimeout,
+            timeoutMs: this.initTimeoutMs,
             throwOnError: true,
           });
           return [minorVersion, prompt] as const;

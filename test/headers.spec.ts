@@ -1,26 +1,24 @@
-import axios from 'axios';
 import { AutoblocksTracer } from '../src';
 import { HeadersBuilder } from '../src/util';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-jest.mock('axios');
-
-const axiosCreateMock = axios.create as jest.Mock;
-
 describe('Replay Headers', () => {
-  let mockPost: jest.Mock;
+  let mockFetch: jest.SpyInstance;
 
   // Wanted to follow https://jestjs.io/docs/mock-function-api#jestreplacedsource but couldn't get the types to work
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let replacedEnv: any = undefined;
 
   beforeEach(() => {
-    mockPost = jest
-      .fn()
-      .mockResolvedValueOnce({ data: { traceId: 'mock-trace-id' } });
-    axiosCreateMock.mockReturnValueOnce({ post: mockPost });
+    mockFetch = jest
+      .spyOn(global, 'fetch')
+      // @ts-expect-error - TS wants me to fully mock a fetch response, but we only
+      // need the json() method
+      .mockResolvedValue({
+        json: () => Promise.resolve({ traceId: 'mock-trace-id' }),
+      });
   });
 
   afterEach(() => {
@@ -50,16 +48,19 @@ describe('Replay Headers', () => {
     const { traceId } = await tracer.sendEvent('mock-message');
 
     expect(traceId).toEqual('mock-trace-id');
-    expect(mockPost).toHaveBeenCalledWith(
-      '/',
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://ingest-event.autoblocks.ai',
       {
-        message: 'mock-message',
-        traceId: undefined,
-        timestamp,
-        properties: {},
-      },
-      {
+        method: 'POST',
+        body: JSON.stringify({
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp,
+          properties: {},
+        }),
         headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer mock-ingestion-token',
           'X-Autoblocks-Replay-Provider': encodeURIComponent('local'),
           'X-Autoblocks-Replay-Run-Id': encodeURIComponent('my-replay-id'),
           'X-Autoblocks-Replay-Repo': encodeURIComponent(
@@ -88,6 +89,7 @@ describe('Replay Headers', () => {
             commit.committedDate,
           ),
         },
+        signal: AbortSignal.timeout(5_000),
       },
     );
   });
@@ -132,16 +134,19 @@ describe('Replay Headers', () => {
       const { traceId } = await tracer.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith(
-        '/',
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://ingest-event.autoblocks.ai',
         {
-          message: 'mock-message',
-          traceId: undefined,
-          timestamp,
-          properties: {},
-        },
-        {
+          method: 'POST',
+          body: JSON.stringify({
+            message: 'mock-message',
+            traceId: undefined,
+            timestamp,
+            properties: {},
+          }),
           headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-ingestion-token',
             'X-Autoblocks-Replay-Provider': encodeURIComponent('github'),
             'X-Autoblocks-Replay-Run-Id': encodeURIComponent(
               'myorg/myrepo-my-run-id-my-run-attempt',
@@ -177,6 +182,7 @@ describe('Replay Headers', () => {
               commit.committedDate,
             ),
           },
+          signal: AbortSignal.timeout(5_000),
         },
       );
     });
@@ -215,16 +221,19 @@ describe('Replay Headers', () => {
       const { traceId } = await tracer.sendEvent('mock-message');
 
       expect(traceId).toEqual('mock-trace-id');
-      expect(mockPost).toHaveBeenCalledWith(
-        '/',
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://ingest-event.autoblocks.ai',
         {
-          message: 'mock-message',
-          traceId: undefined,
-          timestamp,
-          properties: {},
-        },
-        {
+          method: 'POST',
+          body: JSON.stringify({
+            message: 'mock-message',
+            traceId: undefined,
+            timestamp,
+            properties: {},
+          }),
           headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-ingestion-token',
             'X-Autoblocks-Replay-Provider': encodeURIComponent('github'),
             'X-Autoblocks-Replay-Run-Id': encodeURIComponent(
               'myorg/myrepo-my-run-id-my-run-attempt',
@@ -263,6 +272,7 @@ describe('Replay Headers', () => {
             'X-Autoblocks-Replay-Pull-Request-Title':
               encodeURIComponent('My PR Title'),
           },
+          signal: AbortSignal.timeout(5_000),
         },
       );
     });

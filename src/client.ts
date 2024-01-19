@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import type { TimeDelta } from './types';
 import {
   convertTimeDeltaToMilliSeconds,
@@ -84,7 +83,9 @@ interface ClientArgs {
 }
 
 export class AutoblocksAPIClient {
-  private client: AxiosInstance;
+  private readonly apiBaseUrl: string = 'https://api.autoblocks.ai';
+  private readonly apiKey: string;
+  private readonly timeoutMs: number;
 
   // Deprecated constructor
   constructor(apiKey: string, args?: ClientArgs);
@@ -101,23 +102,43 @@ export class AutoblocksAPIClient {
         `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable.`,
       );
     }
-    this.client = axios.create({
-      baseURL: 'https://api.autoblocks.ai',
+    this.apiKey = key;
+    this.timeoutMs = convertTimeDeltaToMilliSeconds(
+      args?.timeout || { seconds: 60 },
+    );
+  }
+
+  private async get<T>(path: string): Promise<T> {
+    const resp = await fetch(`${this.apiBaseUrl}${path}`, {
+      method: 'GET',
       headers: {
-        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
       },
-      timeout: convertTimeDeltaToMilliSeconds(args?.timeout || { seconds: 10 }),
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
+    return resp.json();
+  }
+
+  private async post<T>(path: string, body: unknown): Promise<T> {
+    const resp = await fetch(`${this.apiBaseUrl}${path}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    return resp.json();
   }
 
   public async getViews(): Promise<View[]> {
-    const { data } = await this.client.get('/views');
-    return data;
+    return this.get('/views');
   }
 
   public async getTrace(args: { traceId: string }): Promise<Trace> {
-    const { data } = await this.client.get(`/traces/${args.traceId}`);
-    return data;
+    return this.get(`/traces/${args.traceId}`);
   }
 
   public async getTracesFromView(args: {
@@ -125,13 +146,13 @@ export class AutoblocksAPIClient {
     pageSize: number;
     cursor?: string;
   }): Promise<{ nextCursor?: string; traces: Trace[] }> {
-    const { data } = await this.client.get(`/views/${args.viewId}/traces`, {
-      params: {
-        pageSize: args.pageSize,
-        cursor: args.cursor || '',
-      },
+    const params = new URLSearchParams({
+      pageSize: args.pageSize.toString(),
     });
-    return data;
+    if (args.cursor) {
+      params.set('cursor', args.cursor);
+    }
+    return this.get(`/views/${args.viewId}/traces?${params.toString()}`);
   }
 
   public async searchTraces(args: {
@@ -141,25 +162,22 @@ export class AutoblocksAPIClient {
     query?: string;
     cursor?: string;
   }): Promise<{ nextCursor?: string; traces: Trace[] }> {
-    const { data } = await this.client.post(`/traces/search`, {
+    return this.post(`/traces/search`, {
       pageSize: args.pageSize,
       timeFilter: args.timeFilter,
       traceFilters: args.traceFilters,
       query: args.query,
       cursor: args.cursor,
     });
-    return data;
   }
 
   public async getDatasets(): Promise<Dataset[]> {
-    const { data } = await this.client.get('/datasets');
-    return data;
+    return this.get('/datasets');
   }
 
   public async getDataset(args: {
     datasetId: string;
   }): Promise<DatasetWithItems> {
-    const { data } = await this.client.get(`/datasets/${args.datasetId}`);
-    return data;
+    return this.get(`/datasets/${args.datasetId}`);
   }
 }

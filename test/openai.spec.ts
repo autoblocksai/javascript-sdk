@@ -25,14 +25,15 @@ describe('traceOpenAI', () => {
 
   const openai = new OpenAI();
 
-  let mockPost: jest.Mock;
+  let mockFetch: jest.SpyInstance;
 
   beforeEach(() => {
-    mockPost = jest
-      .fn()
-      .mockResolvedValue({ data: { traceId: 'mock-trace-id' } });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (tracer as any).client.post = mockPost;
+    mockFetch = jest
+      .spyOn(global, 'fetch')
+      // @ts-expect-error - TS wants me to fully mock a fetch response, but we only
+      // need the json() method
+      .mockResolvedValue({ json: () => Promise.resolve({}) });
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tracer.setTraceId(undefined as any);
   });
@@ -48,13 +49,13 @@ describe('traceOpenAI', () => {
       temperature: 0,
     });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const timestamps = calls.map((call) => call[1].timestamp);
-    const properties = calls.map((call) => call[1].properties);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const timestamps = calls.map((call) => call.timestamp);
+    const properties = calls.map((call) => call.properties);
     const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual([
@@ -86,13 +87,13 @@ describe('traceOpenAI', () => {
       model: 'gpt-3.5-turbo',
     });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const timestamps = calls.map((call) => call[1].timestamp);
-    const properties = calls.map((call) => call[1].properties);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const timestamps = calls.map((call) => call.timestamp);
+    const properties = calls.map((call) => call.properties);
     const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual([
@@ -132,11 +133,11 @@ describe('traceOpenAI', () => {
 
     await tracer.sendEvent('custom.event');
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(3);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
 
     expect(messages).toEqual([
       'ai.completion.request',
@@ -155,10 +156,10 @@ describe('traceOpenAI', () => {
       model: 'gpt-3.5-turbo',
     });
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const traceIds = calls.map((call) => call[1].traceId);
+    const traceIds = calls.map((call) => call.traceId);
     expect(traceIds.every((t) => t === traceId)).toBe(true);
   });
 
@@ -174,12 +175,12 @@ describe('traceOpenAI', () => {
       }),
     ]);
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(4);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const spanIds = calls.map((call) => call[1].properties.spanId);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const spanIds = calls.map((call) => call.properties.spanId);
 
     expect(messages).toEqual([
       'ai.completion.request',
@@ -210,12 +211,12 @@ describe('traceOpenAI', () => {
       // expected
     }
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const properties = calls.map((call) => call[1].properties);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const properties = calls.map((call) => call.properties);
     const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual(['ai.completion.request', 'ai.completion.error']);
@@ -246,12 +247,12 @@ describe('traceOpenAI', () => {
       // expected
     }
 
-    const calls = mockPost.mock.calls;
+    const calls = mockFetch.mock.calls.map((c) => JSON.parse(c[1].body));
     expect(calls.length).toEqual(2);
 
-    const messages = calls.map((call) => call[1].message);
-    const traceIds = calls.map((call) => call[1].traceId);
-    const properties = calls.map((call) => call[1].properties);
+    const messages = calls.map((call) => call.message);
+    const traceIds = calls.map((call) => call.traceId);
+    const properties = calls.map((call) => call.properties);
     const spanIds = properties.map((p) => p.spanId);
 
     expect(messages).toEqual(['ai.completion.request', 'ai.completion.error']);
