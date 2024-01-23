@@ -16,7 +16,7 @@ import {
   readEnv,
   AutoblocksEnvVar,
   convertTimeDeltaToMilliSeconds,
-  HEADLESS_PROMPT_LATEST_VERSION,
+  HeadlessPromptSpecialVersion,
 } from '../../util';
 import { renderTemplate } from '../util';
 
@@ -74,7 +74,7 @@ export class AutoblocksHeadlessPromptManager<
 
     if (
       this.minorVersionsToRequest.some(
-        (version) => version === HEADLESS_PROMPT_LATEST_VERSION,
+        (version) => version === HeadlessPromptSpecialVersion.LATEST,
       )
     ) {
       const refreshInterval = args.refreshInterval || { seconds: 10 };
@@ -153,7 +153,7 @@ export class AutoblocksHeadlessPromptManager<
     try {
       // Get the latest minor version within this prompt's major version
       const newLatest = await this.getPrompt({
-        minorVersion: HEADLESS_PROMPT_LATEST_VERSION,
+        minorVersion: HeadlessPromptSpecialVersion.LATEST,
         timeoutMs: this.refreshTimeoutMs,
         throwOnError: false,
       });
@@ -163,10 +163,10 @@ export class AutoblocksHeadlessPromptManager<
       }
 
       // Get the prompt we're replacing
-      const oldLatest = this.prompts[HEADLESS_PROMPT_LATEST_VERSION];
+      const oldLatest = this.prompts[HeadlessPromptSpecialVersion.LATEST];
 
       // Update the prompt
-      this.prompts[HEADLESS_PROMPT_LATEST_VERSION] = newLatest;
+      this.prompts[HeadlessPromptSpecialVersion.LATEST] = newLatest;
 
       // Log if we're replacing an older version of the prompt
       if (oldLatest && oldLatest.version !== newLatest.version) {

@@ -291,3 +291,28 @@ describe('AutoblocksPromptManager v1 weighted', () => {
     });
   });
 });
+
+describe('Undeployed', () => {
+  it('allows setting version to undeployed', () => {
+    const manager = new AutoblocksPromptManager({
+      id: 'used-by-ci-dont-delete',
+      version: {
+        major: 'dangerously-use-undeployed',
+        minor: '',
+      },
+    });
+    try {
+      // Just testing type checking here
+      manager.exec(({ prompt }) => {
+        prompt.render({
+          template: 'fdsa',
+          params: {
+            fdsa: 'fdsa',
+          },
+        });
+      });
+    } catch {
+      // expected
+    }
+  });
+});
