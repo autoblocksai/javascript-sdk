@@ -34,9 +34,7 @@ export interface TimeDelta {
 export const zHeadlessPromptSchema = z
   .object({
     id: z.string(),
-    version: z.string().regex(/^\d+\.\d+$/, {
-      message: 'Versions must be in the format major.minor',
-    }),
+    version: z.string(),
     templates: z.array(
       z.object({
         id: z.string(),
