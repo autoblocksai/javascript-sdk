@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   readEnv,
   AutoblocksEnvVar,
-  HEADLESS_PROMPT_LATEST_VERSION,
+  HeadlessPromptSpecialVersion,
 } from '../util';
 import { zHeadlessPromptSchema, type HeadlessPrompt } from '../types';
 
@@ -54,6 +54,15 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
         groupBy(args.headlessPrompts, (prompt) => prompt.id),
       ).forEach(([promptId, promptsById]) => {
         generated += `\n  '${promptId}': {`;
+
+        // Use `any` for everything when version is set to `undeployed`.
+        // Allows the user to use any template or model params while
+        // working with an undeployed prompt in the UI
+        generated += `\n    '${HeadlessPromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED}': {`;
+        generated += `\n      templates: any;`;
+        generated += `\n      modelParams: any;`;
+        generated += `\n      minorVersions: any;`;
+        generated += `\n    };`;
 
         Object.entries(
           groupBy(promptsById, (prompt) => prompt.majorVersion),
@@ -111,7 +120,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
           const minorVersions = promptsByMajorVersion.map(
             (prompt) => prompt.minorVersion,
           );
-          minorVersions.push(HEADLESS_PROMPT_LATEST_VERSION);
+          minorVersions.push(HeadlessPromptSpecialVersion.LATEST);
 
           generated += `\n      minorVersions: '${minorVersions
             .sort()

@@ -341,4 +341,7 @@ export const makeReplayHtmlUrl = (args: Replay): string => {
   }
 };
 
-export const HEADLESS_PROMPT_LATEST_VERSION = 'latest';
+export enum HeadlessPromptSpecialVersion {
+  LATEST = 'latest',
+  DANGEROUSLY_USE_UNDEPLOYED = 'dangerously-use-undeployed',
+}
