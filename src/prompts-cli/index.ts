@@ -58,7 +58,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
         // Use `any` for everything when version is set to `undeployed`.
         // Allows the user to use any template or model params while
         // working with an undeployed prompt in the UI
-        generated += `\n    '${HeadlessPromptSpecialVersion.UNDEPLOYED}': {`;
+        generated += `\n    '${HeadlessPromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED}': {`;
         generated += `\n      templates: any;`;
         generated += `\n      modelParams: any;`;
         generated += `\n      minorVersions: any;`;

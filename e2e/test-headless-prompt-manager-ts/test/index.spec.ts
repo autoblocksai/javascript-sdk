@@ -293,26 +293,39 @@ describe('AutoblocksPromptManager v1 weighted', () => {
 });
 
 describe('Undeployed', () => {
-  it('allows setting version to undeployed', () => {
-    const manager = new AutoblocksPromptManager({
-      id: 'used-by-ci-dont-delete',
-      version: {
-        major: 'dangerously-use-undeployed',
-        minor: '',
-      },
-    });
-    try {
-      // Just testing type checking here
-      manager.exec(({ prompt }) => {
+  const manager = new AutoblocksPromptManager({
+    id: 'used-by-ci-dont-delete',
+    version: {
+      major: 'dangerously-use-undeployed',
+      minor: '',
+    },
+  });
+
+  beforeAll(async () => {
+    await manager.init();
+  });
+
+  afterAll(() => {
+    manager.close();
+  });
+
+  it('works', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.params).toBeDefined();
+      expect(prompt.track().id).toEqual('used-by-ci-dont-delete');
+      expect(prompt.track().version).toEqual('undeployed');
+
+      try {
+        // Just testing type checking here
         prompt.render({
           template: 'fdsa',
           params: {
             fdsa: 'fdsa',
           },
         });
-      });
-    } catch {
-      // expected
-    }
+      } catch {
+        // expected
+      }
+    });
   });
 });
