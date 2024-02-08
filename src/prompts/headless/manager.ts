@@ -153,6 +153,7 @@ export class AutoblocksHeadlessPromptManager<
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${this.apiKey}`,
+          'X-Autoblocks-SDK': 'javascript',
         },
         signal: AbortSignal.timeout(args.timeoutMs),
       });
