@@ -12,8 +12,6 @@
     "moduleResolution": "node",
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true,
-    "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "ai-jsx"
+    "allowSyntheticDefaultImports": true
   }
 }

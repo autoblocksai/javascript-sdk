@@ -20,18 +20,6 @@
     "./prompts": {
       "require": "./dist/prompts/index.js",
       "import": "./dist/prompts/index.mjs"
-    },
-    "./langchain": {
-      "require": "./dist/langchain/index.js",
-      "import": "./dist/langchain/index.mjs"
-    },
-    "./openai": {
-      "require": "./dist/openai/index.js",
-      "import": "./dist/openai/index.mjs"
-    },
-    "./ai-jsx": {
-      "require": "./dist/ai-jsx/index.js",
-      "import": "./dist/ai-jsx/index.mjs"
     }
   },
   "typesVersions": {
@@ -41,15 +29,6 @@
       ],
       "prompts": [
         "./dist/prompts/index.d.ts"
-      ],
-      "langchain": [
-        "./dist/langchain/index.d.ts"
-      ],
-      "openai": [
-        "./dist/openai/index.d.ts"
-      ],
-      "ai-jsx": [
-        "./dist/ai-jsx/index.d.ts"
       ]
     }
   },
@@ -88,15 +67,12 @@
     "@types/react": "^18.2.37",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "ai-jsx": "^0.29.0",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^9.0.0",
     "jest": "^29.6.2",
-    "langchain": "^0.1.0",
     "lint-staged": "^15.0.0",
-    "openai": "^4.11.1",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.1",
     "tsup": "^8.0.0",
