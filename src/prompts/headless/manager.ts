@@ -17,6 +17,7 @@ import {
   AutoblocksEnvVar,
   convertTimeDeltaToMilliSeconds,
   HeadlessPromptSpecialVersion,
+  AUTOBLOCKS_HEADERS,
 } from '../../util';
 import { renderTemplate } from '../util';
 
@@ -151,7 +152,7 @@ export class AutoblocksHeadlessPromptManager<
       const resp = await fetch(url, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          ...AUTOBLOCKS_HEADERS,
           Authorization: `Bearer ${this.apiKey}`,
         },
         signal: AbortSignal.timeout(args.timeoutMs),

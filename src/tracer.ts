@@ -2,6 +2,7 @@ import {
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,
+  AUTOBLOCKS_HEADERS,
 } from './util';
 import type { ArbitraryProperties, SendEventArgs, TimeDelta } from './types';
 
@@ -90,7 +91,7 @@ export class AutoblocksTracer {
     const resp = await fetch(this.ingestionBaseUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.ingestionKey}`,
       },
       body: JSON.stringify({

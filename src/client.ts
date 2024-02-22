@@ -3,6 +3,7 @@ import {
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,
+  AUTOBLOCKS_HEADERS,
 } from './util';
 
 export interface View {
@@ -112,7 +113,7 @@ export class AutoblocksAPIClient {
     const resp = await fetch(`${this.apiBaseUrl}${path}`, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
       },
       signal: AbortSignal.timeout(this.timeoutMs),
@@ -124,7 +125,7 @@ export class AutoblocksAPIClient {
     const resp = await fetch(`${this.apiBaseUrl}${path}`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),

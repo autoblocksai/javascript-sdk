@@ -1,4 +1,5 @@
 import type { TimeDelta } from './types';
+import packageJson from '../package.json';
 
 export enum AutoblocksEnvVar {
   AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',
@@ -23,3 +24,8 @@ export enum HeadlessPromptSpecialVersion {
   LATEST = 'latest',
   DANGEROUSLY_USE_UNDEPLOYED = 'dangerously-use-undeployed',
 }
+
+export const AUTOBLOCKS_HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Autoblocks-SDK': `javascript-${packageJson.version}`,
+};
