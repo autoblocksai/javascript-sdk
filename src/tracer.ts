@@ -1,5 +1,4 @@
 import {
-  makeReplayHeaders,
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,
@@ -88,19 +87,11 @@ export class AutoblocksTracer {
       args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
 
-    let replayHeaders = undefined;
-    try {
-      replayHeaders = makeReplayHeaders();
-    } catch {
-      // Couldn't make headers
-    }
-
     const resp = await fetch(this.ingestionBaseUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.ingestionKey}`,
-        ...replayHeaders,
       },
       body: JSON.stringify({
         message,
