@@ -36,6 +36,7 @@ describe('Autoblocks Tracer', () => {
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer mock-ingestion-key',
+          'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
         },
         signal: AbortSignal.timeout(timeoutMs || 5_000),
       },

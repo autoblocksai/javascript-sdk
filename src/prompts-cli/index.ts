@@ -4,6 +4,7 @@ import {
   readEnv,
   AutoblocksEnvVar,
   HeadlessPromptSpecialVersion,
+  AUTOBLOCKS_HEADERS,
 } from '../util';
 import { zHeadlessPromptSchema, type HeadlessPrompt } from '../types';
 
@@ -378,7 +379,7 @@ async function getHeadlessPromptsFromAPI(args: {
   const resp = await fetch(`https://api.autoblocks.ai/prompts`, {
     method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
+      ...AUTOBLOCKS_HEADERS,
       Authorization: `Bearer ${args.apiKey}`,
     },
   });
