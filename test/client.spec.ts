@@ -23,6 +23,7 @@ describe('Autoblocks Client', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
             Authorization: 'Bearer mock-api-key',
           },
           signal: AbortSignal.timeout(60_000),
@@ -40,6 +41,7 @@ describe('Autoblocks Client', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
             Authorization: 'Bearer mock-api-key',
           },
           signal: AbortSignal.timeout(60_000),
@@ -59,6 +61,7 @@ describe('Autoblocks Client', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
             Authorization: 'Bearer mock-api-key',
           },
           signal: AbortSignal.timeout(60_000),
@@ -86,6 +89,7 @@ describe('Autoblocks Client', () => {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
+              'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
               Authorization: 'Bearer mock-api-key',
             },
             signal: AbortSignal.timeout(expected),
@@ -113,6 +117,7 @@ describe('Autoblocks Client', () => {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
             Authorization: 'Bearer mock-api-key',
           },
           signal: AbortSignal.timeout(expected),
