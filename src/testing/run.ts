@@ -153,6 +153,14 @@ async function evaluateOutput<
   });
 }
 
+function isPrimitive(value: unknown): boolean {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
 async function runTestCase<
   TestCaseType extends BaseTestCaseType,
   OutputType,
@@ -183,7 +191,7 @@ async function runTestCase<
     testExternalId: args.testId,
     testCaseHash: args.testCaseHash,
     testCaseBody: JSON.stringify(args.testCase),
-    testCaseOutput: output === 'string' ? output : JSON.stringify(output),
+    testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
   });
 
   try {
