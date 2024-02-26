@@ -25,7 +25,6 @@ $ npx autoblocks testing exec -- <your test command>
     }
 
     try {
-      console.log(`POST ${serverAddress}${path}`, data);
       await fetch(serverAddress + path, {
         method: 'POST',
         headers: {
@@ -34,7 +33,6 @@ $ npx autoblocks testing exec -- <your test command>
         body: JSON.stringify(data),
       });
     } catch (err) {
-      console.error(err);
       // Ignore, any errors for these requests are displayed by the CLI server
     }
   },
@@ -91,7 +89,6 @@ async function gatherWithMaxConcurrency(args: {
       try {
         await Promise.resolve(task());
       } catch (err) {
-        console.error(err);
         // Ignore, errors are handled in the tasks themselves
       }
       return { id };
