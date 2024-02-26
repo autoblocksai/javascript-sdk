@@ -187,7 +187,7 @@ async function runTestCase<
   await client.post('/results', {
     testExternalId: args.testId,
     testCaseHash: args.testCaseHash,
-    testCaseBody: JSON.stringify(args.testCase),
+    testCaseBody: args.testCase,
     testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
   });
 
