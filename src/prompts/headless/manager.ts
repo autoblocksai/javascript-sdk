@@ -278,7 +278,7 @@ export class AutoblocksHeadlessPromptManager<
     const prompt = this.choosePrompt();
     if (!prompt) {
       throw new Error(
-        `[${this.id}@${this.majorVersion}] Failed to choose execution prompt`,
+        `[${this.id}@${this.majorVersion}] Failed to choose execution prompt. Did you initialize the prompt manager?`,
       );
     }
     const renderer = new PromptRenderer<PromptId, MajorVersion>(prompt);
