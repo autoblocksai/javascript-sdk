@@ -1,5 +1,10 @@
-import { BaseTestCase, BaseTestEvaluator, Evaluation } from './models';
+import {
+  type BaseTestCaseType,
+  BaseTestEvaluator,
+  type Evaluation,
+} from './models';
 import { AutoblocksEnvVar, readEnv } from '../util';
+import crypto from 'crypto';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
 const DEFAULT_MAX_EVALUATOR_CONCURRENCY = 5;
@@ -11,13 +16,16 @@ const client = {
     );
     if (!serverAddress) {
       throw new Error(
-        `Autoblocks tests must be run within the context of the testing CLI.
+        `\n
+Autoblocks tests must be run within the context of the testing CLI.
 Make sure you are running your test command with:
-$ npx autoblocks testing exec -- <your test command>`,
+$ npx autoblocks testing exec -- <your test command>
+`,
       );
     }
 
     try {
+      console.log(`POST ${serverAddress}${path}`, data);
       await fetch(serverAddress + path, {
         method: 'POST',
         headers: {
@@ -25,21 +33,27 @@ $ npx autoblocks testing exec -- <your test command>`,
         },
         body: JSON.stringify(data),
       });
-    } catch {
+    } catch (err) {
+      console.error(err);
       // Ignore, any errors for these requests are displayed by the CLI server
     }
   },
 };
 
-// Used to maintain a cache of hashes for test cases
-// without needing to add a public method to the test case
-const testCaseHashMap = new WeakMap<BaseTestCase, string>();
-
-function getCachedHash(testCase: BaseTestCase): string {
-  if (!testCaseHashMap.has(testCase)) {
-    testCaseHashMap.set(testCase, testCase.hash());
+function makeTestCaseHash<TestCaseType extends BaseTestCaseType>(
+  testCase: TestCaseType,
+  testCaseHash:
+    | (keyof TestCaseType & string)
+    | ((testCase: TestCaseType) => string),
+): string {
+  if (typeof testCaseHash === 'string') {
+    return crypto
+      .createHash('md5')
+      .update(`${testCase[testCaseHash]}`)
+      .digest('hex');
+  } else {
+    return testCaseHash(testCase);
   }
-  return testCaseHashMap.get(testCase)!;
 }
 
 async function sendError(args: {
@@ -77,6 +91,7 @@ async function gatherWithMaxConcurrency(args: {
       try {
         await Promise.resolve(task());
       } catch (err) {
+        console.error(err);
         // Ignore, errors are handled in the tasks themselves
       }
       return { id };
@@ -102,11 +117,12 @@ async function gatherWithMaxConcurrency(args: {
 }
 
 async function evaluateOutput<
-  TestCaseType extends BaseTestCase,
+  TestCaseType extends BaseTestCaseType,
   OutputType,
 >(args: {
   testId: string;
   testCase: TestCaseType;
+  testCaseHash: string;
   output: OutputType;
   evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
 }): Promise<void> {
@@ -120,7 +136,7 @@ async function evaluateOutput<
   } catch (err) {
     await sendError({
       testId: args.testId,
-      testCaseHash: getCachedHash(args.testCase),
+      testCaseHash: args.testCaseHash,
       evaluatorId: args.evaluator.id,
       error: err,
     });
@@ -130,7 +146,7 @@ async function evaluateOutput<
 
   await client.post('/evals', {
     testExternalId: args.testId,
-    testCaseHash: getCachedHash(args.testCase),
+    testCaseHash: args.testCaseHash,
     evaluatorExternalId: args.evaluator.id,
     score: evaluation.score,
     threshold: evaluation.threshold,
@@ -138,11 +154,12 @@ async function evaluateOutput<
 }
 
 async function runTestCase<
-  TestCaseType extends BaseTestCase,
+  TestCaseType extends BaseTestCaseType,
   OutputType,
 >(args: {
   testId: string;
   testCase: TestCaseType;
+  testCaseHash: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (testCase: TestCaseType) => OutputType | Promise<OutputType>;
   maxEvaluatorConcurrency: number;
@@ -154,7 +171,7 @@ async function runTestCase<
   } catch (err) {
     await sendError({
       testId: args.testId,
-      testCaseHash: getCachedHash(args.testCase),
+      testCaseHash: args.testCaseHash,
       evaluatorId: null,
       error: err,
     });
@@ -164,7 +181,7 @@ async function runTestCase<
 
   await client.post('/results', {
     testExternalId: args.testId,
-    testCaseHash: getCachedHash(args.testCase),
+    testCaseHash: args.testCaseHash,
     testCaseBody: JSON.stringify(args.testCase),
     testCaseOutput: output === 'string' ? output : JSON.stringify(output),
   });
@@ -177,6 +194,7 @@ async function runTestCase<
           evaluateOutput({
             testId: args.testId,
             testCase: args.testCase,
+            testCaseHash: args.testCaseHash,
             output,
             evaluator,
           }),
@@ -185,7 +203,7 @@ async function runTestCase<
   } catch (err) {
     await sendError({
       testId: args.testId,
-      testCaseHash: getCachedHash(args.testCase),
+      testCaseHash: args.testCaseHash,
       evaluatorId: null,
       error: err,
     });
@@ -193,11 +211,14 @@ async function runTestCase<
 }
 
 export async function runTestSuite<
-  TestCaseType extends BaseTestCase,
+  TestCaseType extends BaseTestCaseType,
   OutputType,
 >(args: {
   id: string;
   testCases: TestCaseType[];
+  testCaseHash:
+    | (keyof TestCaseType & string)
+    | ((testCase: TestCaseType) => string);
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (testCase: TestCaseType) => OutputType | Promise<OutputType>;
   // How many test cases to run concurrently
@@ -206,15 +227,9 @@ export async function runTestSuite<
   maxEvaluatorConcurrency?: number;
 }): Promise<void> {
   try {
-    if (!args.testCases.length)
+    if (!args.testCases.length) {
       throw new Error(`[${args.id}] No test cases provided.`);
-    args.testCases.forEach((testCase) => {
-      if (!(testCase instanceof BaseTestCase)) {
-        throw new Error(
-          `[${args.id}] Test case ${testCase} does not implement ${BaseTestCase.name}.`,
-        );
-      }
-    });
+    }
     args.evaluators.forEach((evaluator) => {
       if (!(evaluator instanceof BaseTestEvaluator)) {
         throw new Error(
@@ -247,6 +262,7 @@ export async function runTestSuite<
           runTestCase({
             testId: args.id,
             testCase,
+            testCaseHash: makeTestCaseHash(testCase, args.testCaseHash),
             evaluators: args.evaluators,
             fn: args.fn,
             maxEvaluatorConcurrency,
