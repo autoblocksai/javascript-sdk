@@ -20,6 +20,10 @@
     "./prompts": {
       "require": "./dist/prompts/index.js",
       "import": "./dist/prompts/index.mjs"
+    },
+    "./testing": {
+      "require": "./dist/testing/index.js",
+      "import": "./dist/testing/index.mjs"
     }
   },
   "typesVersions": {
@@ -29,6 +33,9 @@
       ],
       "prompts": [
         "./dist/prompts/index.d.ts"
+      ],
+      "testing": [
+        "./dist/testing/index.d.ts"
       ]
     }
   },
@@ -44,7 +51,7 @@
     "format": "prettier --write .",
     "lint": "eslint --ext .ts --max-warnings 0 .",
     "test": "TZ=UTC jest",
-    "prepare": "husky install"
+    "prepare": "npm run build"
   },
   "homepage": "https://github.com/autoblocksai/javascript-sdk",
   "bugs": {
