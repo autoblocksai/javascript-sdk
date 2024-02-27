@@ -41,14 +41,14 @@ $ npx autoblocks testing exec -- <your test command>
 function makeTestCaseHash<TestCaseType extends BaseTestCaseType>(
   testCase: TestCaseType,
   testCaseHash:
-    | (keyof TestCaseType & string)
+    | (keyof TestCaseType & string)[]
     | ((testCase: TestCaseType) => string),
 ): string {
-  if (typeof testCaseHash === 'string') {
-    return crypto
-      .createHash('md5')
-      .update(JSON.stringify(testCase[testCaseHash]))
-      .digest('hex');
+  if (Array.isArray(testCaseHash)) {
+    const concatenated = testCaseHash
+      .map((key) => JSON.stringify(testCase[key]))
+      .join('');
+    return crypto.createHash('md5').update(concatenated).digest('hex');
   } else {
     return testCaseHash(testCase);
   }
@@ -222,7 +222,7 @@ export async function runTestSuite<
   id: string;
   testCases: TestCaseType[];
   testCaseHash:
-    | (keyof TestCaseType & string)
+    | (keyof TestCaseType & string)[]
     | ((testCase: TestCaseType) => string);
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (testCase: TestCaseType) => OutputType | Promise<OutputType>;
