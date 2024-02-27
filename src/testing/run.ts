@@ -47,7 +47,7 @@ function makeTestCaseHash<TestCaseType extends BaseTestCaseType>(
   if (typeof testCaseHash === 'string') {
     return crypto
       .createHash('md5')
-      .update(`${testCase[testCaseHash]}`)
+      .update(JSON.stringify(testCase[testCaseHash]))
       .digest('hex');
   } else {
     return testCaseHash(testCase);
