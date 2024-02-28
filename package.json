@@ -3,7 +3,7 @@
   "version": "0.0.0-automated",
   "description": "JavaScript client for Autoblocks",
   "bin": {
-    "autoblocks": "./bin/cli.js"
+    "prompts": "./bin/prompts-cli.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

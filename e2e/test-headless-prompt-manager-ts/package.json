@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "test": "jest",
-    "gen": "autoblocks prompts generate",
+    "gen": "prompts generate",
     "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
   },
   "dependencies": {
