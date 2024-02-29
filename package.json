@@ -51,7 +51,7 @@
     "format": "prettier --write .",
     "lint": "eslint --ext .ts --max-warnings 0 .",
     "test": "TZ=UTC jest",
-    "prepare": "npm run build"
+    "prepare": "husky install & npm run build"
   },
   "homepage": "https://github.com/autoblocksai/javascript-sdk",
   "bugs": {
