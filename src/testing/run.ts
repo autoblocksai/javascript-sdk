@@ -34,6 +34,14 @@ $ npx autoblocks testing exec -- <your test command>
   },
 };
 
+function isPrimitive(value: unknown): boolean {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  );
+}
+
 function makeTestCaseHash<TestCaseType>(
   testCase: TestCaseType,
   testCaseHash:
@@ -47,26 +55,6 @@ function makeTestCaseHash<TestCaseType>(
     return crypto.createHash('md5').update(concatenated).digest('hex');
   } else {
     return testCaseHash(testCase);
-  }
-}
-
-async function sendError(args: {
-  testId: string;
-  testCaseHash: string | null;
-  evaluatorId: string | null;
-  error: unknown;
-}): Promise<void> {
-  if (args.error instanceof Error) {
-    await client.post('/errors', {
-      testExternalId: args.testId,
-      testCaseHash: args.testCaseHash,
-      evaluatorExternalId: args.evaluatorId,
-      error: {
-        name: args.error.name,
-        message: args.error.message,
-        stacktrace: args.error.stack,
-      },
-    });
   }
 }
 
@@ -109,6 +97,26 @@ async function gatherWithMaxConcurrency(args: {
   await Promise.allSettled(promises.map((p) => p.promise)); // Ensure all remaining promises are finished
 }
 
+async function sendError(args: {
+  testId: string;
+  testCaseHash: string | null;
+  evaluatorId: string | null;
+  error: unknown;
+}): Promise<void> {
+  if (args.error instanceof Error) {
+    await client.post('/errors', {
+      testExternalId: args.testId,
+      testCaseHash: args.testCaseHash,
+      evaluatorExternalId: args.evaluatorId,
+      error: {
+        name: args.error.name,
+        message: args.error.message,
+        stacktrace: args.error.stack,
+      },
+    });
+  }
+}
+
 async function evaluateOutput<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
@@ -141,14 +149,6 @@ async function evaluateOutput<TestCaseType, OutputType>(args: {
     score: evaluation.score,
     threshold: evaluation.threshold,
   });
-}
-
-function isPrimitive(value: unknown): boolean {
-  return (
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  );
 }
 
 async function runTestCase<TestCaseType, OutputType>(args: {
