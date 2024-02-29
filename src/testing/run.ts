@@ -62,10 +62,7 @@ async function gatherWithMaxConcurrency(args: {
   maxConcurrency: number;
   tasks: (() => Promise<void>)[];
 }): Promise<void> {
-  const promises: {
-    id: string;
-    promise: Promise<{ id: string }>;
-  }[] = [];
+  const promises = new Map<string, Promise<{ id: string }>>();
 
   for (const task of args.tasks) {
     const id = crypto.randomUUID();
@@ -78,23 +75,17 @@ async function gatherWithMaxConcurrency(args: {
       return { id };
     })();
 
-    promises.push({
-      id,
-      promise,
-    });
+    promises.set(id, promise);
 
-    if (promises.length >= args.maxConcurrency) {
+    if (promises.size >= args.maxConcurrency) {
       // Remove the first promise that resolves
-      await Promise.race(promises.map((p) => p.promise)).then((winner) => {
-        const toRemove = promises.find((p) => p.id === winner.id);
-        if (toRemove) {
-          promises.splice(promises.indexOf(toRemove), 1);
-        }
+      await Promise.race(promises.values()).then((winner) => {
+        promises.delete(winner.id);
       });
     }
   }
 
-  await Promise.allSettled(promises.map((p) => p.promise)); // Ensure all remaining promises are finished
+  await Promise.allSettled(promises.values()); // Ensure all remaining promises are finished
 }
 
 async function sendError(args: {
