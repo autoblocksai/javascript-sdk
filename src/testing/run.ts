@@ -1,4 +1,4 @@
-import { BaseTestEvaluator, type Evaluation } from './models';
+import { BaseTestEvaluator } from './models';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import crypto from 'crypto';
 
@@ -115,12 +115,17 @@ async function evaluateOutput<TestCaseType, OutputType>(args: {
   output: OutputType;
   evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
 }): Promise<void> {
-  let evaluation: Evaluation | undefined = undefined;
-
   try {
-    evaluation = await args.evaluator.evaluateTestCase({
+    const evaluation = await args.evaluator.evaluateTestCase({
       testCase: args.testCase,
       output: args.output,
+    });
+    await client.post('/evals', {
+      testExternalId: args.testId,
+      testCaseHash: args.testCaseHash,
+      evaluatorExternalId: args.evaluator.id,
+      score: evaluation.score,
+      threshold: evaluation.threshold,
     });
   } catch (err) {
     await sendError({
@@ -130,16 +135,6 @@ async function evaluateOutput<TestCaseType, OutputType>(args: {
       error: err,
     });
   }
-
-  if (evaluation === undefined) return;
-
-  await client.post('/evals', {
-    testExternalId: args.testId,
-    testCaseHash: args.testCaseHash,
-    evaluatorExternalId: args.evaluator.id,
-    score: evaluation.score,
-    threshold: evaluation.threshold,
-  });
 }
 
 async function runTestCase<TestCaseType, OutputType>(args: {
