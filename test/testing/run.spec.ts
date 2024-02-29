@@ -48,7 +48,7 @@ describe('Testing SDK', () => {
   };
 
   beforeAll(() => {
-    process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS = 'http://localhost:8000';
+    process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS = MOCK_CLI_SERVER_ADDRESS;
   });
 
   afterAll(() => {
