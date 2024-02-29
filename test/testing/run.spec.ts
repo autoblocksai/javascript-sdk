@@ -120,7 +120,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [],
-      fn: (testCase: MyTestCase) => {
+      fn: ({ testCase }: { testCase: MyTestCase }) => {
         if (testCase.x === 1) {
           throw new Error('Something went wrong');
         }
@@ -184,7 +184,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [new MyEvaluator()],
-      fn: (testCase: MyTestCase) =>
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
     });
 
@@ -250,7 +250,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [],
-      fn: (testCase: MyTestCase) =>
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
     });
 
@@ -312,7 +312,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [new MyEvaluator1(), new MyEvaluator2()],
-      fn: (testCase: MyTestCase) =>
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
     });
 
@@ -415,7 +415,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [new MyEvaluator1(), new MyEvaluator2()],
-      fn: (testCase: MyTestCase) =>
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
       maxTestCaseConcurrency: 1,
       maxEvaluatorConcurrency: 1,
@@ -506,7 +506,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [],
-      fn: async (testCase: MyTestCase) => {
+      fn: async ({ testCase }: { testCase: MyTestCase }) => {
         return new Promise<string>((resolve) => {
           setTimeout(() => {
             resolve(
@@ -571,7 +571,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: ['x', 'y'],
       evaluators: [new MyEvaluator()],
-      fn: (testCase: MyTestCase) =>
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
     });
 
@@ -635,7 +635,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: (testCase: MyTestCase) => `${testCase.x}-${testCase.y}`,
       evaluators: [],
-      fn: (testCase: MyTestCase) =>
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
     });
 
@@ -678,7 +678,7 @@ describe('Testing SDK', () => {
       testCases: [{ x: 1, y: 2 }],
       testCaseHash: ['x', 'y'],
       evaluators: [],
-      fn: (testCase: MyTestCase) => ({
+      fn: ({ testCase }: { testCase: MyTestCase }) => ({
         result: `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
       }),
     });

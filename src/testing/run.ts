@@ -142,13 +142,13 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   testCase: TestCaseType;
   testCaseHash: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
-  fn: (testCase: TestCaseType) => OutputType | Promise<OutputType>;
+  fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
   maxEvaluatorConcurrency: number;
 }): Promise<void> {
   let output: OutputType | undefined = undefined;
 
   try {
-    output = await args.fn(args.testCase);
+    output = await args.fn({ testCase: args.testCase });
   } catch (err) {
     await sendError({
       testId: args.testId,
@@ -206,7 +206,7 @@ export async function runTestSuite<
     // Or, the user can define their own function to compute the hash
     | ((testCase: TestCaseType) => string);
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
-  fn: (testCase: TestCaseType) => OutputType | Promise<OutputType>;
+  fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
   // How many test cases to run concurrently
   maxTestCaseConcurrency?: number;
   // How many evaluators to run concurrently on the result of a test case
