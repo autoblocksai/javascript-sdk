@@ -1,8 +1,4 @@
-import {
-  type BaseTestCaseType,
-  BaseTestEvaluator,
-  type Evaluation,
-} from './models';
+import { BaseTestEvaluator, type Evaluation } from './models';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import crypto from 'crypto';
 
@@ -38,7 +34,7 @@ $ npx autoblocks testing exec -- <your test command>
   },
 };
 
-function makeTestCaseHash<TestCaseType extends BaseTestCaseType>(
+function makeTestCaseHash<TestCaseType>(
   testCase: TestCaseType,
   testCaseHash:
     | (keyof TestCaseType & string)[]
@@ -113,10 +109,7 @@ async function gatherWithMaxConcurrency(args: {
   await Promise.allSettled(promises.map((p) => p.promise)); // Ensure all remaining promises are finished
 }
 
-async function evaluateOutput<
-  TestCaseType extends BaseTestCaseType,
-  OutputType,
->(args: {
+async function evaluateOutput<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
   testCaseHash: string;
@@ -126,10 +119,10 @@ async function evaluateOutput<
   let evaluation: Evaluation | undefined = undefined;
 
   try {
-    evaluation = await args.evaluator.evaluateTestCase(
-      args.testCase,
-      args.output,
-    );
+    evaluation = await args.evaluator.evaluateTestCase({
+      testCase: args.testCase,
+      output: args.output,
+    });
   } catch (err) {
     await sendError({
       testId: args.testId,
@@ -158,10 +151,7 @@ function isPrimitive(value: unknown): boolean {
   );
 }
 
-async function runTestCase<
-  TestCaseType extends BaseTestCaseType,
-  OutputType,
->(args: {
+async function runTestCase<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
   testCaseHash: string;
@@ -216,13 +206,18 @@ async function runTestCase<
 }
 
 export async function runTestSuite<
-  TestCaseType extends BaseTestCaseType,
-  OutputType,
+  // A workaround for making the type parameters required
+  // See https://stackoverflow.com/a/76821931
+  T = 'A test case type is required.',
+  O = 'An output type is required.',
+  TestCaseType extends T = T,
+  OutputType extends O = O,
 >(args: {
   id: string;
   testCases: TestCaseType[];
-  testCaseHash:
-    | (keyof TestCaseType & string)[]
+  testCaseHash: // This type requires that the test case hash array has at least one element
+  | [keyof TestCaseType & string, ...(keyof TestCaseType & string)[]]
+    // Or, the user can define their own function to compute the hash
     | ((testCase: TestCaseType) => string);
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (testCase: TestCaseType) => OutputType | Promise<OutputType>;
@@ -238,7 +233,7 @@ export async function runTestSuite<
     args.evaluators.forEach((evaluator) => {
       if (!(evaluator instanceof BaseTestEvaluator)) {
         throw new Error(
-          `[${args.id}] Evaluator ${evaluator} does not implement ${BaseTestEvaluator.name}.`,
+          `[${args.id}] Evaluators must be instances of ${BaseTestEvaluator.name}.`,
         );
       }
     });

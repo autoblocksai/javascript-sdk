@@ -10,17 +10,11 @@ export interface Evaluation {
   threshold?: Threshold;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type BaseTestCaseType = Record<string, any>;
-
-export abstract class BaseTestEvaluator<
-  TestCaseType extends BaseTestCaseType,
-  OutputType,
-> {
+export abstract class BaseTestEvaluator<TestCaseType, OutputType> {
   abstract get id(): string;
 
-  abstract evaluateTestCase(
-    testCase: TestCaseType,
-    output: OutputType,
-  ): Evaluation | Promise<Evaluation>;
+  abstract evaluateTestCase(args: {
+    testCase: TestCaseType;
+    output: OutputType;
+  }): Evaluation | Promise<Evaluation>;
 }
