@@ -4,8 +4,6 @@ import { AutoblocksEnvVar } from '../src/util';
 describe('Autoblocks Tracer', () => {
   let mockFetch: jest.SpyInstance;
 
-  process.env.GITHUB_ACTIONS = '';
-
   beforeAll(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date(2021, 0, 1, 1, 1, 1, 1));
