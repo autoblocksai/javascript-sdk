@@ -388,11 +388,14 @@ describe('Testing SDK', () => {
     });
   });
 
+  /**
+   * If we set max concurrency to 1 for both test cases and
+   * evaluators, the order is deterministic.
+   */
   it('respects concurrency controls', async () => {
-    // If we set max concurrency to 1 for both test cases and
-    // evaluators, the order is deterministic.
     class MyEvaluator1 extends BaseTestEvaluator<MyTestCase, string> {
       id = 'my-evaluator-1';
+      maxConcurrency = 1;
 
       evaluateTestCase(): Evaluation {
         return { score: 0.5 };
@@ -401,6 +404,7 @@ describe('Testing SDK', () => {
 
     class MyEvaluator2 extends BaseTestEvaluator<MyTestCase, string> {
       id = 'my-evaluator-2';
+      maxConcurrency = 1;
 
       evaluateTestCase(): Evaluation {
         return { score: 0.7, threshold: { gte: 0.5 } };
@@ -418,7 +422,6 @@ describe('Testing SDK', () => {
       fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
       maxTestCaseConcurrency: 1,
-      maxEvaluatorConcurrency: 1,
     });
 
     expectNumPosts(8);
@@ -442,6 +445,15 @@ describe('Testing SDK', () => {
         },
       },
       {
+        path: '/results',
+        body: {
+          testExternalId: 'my-test-id',
+          testCaseHash: md5(`34`),
+          testCaseBody: { x: 3, y: 4 },
+          testCaseOutput: '3 + 4 = 7',
+        },
+      },
+      {
         path: '/evals',
         body: {
           testExternalId: 'my-test-id',
@@ -458,15 +470,6 @@ describe('Testing SDK', () => {
           evaluatorExternalId: 'my-evaluator-2',
           score: 0.7,
           threshold: { gte: 0.5 },
-        },
-      },
-      {
-        path: '/results',
-        body: {
-          testExternalId: 'my-test-id',
-          testCaseHash: md5(`34`),
-          testCaseBody: { x: 3, y: 4 },
-          testCaseOutput: '3 + 4 = 7',
         },
       },
       {

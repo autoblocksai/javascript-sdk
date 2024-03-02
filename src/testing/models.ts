@@ -13,6 +13,8 @@ export interface Evaluation {
 export abstract class BaseTestEvaluator<TestCaseType, OutputType> {
   abstract get id(): string;
 
+  maxConcurrency: number = 10;
+
   abstract evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;

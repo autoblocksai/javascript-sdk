@@ -1,9 +1,15 @@
-import { BaseTestEvaluator, type Evaluation } from './models';
-import { AutoblocksEnvVar, readEnv } from '../util';
 import crypto from 'crypto';
+import { AutoblocksEnvVar, readEnv } from '../util';
+import { BaseTestEvaluator, type Evaluation } from './models';
+import { Semaphore } from './util';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
-const DEFAULT_MAX_EVALUATOR_CONCURRENCY = 5;
+
+const testCaseSemaphoreRegistry: Record<string, Semaphore> = {}; // testId -> Semaphore
+const evaluatorSemaphoreRegistry: Record<
+  string,
+  Record<string, Semaphore>
+> = {}; // testId -> evaluatorId -> Semaphore
 
 const client = {
   post: async (path: string, data: unknown): Promise<void> => {
@@ -58,57 +64,63 @@ function makeTestCaseHash<TestCaseType>(
   }
 }
 
-async function gatherWithMaxConcurrency(args: {
-  maxConcurrency: number;
-  tasks: (() => Promise<void>)[];
-}): Promise<void> {
-  const promises = new Map<string, Promise<{ id: string }>>();
-
-  for (const task of args.tasks) {
-    const id = crypto.randomUUID();
-    const promise: Promise<{ id: string }> = (async () => {
-      try {
-        await Promise.resolve(task());
-      } catch (err) {
-        // Ignore, errors are handled in the tasks themselves
-      }
-      return { id };
-    })();
-
-    promises.set(id, promise);
-
-    if (promises.size >= args.maxConcurrency) {
-      // Remove the first promise that resolves
-      await Promise.race(promises.values()).then((winner) => {
-        promises.delete(winner.id);
-      });
-    }
-  }
-
-  await Promise.allSettled(promises.values()); // Ensure all remaining promises are finished
-}
-
 async function sendError(args: {
   testId: string;
   testCaseHash: string | null;
   evaluatorId: string | null;
   error: unknown;
 }): Promise<void> {
-  if (args.error instanceof Error) {
-    await client.post('/errors', {
-      testExternalId: args.testId,
-      testCaseHash: args.testCaseHash,
-      evaluatorExternalId: args.evaluatorId,
-      error: {
-        name: args.error.name,
-        message: args.error.message,
-        stacktrace: args.error.stack,
-      },
-    });
-  }
+  const { errorName, errorMessage, errorStack } =
+    args.error instanceof Error
+      ? {
+          errorName: args.error.name,
+          errorMessage: args.error.message,
+          errorStack: args.error.stack,
+        }
+      : {
+          errorName: 'UnknownError',
+          errorMessage: `${args.error}`,
+          errorStack: '',
+        };
+
+  await client.post('/errors', {
+    testExternalId: args.testId,
+    testCaseHash: args.testCaseHash,
+    evaluatorExternalId: args.evaluatorId,
+    error: {
+      name: errorName,
+      message: errorMessage,
+      stacktrace: errorStack,
+    },
+  });
 }
 
-async function evaluateOutput<TestCaseType, OutputType>(args: {
+/**
+ * This is suffixed with "Unsafe" because it doesn't handle errors.
+ * Its caller will catch and handle all errors.
+ */
+async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
+  testId: string;
+  testCase: TestCaseType;
+  output: OutputType;
+  evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
+}): Promise<Evaluation> {
+  const semaphore = evaluatorSemaphoreRegistry[args.testId][args.evaluator.id];
+  if (!semaphore) {
+    throw new Error(
+      `[${args.testId}] Evaluator semaphore not found for '${args.evaluator.id}'.`,
+    );
+  }
+
+  return semaphore.run(async () => {
+    return await args.evaluator.evaluateTestCase({
+      testCase: args.testCase,
+      output: args.output,
+    });
+  });
+}
+
+async function runEvaluator<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
   testCaseHash: string;
@@ -118,9 +130,11 @@ async function evaluateOutput<TestCaseType, OutputType>(args: {
   let evaluation: Evaluation | undefined = undefined;
 
   try {
-    evaluation = await args.evaluator.evaluateTestCase({
+    evaluation = await runEvaluatorUnsafe({
+      testId: args.testId,
       testCase: args.testCase,
       output: args.output,
+      evaluator: args.evaluator,
     });
   } catch (err) {
     await sendError({
@@ -129,6 +143,7 @@ async function evaluateOutput<TestCaseType, OutputType>(args: {
       evaluatorId: args.evaluator.id,
       error: err,
     });
+    return;
   }
 
   if (evaluation === undefined) return;
@@ -142,18 +157,44 @@ async function evaluateOutput<TestCaseType, OutputType>(args: {
   });
 }
 
+/**
+ * This is suffixed with "Unsafe" because it doesn't handle errors.
+ * Its caller will catch and handle all errors.
+ */
+async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
+  testId: string;
+  testCase: TestCaseType;
+  testCaseHash: string;
+  evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
+  fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+}): Promise<OutputType> {
+  const semaphore = testCaseSemaphoreRegistry[args.testId];
+  if (!semaphore) {
+    throw new Error(`[${args.testId}] Test case semaphore not found.`);
+  }
+
+  return semaphore.run(async () => {
+    return await args.fn({ testCase: args.testCase });
+  });
+}
+
 async function runTestCase<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
   testCaseHash: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
-  maxEvaluatorConcurrency: number;
 }): Promise<void> {
   let output: OutputType | undefined = undefined;
 
   try {
-    output = await args.fn({ testCase: args.testCase });
+    output = await runTestCaseUnsafe({
+      testId: args.testId,
+      testCase: args.testCase,
+      testCaseHash: args.testCaseHash,
+      evaluators: args.evaluators,
+      fn: args.fn,
+    });
   } catch (err) {
     await sendError({
       testId: args.testId,
@@ -161,6 +202,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
       evaluatorId: null,
       error: err,
     });
+    return;
   }
 
   if (output === undefined) return;
@@ -173,19 +215,17 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   });
 
   try {
-    await gatherWithMaxConcurrency({
-      maxConcurrency: args.maxEvaluatorConcurrency,
-      tasks: args.evaluators.map(
-        (evaluator) => () =>
-          evaluateOutput({
-            testId: args.testId,
-            testCase: args.testCase,
-            testCaseHash: args.testCaseHash,
-            output,
-            evaluator,
-          }),
+    await Promise.allSettled(
+      args.evaluators.map((evaluator) =>
+        runEvaluator({
+          testId: args.testId,
+          testCase: args.testCase,
+          testCaseHash: args.testCaseHash,
+          output,
+          evaluator,
+        }),
       ),
-    });
+    );
   } catch (err) {
     await sendError({
       testId: args.testId,
@@ -214,7 +254,7 @@ export async function runTestSuite<
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
   // How many test cases to run concurrently
   maxTestCaseConcurrency?: number;
-  // How many evaluators to run concurrently on the result of a test case
+  // Deprecated arguments, but left for backwards compatibility
   maxEvaluatorConcurrency?: number;
 }): Promise<void> {
   try {
@@ -238,28 +278,39 @@ export async function runTestSuite<
     return;
   }
 
-  const maxTestCaseConcurrency =
-    args.maxTestCaseConcurrency ?? DEFAULT_MAX_TEST_CASE_CONCURRENCY;
-  const maxEvaluatorConcurrency =
-    args.maxEvaluatorConcurrency ?? DEFAULT_MAX_EVALUATOR_CONCURRENCY;
+  if (args.maxEvaluatorConcurrency !== undefined) {
+    console.warn(
+      '`maxEvaluatorConcurrency` is deprecated and will be removed in a future release.\n' +
+        'Its value is being ignored.\n' +
+        'Set the `maxConcurrency` attribute on the evaluator class instead.\n' +
+        'See https://docs.autoblocks.ai/testing/sdks for more information.',
+    );
+  }
+
+  testCaseSemaphoreRegistry[args.id] = new Semaphore(
+    args.maxTestCaseConcurrency ?? DEFAULT_MAX_TEST_CASE_CONCURRENCY,
+  );
+  evaluatorSemaphoreRegistry[args.id] = Object.fromEntries(
+    args.evaluators.map((evaluator) => [
+      evaluator.id,
+      new Semaphore(evaluator.maxConcurrency),
+    ]),
+  );
 
   await client.post('/start', { testExternalId: args.id });
 
   try {
-    await gatherWithMaxConcurrency({
-      maxConcurrency: maxTestCaseConcurrency,
-      tasks: args.testCases.map(
-        (testCase) => () =>
-          runTestCase({
-            testId: args.id,
-            testCase,
-            testCaseHash: makeTestCaseHash(testCase, args.testCaseHash),
-            evaluators: args.evaluators,
-            fn: args.fn,
-            maxEvaluatorConcurrency,
-          }),
+    await Promise.allSettled(
+      args.testCases.map((testCase) =>
+        runTestCase({
+          testId: args.id,
+          testCase,
+          testCaseHash: makeTestCaseHash(testCase, args.testCaseHash),
+          evaluators: args.evaluators,
+          fn: args.fn,
+        }),
       ),
-    });
+    );
   } catch (err) {
     await sendError({
       testId: args.id,
