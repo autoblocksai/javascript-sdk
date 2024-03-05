@@ -164,8 +164,6 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
 async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
-  testCaseHash: string;
-  evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
 }): Promise<OutputType> {
   const semaphore = testCaseSemaphoreRegistry[args.testId];
@@ -191,8 +189,6 @@ async function runTestCase<TestCaseType, OutputType>(args: {
     output = await runTestCaseUnsafe({
       testId: args.testId,
       testCase: args.testCase,
-      testCaseHash: args.testCaseHash,
-      evaluators: args.evaluators,
       fn: args.fn,
     });
   } catch (err) {
