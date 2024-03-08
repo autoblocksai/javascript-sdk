@@ -11,7 +11,7 @@ import {
   BaseEventEvaluator,
   type TracerEvent,
   type SendEventArgs,
-  ClickHouseEvaluationObject,
+  EvaluationWithIds,
 } from './models';
 
 interface TracerArgs {
@@ -97,7 +97,7 @@ export class AutoblocksTracer {
     const evaluationPromises = await Promise.allSettled(
       evaluators.map((evaluator) => this.runEvaluatorUnsafe(event, evaluator)),
     );
-    const evaluationsResult: ClickHouseEvaluationObject[] = [];
+    const evaluationsResult: EvaluationWithIds[] = [];
     evaluationPromises.forEach((evaluationPromise, i) => {
       const evaluator = evaluators[i];
       if (evaluationPromise.status === 'fulfilled') {

@@ -25,8 +25,7 @@ export abstract class BaseEventEvaluator {
   }): Evaluation | Promise<Evaluation>;
 }
 
-export interface ClickHouseEvaluationObject extends Evaluation {
+export interface EvaluationWithIds extends Evaluation {
   id: string;
-  metadata?: Record<string, string>;
   evaluatorExternalId: string;
 }
