@@ -1,4 +1,6 @@
 import { AutoblocksTracer } from '../src/index';
+import { BaseEventEvaluator, Evaluation } from '../src/testing/models';
+import { TracerEvent } from '../src/types';
 import { AutoblocksEnvVar } from '../src/util';
 
 describe('Autoblocks Tracer', () => {
@@ -485,6 +487,59 @@ describe('Autoblocks Tracer', () => {
             templates: [],
           },
         },
+      });
+    });
+  });
+
+  describe('Evaluators', () => {
+    it.only('sends a message', async () => {
+      class MyEvaluator extends BaseEventEvaluator {
+        id = 'my-evaluator';
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        evaluateEvent(args: { event: TracerEvent }): Evaluation {
+          return {
+            score: 0.9,
+          };
+        }
+      }
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      const { traceId } = await tracer.sendEvent('mock-message', {
+        evaluators: [new MyEvaluator()],
+      });
+
+      expect(traceId).toEqual('mock-trace-id');
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: {},
+      });
+    });
+    it.only('sends a message', async () => {
+      class MyEvaluator extends BaseEventEvaluator {
+        id = 'my-evaluator';
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        async evaluateEvent(args: { event: TracerEvent }): Promise<Evaluation> {
+          return Promise.resolve({
+            score: 0.9,
+          });
+        }
+      }
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      const { traceId } = await tracer.sendEvent('mock-message', {
+        evaluators: [new MyEvaluator()],
+      });
+
+      expect(traceId).toEqual('mock-trace-id');
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: {},
       });
     });
   });

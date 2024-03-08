@@ -4,7 +4,14 @@ import {
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
 } from './util';
-import type { ArbitraryProperties, SendEventArgs, TimeDelta } from './types';
+import type {
+  ArbitraryProperties,
+  SendEventArgs,
+  TimeDelta,
+  TracerEvent,
+} from './types';
+import { BaseEventEvaluator } from './testing/models';
+import { Semaphore } from './testing/util';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -16,6 +23,7 @@ interface TracerArgs {
 export class AutoblocksTracer {
   private _traceId: string | undefined;
   private properties: ArbitraryProperties;
+  private evaluatorSemaphoreRegistry: Record<string, Semaphore> = {};
 
   private readonly ingestionBaseUrl: string =
     'https://ingest-event.autoblocks.ai';
@@ -66,6 +74,49 @@ export class AutoblocksTracer {
     };
   }
 
+  private runEvaluatorUnsafe(
+    event: TracerEvent,
+    evaluator: BaseEventEvaluator,
+  ) {
+    const semaphore = this.evaluatorSemaphoreRegistry[evaluator.id];
+    if (!semaphore) {
+      throw new Error(`[${evaluator.id} semaphore not found.}]`);
+    }
+    return semaphore.run(async () => {
+      return await evaluator.evaluateEvent({
+        event,
+      });
+    });
+  }
+
+  private async runEvaluatorsUnsafe(
+    event: TracerEvent,
+    evaluators: BaseEventEvaluator[],
+  ) {
+    const evaluationPromises = await Promise.allSettled(
+      evaluators.map((evaluator) => this.runEvaluatorUnsafe(event, evaluator)),
+    );
+    const evaluationsResult: Record<string, unknown>[] = [];
+    evaluationPromises.forEach((evaluationPromise, i) => {
+      const evaluator = evaluators[i];
+      if (evaluationPromise.status === 'fulfilled') {
+        evaluationsResult.push({
+          id: crypto.randomUUID(),
+          score: evaluationPromise.value.score,
+          threshold: evaluationPromise.value.threshold,
+          metadata: evaluationPromise.value.metadata,
+          evaluatorExternalId: evaluator.id,
+        });
+      } else {
+        console.warn(
+          `${evaluator.id} evaluator failed with exception: `,
+          evaluationPromise.reason,
+        );
+      }
+    });
+    return evaluationsResult;
+  }
+
   private async sendEventUnsafe(
     message: string,
     args?: SendEventArgs,
@@ -87,6 +138,31 @@ export class AutoblocksTracer {
       args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
       args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
+
+    if (args?.evaluators) {
+      try {
+        // Build semaphore registry
+        args.evaluators.forEach((evaluator) => {
+          this.evaluatorSemaphoreRegistry[evaluator.id] = new Semaphore(
+            evaluator.maxConcurrency,
+          );
+        });
+        const evaluations = await this.runEvaluatorsUnsafe(
+          {
+            message,
+            traceId: traceId || '',
+            timestamp,
+            properties,
+          },
+          args.evaluators,
+        );
+        if (evaluations.length) {
+          properties['evaluations'] = evaluations;
+        }
+      } catch (e) {
+        console.log('Failed to execute evaluators. Reason: ', e);
+      }
+    }
 
     const resp = await fetch(this.ingestionBaseUrl, {
       method: 'POST',
