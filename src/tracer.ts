@@ -12,6 +12,7 @@ import type {
 } from './types';
 import { BaseEventEvaluator } from './testing/models';
 import { Semaphore } from './testing/util';
+import crypto from 'crypto';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -109,7 +110,7 @@ export class AutoblocksTracer {
         });
       } else {
         console.warn(
-          `${evaluator.id} evaluator failed with exception: `,
+          `${evaluator.id} evaluator failed. `,
           evaluationPromise.reason,
         );
       }
