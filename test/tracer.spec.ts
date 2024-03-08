@@ -1,6 +1,6 @@
 import { AutoblocksTracer } from '../src/index';
-import { Evaluation } from '../src/testing/models';
-import { BaseEventEvaluator, TracerEvent } from '../src/tracer';
+import { BaseEventEvaluator, Evaluation } from '../src/testing';
+import { TracerEvent } from '../src/tracer';
 import { AutoblocksEnvVar } from '../src/util';
 import crypto from 'crypto';
 

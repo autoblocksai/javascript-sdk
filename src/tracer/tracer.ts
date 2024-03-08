@@ -8,11 +8,11 @@ import type { ArbitraryProperties, TimeDelta } from '../types';
 import { Semaphore } from '../testing/util';
 import crypto from 'crypto';
 import {
-  BaseEventEvaluator,
   type TracerEvent,
   type SendEventArgs,
   EvaluationWithIds,
 } from './models';
+import { BaseEventEvaluator } from '../testing';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -21,10 +21,11 @@ interface TracerArgs {
   timeout?: TimeDelta;
 }
 
+const evaluatorSemaphoreRegistry: Record<string, Semaphore> = {};
+
 export class AutoblocksTracer {
   private _traceId: string | undefined;
   private properties: ArbitraryProperties;
-  private evaluatorSemaphoreRegistry: Record<string, Semaphore> = {}; // Evaluator id -> Semaphore
 
   private readonly ingestionBaseUrl: string =
     'https://ingest-event.autoblocks.ai';
@@ -75,31 +76,33 @@ export class AutoblocksTracer {
     };
   }
 
-  private runEvaluatorUnsafe(
-    event: TracerEvent,
-    evaluator: BaseEventEvaluator,
-  ) {
-    const semaphore = this.evaluatorSemaphoreRegistry[evaluator.id];
+  private runEvaluatorUnsafe(args: {
+    event: TracerEvent;
+    evaluator: BaseEventEvaluator;
+  }) {
+    const semaphore = evaluatorSemaphoreRegistry[args.evaluator.id];
     if (!semaphore) {
-      throw new Error(`[${evaluator.id} semaphore not found.}]`);
+      throw new Error(`[${args.evaluator.id} semaphore not found.}]`);
     }
     return semaphore.run(async () => {
-      return await evaluator.evaluateEvent({
-        event,
+      return await args.evaluator.evaluateEvent({
+        event: args.event,
       });
     });
   }
 
-  private async runEvaluatorsUnsafe(
-    event: TracerEvent,
-    evaluators: BaseEventEvaluator[],
-  ) {
+  private async runEvaluatorsUnsafe(args: {
+    event: TracerEvent;
+    evaluators: BaseEventEvaluator[];
+  }) {
     const evaluationPromises = await Promise.allSettled(
-      evaluators.map((evaluator) => this.runEvaluatorUnsafe(event, evaluator)),
+      args.evaluators.map((evaluator) =>
+        this.runEvaluatorUnsafe({ event: args.event, evaluator }),
+      ),
     );
     const evaluationsResult: EvaluationWithIds[] = [];
     evaluationPromises.forEach((evaluationPromise, i) => {
-      const evaluator = evaluators[i];
+      const evaluator = args.evaluators[i];
       if (evaluationPromise.status === 'fulfilled') {
         evaluationsResult.push({
           id: crypto.randomUUID(),
@@ -144,19 +147,19 @@ export class AutoblocksTracer {
       try {
         // Build semaphore registry
         args.evaluators.forEach((evaluator) => {
-          this.evaluatorSemaphoreRegistry[evaluator.id] = new Semaphore(
+          evaluatorSemaphoreRegistry[evaluator.id] = new Semaphore(
             evaluator.maxConcurrency,
           );
         });
-        const evaluations = await this.runEvaluatorsUnsafe(
-          {
+        const evaluations = await this.runEvaluatorsUnsafe({
+          event: {
             message,
             traceId,
             timestamp,
             properties,
           },
-          args.evaluators,
-        );
+          evaluators: args.evaluators,
+        });
         if (evaluations.length) {
           properties['evaluations'] = evaluations;
         }

@@ -1,2 +1,7 @@
 export { runTestSuite } from './run';
-export { BaseTestEvaluator, type Threshold, type Evaluation } from './models';
+export {
+  BaseTestEvaluator,
+  BaseEventEvaluator,
+  type Threshold,
+  type Evaluation,
+} from './models';
