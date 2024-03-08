@@ -80,6 +80,11 @@ export class AutoblocksTracer {
     event: TracerEvent;
     evaluator: BaseEventEvaluator;
   }) {
+    if (!evaluatorSemaphoreRegistry[args.evaluator.id]) {
+      evaluatorSemaphoreRegistry[args.evaluator.id] = new Semaphore(
+        args.evaluator.maxConcurrency,
+      );
+    }
     const semaphore = evaluatorSemaphoreRegistry[args.evaluator.id];
     if (!semaphore) {
       throw new Error(`[${args.evaluator.id} semaphore not found.}]`);
@@ -145,15 +150,6 @@ export class AutoblocksTracer {
 
     if (args?.evaluators) {
       try {
-        args.evaluators.forEach((evaluator) => {
-          // If we haven't create a semaphore for an evaluator of this id
-          // yet, create one.
-          if (!evaluatorSemaphoreRegistry[evaluator.id]) {
-            evaluatorSemaphoreRegistry[evaluator.id] = new Semaphore(
-              evaluator.maxConcurrency,
-            );
-          }
-        });
         const evaluations = await this.runEvaluatorsUnsafe({
           event: {
             message,
