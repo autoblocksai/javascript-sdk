@@ -145,11 +145,14 @@ export class AutoblocksTracer {
 
     if (args?.evaluators) {
       try {
-        // Build semaphore registry
         args.evaluators.forEach((evaluator) => {
-          evaluatorSemaphoreRegistry[evaluator.id] = new Semaphore(
-            evaluator.maxConcurrency,
-          );
+          // If we haven't create a semaphore for an evaluator of this id
+          // yet, create one.
+          if (!evaluatorSemaphoreRegistry[evaluator.id]) {
+            evaluatorSemaphoreRegistry[evaluator.id] = new Semaphore(
+              evaluator.maxConcurrency,
+            );
+          }
         });
         const evaluations = await this.runEvaluatorsUnsafe({
           event: {
