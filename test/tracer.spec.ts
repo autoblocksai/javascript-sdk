@@ -589,6 +589,7 @@ describe('Autoblocks Tracer', () => {
         },
       });
     });
+
     it('handles async evaluators', async () => {
       class MyEvaluator extends BaseEventEvaluator {
         id = mockEvaluatorExternalId;
@@ -629,6 +630,7 @@ describe('Autoblocks Tracer', () => {
         },
       });
     });
+
     it('handles multiple evaluators', async () => {
       class MyEvaluator extends BaseEventEvaluator {
         id = mockEvaluatorExternalId;
@@ -678,6 +680,7 @@ describe('Autoblocks Tracer', () => {
         },
       });
     });
+
     describe('errors', () => {
       it('does not block if there is an evaluator error', async () => {
         class MyEvaluator extends BaseEventEvaluator {

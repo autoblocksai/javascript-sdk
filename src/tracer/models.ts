@@ -2,7 +2,7 @@ import { Event } from '../client';
 import { Evaluation as TestingEvaluation } from '../testing';
 import { ArbitraryProperties, PromptTracking } from '../types';
 
-export type TracerEvent = Omit<Event, 'id'>;
+export type TracerEvent = Omit<Event, 'id' | 'traceId'> & { traceId?: string };
 export type Evaluation = TestingEvaluation;
 
 export interface SendEventArgs {
@@ -23,4 +23,10 @@ export abstract class BaseEventEvaluator {
   abstract evaluateEvent(args: {
     event: TracerEvent;
   }): Evaluation | Promise<Evaluation>;
+}
+
+export interface ClickHouseEvaluationObject extends Evaluation {
+  id: string;
+  metadata?: Record<string, string>;
+  evaluatorExternalId: string;
 }

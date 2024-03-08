@@ -11,6 +11,7 @@ import {
   BaseEventEvaluator,
   type TracerEvent,
   type SendEventArgs,
+  ClickHouseEvaluationObject,
 } from './models';
 
 interface TracerArgs {
@@ -96,7 +97,7 @@ export class AutoblocksTracer {
     const evaluationPromises = await Promise.allSettled(
       evaluators.map((evaluator) => this.runEvaluatorUnsafe(event, evaluator)),
     );
-    const evaluationsResult: Record<string, unknown>[] = [];
+    const evaluationsResult: ClickHouseEvaluationObject[] = [];
     evaluationPromises.forEach((evaluationPromise, i) => {
       const evaluator = evaluators[i];
       if (evaluationPromise.status === 'fulfilled') {
@@ -150,7 +151,7 @@ export class AutoblocksTracer {
         const evaluations = await this.runEvaluatorsUnsafe(
           {
             message,
-            traceId: traceId || '',
+            traceId,
             timestamp,
             properties,
           },
@@ -160,7 +161,7 @@ export class AutoblocksTracer {
           properties['evaluations'] = evaluations;
         }
       } catch (e) {
-        console.log('Failed to execute evaluators. Reason: ', e);
+        console.warn('Failed to execute evaluators. ', e);
       }
     }
 
