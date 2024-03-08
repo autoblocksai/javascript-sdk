@@ -3,16 +3,15 @@ import {
   readEnv,
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
-} from './util';
-import type {
-  ArbitraryProperties,
-  SendEventArgs,
-  TimeDelta,
-  TracerEvent,
-} from './types';
-import { BaseEventEvaluator } from './testing/models';
-import { Semaphore } from './testing/util';
+} from '../util';
+import type { ArbitraryProperties, TimeDelta } from '../types';
+import { Semaphore } from '../testing/util';
 import crypto from 'crypto';
+import {
+  BaseEventEvaluator,
+  type TracerEvent,
+  type SendEventArgs,
+} from './models';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -24,7 +23,7 @@ interface TracerArgs {
 export class AutoblocksTracer {
   private _traceId: string | undefined;
   private properties: ArbitraryProperties;
-  private evaluatorSemaphoreRegistry: Record<string, Semaphore> = {};
+  private evaluatorSemaphoreRegistry: Record<string, Semaphore> = {}; // Evaluator id -> Semaphore
 
   private readonly ingestionBaseUrl: string =
     'https://ingest-event.autoblocks.ai';
