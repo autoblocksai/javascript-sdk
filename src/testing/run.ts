@@ -1,7 +1,6 @@
-import crypto from 'crypto';
 import { AutoblocksEnvVar, readEnv } from '../util';
-import { BaseTestEvaluator, type Evaluation } from './models';
-import { Semaphore } from './util';
+import { BaseTestEvaluator } from './models';
+import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
 
@@ -39,30 +38,6 @@ $ npx autoblocks testing exec -- <your test command>
     }
   },
 };
-
-function isPrimitive(value: unknown): boolean {
-  return (
-    typeof value === 'string' ||
-    typeof value === 'number' ||
-    typeof value === 'boolean'
-  );
-}
-
-function makeTestCaseHash<TestCaseType>(
-  testCase: TestCaseType,
-  testCaseHash:
-    | (keyof TestCaseType & string)[]
-    | ((testCase: TestCaseType) => string),
-): string {
-  if (Array.isArray(testCaseHash)) {
-    const concatenated = testCaseHash
-      .map((key) => JSON.stringify(testCase[key]))
-      .join('');
-    return crypto.createHash('md5').update(concatenated).digest('hex');
-  } else {
-    return testCaseHash(testCase);
-  }
-}
 
 async function sendError(args: {
   testId: string;
@@ -102,9 +77,10 @@ async function sendError(args: {
 async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
+  testCaseHash: string;
   output: OutputType;
   evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
-}): Promise<Evaluation> {
+}): Promise<void> {
   const semaphore = evaluatorSemaphoreRegistry[args.testId][args.evaluator.id];
   if (!semaphore) {
     throw new Error(
@@ -112,41 +88,12 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
     );
   }
 
-  return semaphore.run(async () => {
+  const evaluation = await semaphore.run(async () => {
     return await args.evaluator.evaluateTestCase({
       testCase: args.testCase,
       output: args.output,
     });
   });
-}
-
-async function runEvaluator<TestCaseType, OutputType>(args: {
-  testId: string;
-  testCase: TestCaseType;
-  testCaseHash: string;
-  output: OutputType;
-  evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
-}): Promise<void> {
-  let evaluation: Evaluation | undefined = undefined;
-
-  try {
-    evaluation = await runEvaluatorUnsafe({
-      testId: args.testId,
-      testCase: args.testCase,
-      output: args.output,
-      evaluator: args.evaluator,
-    });
-  } catch (err) {
-    await sendError({
-      testId: args.testId,
-      testCaseHash: args.testCaseHash,
-      evaluatorId: args.evaluator.id,
-      error: err,
-    });
-    return;
-  }
-
-  if (evaluation === undefined) return;
 
   await client.post('/evals', {
     testExternalId: args.testId,
@@ -157,6 +104,31 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
   });
 }
 
+async function runEvaluator<TestCaseType, OutputType>(args: {
+  testId: string;
+  testCase: TestCaseType;
+  testCaseHash: string;
+  output: OutputType;
+  evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
+}): Promise<void> {
+  try {
+    await runEvaluatorUnsafe({
+      testId: args.testId,
+      testCase: args.testCase,
+      testCaseHash: args.testCaseHash,
+      output: args.output,
+      evaluator: args.evaluator,
+    });
+  } catch (err) {
+    await sendError({
+      testId: args.testId,
+      testCaseHash: args.testCaseHash,
+      evaluatorId: args.evaluator.id,
+      error: err,
+    });
+  }
+}
+
 /**
  * This is suffixed with "Unsafe" because it doesn't handle errors.
  * Its caller will catch and handle all errors.
@@ -164,6 +136,7 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
 async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   testId: string;
   testCase: TestCaseType;
+  testCaseHash: string;
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
 }): Promise<OutputType> {
   const semaphore = testCaseSemaphoreRegistry[args.testId];
@@ -171,9 +144,18 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     throw new Error(`[${args.testId}] Test case semaphore not found.`);
   }
 
-  return semaphore.run(async () => {
+  const output = await semaphore.run(async () => {
     return await args.fn({ testCase: args.testCase });
   });
+
+  await client.post('/results', {
+    testExternalId: args.testId,
+    testCaseHash: args.testCaseHash,
+    testCaseBody: args.testCase,
+    testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
+  });
+
+  return output;
 }
 
 async function runTestCase<TestCaseType, OutputType>(args: {
@@ -189,6 +171,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
     output = await runTestCaseUnsafe({
       testId: args.testId,
       testCase: args.testCase,
+      testCaseHash: args.testCaseHash,
       fn: args.fn,
     });
   } catch (err) {
@@ -202,13 +185,6 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   }
 
   if (output === undefined) return;
-
-  await client.post('/results', {
-    testExternalId: args.testId,
-    testCaseHash: args.testCaseHash,
-    testCaseBody: args.testCase,
-    testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
-  });
 
   try {
     await Promise.allSettled(

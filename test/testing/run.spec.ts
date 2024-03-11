@@ -1,4 +1,5 @@
 import { runTestSuite, BaseTestEvaluator, Evaluation } from '../../src/testing';
+import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
@@ -707,6 +708,72 @@ describe('Testing SDK', () => {
       body: {
         testExternalId: 'my-test-id',
       },
+    });
+  });
+
+  /**
+   * This is in its own describe() so that we can properly setup and teardown the spy.
+   */
+  describe('logs errors raised from our code when making payload for /results', () => {
+    let isPrimitiveSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      isPrimitiveSpy = jest
+        .spyOn(testingUtilModule, 'isPrimitive')
+        .mockImplementation(() => {
+          throw new Error('an error in isPrimitive');
+        });
+    });
+
+    afterEach(() => {
+      isPrimitiveSpy.mockRestore();
+    });
+
+    /**
+     * Test that it logs errors thrown from our own code,
+     * as opposed to errors thrown in `fn` or in `evaluateTestCase`.
+     *
+     * In this case we are testing that we are logging errors thrown
+     * when building the JSON payload for the /results request.
+     */
+    it('logs errors', async () => {
+      await runTestSuite<MyTestCase, { result: string }>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        evaluators: [],
+        fn: ({ testCase }: { testCase: MyTestCase }) => ({
+          result: `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+        }),
+      });
+
+      // console.log('isPrimitiveSpy', isPrimitiveSpy.mock.calls)
+      expect(isPrimitiveSpy).toHaveBeenCalled();
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+      expectPostRequest({
+        path: '/end',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+
+      const errorReq = decodeRequests()[1];
+      expect(errorReq.path).toEqual('/errors');
+      expect(errorReq.body.testExternalId).toEqual('my-test-id');
+      expect(errorReq.body.testCaseHash).toEqual(md5('12'));
+      expect(errorReq.body.evaluatorExternalId).toBeNull();
+      expect(errorReq.body.error.name).toEqual('Error');
+      expect(errorReq.body.error.message).toEqual('an error in isPrimitive');
+      expect(errorReq.body.error.stacktrace).toContain(
+        'Error: an error in isPrimitive',
+      );
     });
   });
 });
