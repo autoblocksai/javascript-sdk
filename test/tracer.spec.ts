@@ -700,18 +700,6 @@ describe('Autoblocks Tracer', () => {
     });
 
     describe('errors', () => {
-      let runEvaluatorUnsafeSpy: jest.SpyInstance;
-
-      beforeEach(() => {
-        runEvaluatorUnsafeSpy = jest
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .spyOn(AutoblocksTracer.prototype as any, 'runEvaluatorUnsafe');
-      });
-
-      afterEach(() => {
-        runEvaluatorUnsafeSpy.mockClear();
-      });
-
       it('does not block if there is an evaluator error', async () => {
         class ErrorEvaluator extends BaseEventEvaluator {
           id = 'error-evaluator';
@@ -738,29 +726,42 @@ describe('Autoblocks Tracer', () => {
         });
       });
 
-      it('does not block if there is an error in our code running the evaluation', async () => {
-        class ErrorEvaluator extends BaseEventEvaluator {
-          id = 'error-evaluator';
+      describe('Autoblocks code error', () => {
+        let runEvaluatorUnsafeSpy: jest.SpyInstance;
 
-          evaluateEvent(): Evaluation {
-            throw new Error('Something unexpected happened');
+        beforeEach(() => {
+          runEvaluatorUnsafeSpy = jest
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .spyOn(AutoblocksTracer.prototype as any, 'runEvaluatorUnsafe');
+        });
+
+        afterEach(() => {
+          runEvaluatorUnsafeSpy.mockRestore();
+        });
+        it('does not block if there is an error in our code running the evaluation', async () => {
+          class ErrorEvaluator extends BaseEventEvaluator {
+            id = 'error-evaluator';
+
+            evaluateEvent(): Evaluation {
+              throw new Error('Something unexpected happened');
+            }
           }
-        }
-        const tracer = new AutoblocksTracer('mock-ingestion-key');
-        runEvaluatorUnsafeSpy.mockImplementationOnce(() => {
-          throw Error('Brutal!');
-        });
-        const { traceId } = await tracer.sendEvent('mock-message', {
-          evaluators: [new ErrorEvaluator()],
-        });
+          const tracer = new AutoblocksTracer('mock-ingestion-key');
+          runEvaluatorUnsafeSpy.mockImplementationOnce(() => {
+            throw Error('Brutal!');
+          });
+          const { traceId } = await tracer.sendEvent('mock-message', {
+            evaluators: [new ErrorEvaluator()],
+          });
 
-        expect(traceId).toEqual('mock-trace-id');
+          expect(traceId).toEqual('mock-trace-id');
 
-        expectPostRequest({
-          message: 'mock-message',
-          traceId: undefined,
-          timestamp,
-          properties: {},
+          expectPostRequest({
+            message: 'mock-message',
+            traceId: undefined,
+            timestamp,
+            properties: {},
+          });
         });
       });
     });
