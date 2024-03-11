@@ -1,6 +1,5 @@
 import { AutoblocksTracer } from '../src/index';
 import { BaseEventEvaluator, Evaluation } from '../src/testing';
-import { TracerEvent } from '../src/tracer';
 import { AutoblocksEnvVar } from '../src/util';
 import crypto from 'crypto';
 
@@ -494,8 +493,53 @@ describe('Autoblocks Tracer', () => {
 
   describe('Evaluators', () => {
     const mockUuid = 'a8d8614b-6ef7-4c5a-bd12-2e17a3c9f0d8';
-    const mockEvaluatorExternalId = 'my-evaluator';
     let cryptoMock: jest.SpyInstance | undefined;
+
+    class MyEvaluator extends BaseEventEvaluator {
+      id = 'my-evaluator';
+
+      evaluateEvent(): Evaluation {
+        return {
+          score: 0.9,
+        };
+      }
+    }
+
+    class MyFullInfoEvaluator extends BaseEventEvaluator {
+      id = 'my-full-info-evaluator';
+
+      evaluateEvent(): Evaluation {
+        return {
+          score: 0.9,
+          threshold: { gt: 0, lte: 1 },
+          metadata: {
+            'some-metadata-key': 'some-metadata-value',
+          },
+        };
+      }
+    }
+
+    class MyAsyncEvaluator extends BaseEventEvaluator {
+      id = 'my-async-evaluator';
+
+      async evaluateEvent(): Promise<Evaluation> {
+        return Promise.resolve({ score: 0.9 });
+      }
+    }
+
+    class MyAsyncFullInfoEvaluator extends BaseEventEvaluator {
+      id = 'my-async-full-info-evaluator';
+
+      async evaluateEvent(): Promise<Evaluation> {
+        return Promise.resolve({
+          score: 0.9,
+          threshold: { gt: 0, lte: 1 },
+          metadata: {
+            'some-metadata-key': 'some-metadata-value',
+          },
+        });
+      }
+    }
 
     beforeEach(() => {
       cryptoMock = jest.spyOn(crypto, 'randomUUID').mockReturnValue(mockUuid);
@@ -506,16 +550,6 @@ describe('Autoblocks Tracer', () => {
     });
 
     it('sends a message with minimal info', async () => {
-      class MyEvaluator extends BaseEventEvaluator {
-        id = mockEvaluatorExternalId;
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        evaluateEvent(args: { event: TracerEvent }): Evaluation {
-          return {
-            score: 0.9,
-          };
-        }
-      }
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       const { traceId } = await tracer.sendEvent('mock-message', {
         evaluators: [new MyEvaluator()],
@@ -534,34 +568,20 @@ describe('Autoblocks Tracer', () => {
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
-              evaluatorExternalId: mockEvaluatorExternalId,
+              evaluatorExternalId: 'my-evaluator',
             },
           ],
         },
       });
     });
     it('sends a message with all info', async () => {
-      class MyEvaluator extends BaseEventEvaluator {
-        id = 'my-evaluator';
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        async evaluateEvent(args: { event: TracerEvent }): Promise<Evaluation> {
-          return Promise.resolve({
-            score: 0.9,
-            threshold: { gt: 0, lte: 1 },
-            metadata: {
-              'some-metadata-key': 'some-metadata-value',
-            },
-          });
-        }
-      }
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       const { traceId } = await tracer.sendEvent('mock-message', {
         properties: {
           'my-prop-key': 'my-prop-value',
         },
         traceId: 'my-trace-id',
-        evaluators: [new MyEvaluator()],
+        evaluators: [new MyFullInfoEvaluator()],
       });
 
       expect(traceId).toEqual('mock-trace-id');
@@ -583,7 +603,7 @@ describe('Autoblocks Tracer', () => {
               metadata: {
                 'some-metadata-key': 'some-metadata-value',
               },
-              evaluatorExternalId: mockEvaluatorExternalId,
+              evaluatorExternalId: 'my-full-info-evaluator',
             },
           ],
         },
@@ -591,17 +611,9 @@ describe('Autoblocks Tracer', () => {
     });
 
     it('handles async evaluators', async () => {
-      class MyEvaluator extends BaseEventEvaluator {
-        id = mockEvaluatorExternalId;
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        async evaluateEvent(args: { event: TracerEvent }): Promise<Evaluation> {
-          return Promise.resolve({ score: 0.9 });
-        }
-      }
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       const { traceId } = await tracer.sendEvent('mock-message', {
-        evaluators: [new MyEvaluator(), new MyEvaluator()],
+        evaluators: [new MyAsyncEvaluator()],
       });
 
       expect(traceId).toEqual('mock-trace-id');
@@ -617,14 +629,7 @@ describe('Autoblocks Tracer', () => {
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
-              evaluatorExternalId: mockEvaluatorExternalId,
-            },
-            {
-              id: mockUuid,
-              score: 0.9,
-              threshold: undefined,
-              metadata: undefined,
-              evaluatorExternalId: mockEvaluatorExternalId,
+              evaluatorExternalId: 'my-async-evaluator',
             },
           ],
         },
@@ -632,19 +637,14 @@ describe('Autoblocks Tracer', () => {
     });
 
     it('handles multiple evaluators', async () => {
-      class MyEvaluator extends BaseEventEvaluator {
-        id = mockEvaluatorExternalId;
-
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        evaluateEvent(args: { event: TracerEvent }): Evaluation {
-          return {
-            score: 0.9,
-          };
-        }
-      }
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       const { traceId } = await tracer.sendEvent('mock-message', {
-        evaluators: [new MyEvaluator(), new MyEvaluator(), new MyEvaluator()],
+        evaluators: [
+          new MyEvaluator(),
+          new MyAsyncEvaluator(),
+          new MyFullInfoEvaluator(),
+          new MyAsyncFullInfoEvaluator(),
+        ],
       });
 
       expect(traceId).toEqual('mock-trace-id');
@@ -660,21 +660,38 @@ describe('Autoblocks Tracer', () => {
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
-              evaluatorExternalId: mockEvaluatorExternalId,
+              evaluatorExternalId: 'my-evaluator',
             },
             {
               id: mockUuid,
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
-              evaluatorExternalId: mockEvaluatorExternalId,
+              evaluatorExternalId: 'my-async-evaluator',
             },
             {
               id: mockUuid,
               score: 0.9,
-              threshold: undefined,
-              metadata: undefined,
-              evaluatorExternalId: mockEvaluatorExternalId,
+              threshold: {
+                gt: 0,
+                lte: 1,
+              },
+              metadata: {
+                'some-metadata-key': 'some-metadata-value',
+              },
+              evaluatorExternalId: 'my-full-info-evaluator',
+            },
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: {
+                gt: 0,
+                lte: 1,
+              },
+              metadata: {
+                'some-metadata-key': 'some-metadata-value',
+              },
+              evaluatorExternalId: 'my-async-full-info-evaluator',
             },
           ],
         },
@@ -683,11 +700,10 @@ describe('Autoblocks Tracer', () => {
 
     describe('errors', () => {
       it('does not block if there is an evaluator error', async () => {
-        class MyEvaluator extends BaseEventEvaluator {
-          id = mockEvaluatorExternalId;
+        class ErrorEvaluator extends BaseEventEvaluator {
+          id = 'error-evaluator';
 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          evaluateEvent(args: { event: TracerEvent }): Evaluation {
+          evaluateEvent(): Evaluation {
             throw new Error('Something unexpected happened');
             return {
               score: 0.9,
@@ -696,7 +712,7 @@ describe('Autoblocks Tracer', () => {
         }
         const tracer = new AutoblocksTracer('mock-ingestion-key');
         const { traceId } = await tracer.sendEvent('mock-message', {
-          evaluators: [new MyEvaluator()],
+          evaluators: [new ErrorEvaluator()],
         });
 
         expect(traceId).toEqual('mock-trace-id');
@@ -710,11 +726,10 @@ describe('Autoblocks Tracer', () => {
       });
 
       it('does not block if there is an error in our code running the evaluation', async () => {
-        class MyEvaluator extends BaseEventEvaluator {
-          id = mockEvaluatorExternalId;
+        class ErrorEvaluator extends BaseEventEvaluator {
+          id = 'error-evaluator';
 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          evaluateEvent(args: { event: TracerEvent }): Evaluation {
+          evaluateEvent(): Evaluation {
             throw new Error('Something unexpected happened');
           }
         }
@@ -726,7 +741,7 @@ describe('Autoblocks Tracer', () => {
             throw Error('Brutal!');
           });
         const { traceId } = await tracer.sendEvent('mock-message', {
-          evaluators: [new MyEvaluator()],
+          evaluators: [new ErrorEvaluator()],
         });
 
         expect(traceId).toEqual('mock-trace-id');

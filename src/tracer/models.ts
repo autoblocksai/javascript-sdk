@@ -1,10 +1,6 @@
-import { Event } from '../client';
-import { Evaluation as TestingEvaluation } from '../testing';
+import { Evaluation } from '../testing';
 import { BaseEventEvaluator } from '../testing/models';
 import { ArbitraryProperties, PromptTracking } from '../types';
-
-export type TracerEvent = Omit<Event, 'id' | 'traceId'> & { traceId?: string };
-export type Evaluation = TestingEvaluation;
 
 export interface SendEventArgs {
   traceId?: string;

@@ -1,4 +1,4 @@
-import { TracerEvent } from '../tracer';
+import { ArbitraryProperties } from '../types';
 
 export interface Threshold {
   lt?: number;
@@ -10,7 +10,14 @@ export interface Threshold {
 export interface Evaluation {
   score: number;
   threshold?: Threshold;
-  metadata?: Record<string, unknown>;
+  metadata?: ArbitraryProperties;
+}
+
+export interface TracerEvent {
+  traceId?: string;
+  message: string;
+  timestamp: string;
+  properties: ArbitraryProperties;
 }
 
 export abstract class BaseTestEvaluator<TestCaseType, OutputType> {

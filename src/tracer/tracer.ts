@@ -7,12 +7,8 @@ import {
 import type { ArbitraryProperties, TimeDelta } from '../types';
 import { Semaphore } from '../testing/util';
 import crypto from 'crypto';
-import {
-  type TracerEvent,
-  type SendEventArgs,
-  EvaluationWithIds,
-} from './models';
-import { BaseEventEvaluator } from '../testing';
+import { type SendEventArgs, EvaluationWithIds } from './models';
+import { BaseEventEvaluator, TracerEvent } from '../testing';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -87,7 +83,7 @@ export class AutoblocksTracer {
     }
     const semaphore = evaluatorSemaphoreRegistry[args.evaluator.id];
     if (!semaphore) {
-      throw new Error(`[${args.evaluator.id} semaphore not found.}]`);
+      throw new Error(`[${args.evaluator.id}] semaphore not found.`);
     }
     return semaphore.run(async () => {
       return await args.evaluator.evaluateEvent({
@@ -117,7 +113,7 @@ export class AutoblocksTracer {
           evaluatorExternalId: evaluator.id,
         });
       } else {
-        console.warn(
+        console.error(
           `${evaluator.id} evaluator failed. `,
           evaluationPromise.reason,
         );
@@ -163,7 +159,7 @@ export class AutoblocksTracer {
           properties['evaluations'] = evaluations;
         }
       } catch (e) {
-        console.warn('Failed to execute evaluators. ', e);
+        console.error('Failed to execute evaluators. ', e);
       }
     }
 
