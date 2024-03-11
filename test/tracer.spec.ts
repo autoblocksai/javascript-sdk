@@ -574,6 +574,7 @@ describe('Autoblocks Tracer', () => {
         },
       });
     });
+    
     it('sends a message with all info', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       const { traceId } = await tracer.sendEvent('mock-message', {
