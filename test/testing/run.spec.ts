@@ -747,7 +747,6 @@ describe('Testing SDK', () => {
         }),
       });
 
-      // console.log('isPrimitiveSpy', isPrimitiveSpy.mock.calls)
       expect(isPrimitiveSpy).toHaveBeenCalled();
 
       expectNumPosts(3);

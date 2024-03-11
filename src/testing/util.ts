@@ -101,7 +101,7 @@ export function makeTestCaseHash<TestCaseType>(
       .map((key) => JSON.stringify(testCase[key]))
       .join('');
     return crypto.createHash('md5').update(concatenated).digest('hex');
-  } else {
-    return testCaseHash(testCase);
   }
+
+  return testCaseHash(testCase);
 }
