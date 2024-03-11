@@ -700,6 +700,18 @@ describe('Autoblocks Tracer', () => {
     });
 
     describe('errors', () => {
+      let runEvaluatorUnsafeSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        runEvaluatorUnsafeSpy = jest
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .spyOn(AutoblocksTracer.prototype as any, 'runEvaluatorUnsafe');
+      });
+
+      afterEach(() => {
+        runEvaluatorUnsafeSpy.mockClear();
+      });
+
       it('does not block if there is an evaluator error', async () => {
         class ErrorEvaluator extends BaseEventEvaluator {
           id = 'error-evaluator';
@@ -735,12 +747,9 @@ describe('Autoblocks Tracer', () => {
           }
         }
         const tracer = new AutoblocksTracer('mock-ingestion-key');
-        const spy = jest
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .spyOn(AutoblocksTracer.prototype as any, 'runEvaluatorUnsafe')
-          .mockImplementationOnce(() => {
-            throw Error('Brutal!');
-          });
+        runEvaluatorUnsafeSpy.mockImplementationOnce(() => {
+          throw Error('Brutal!');
+        });
         const { traceId } = await tracer.sendEvent('mock-message', {
           evaluators: [new ErrorEvaluator()],
         });
@@ -753,8 +762,6 @@ describe('Autoblocks Tracer', () => {
           timestamp,
           properties: {},
         });
-
-        spy.mockClear();
       });
     });
   });
