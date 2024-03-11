@@ -3,8 +3,12 @@ import {
   readEnv,
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
-} from './util';
-import type { ArbitraryProperties, SendEventArgs, TimeDelta } from './types';
+} from '../util';
+import type { ArbitraryProperties, TimeDelta } from '../types';
+import { Semaphore } from '../testing/util';
+import crypto from 'crypto';
+import { type SendEventArgs, EvaluationWithIds } from './models';
+import { BaseEventEvaluator, TracerEvent } from '../testing';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -12,6 +16,8 @@ interface TracerArgs {
   properties?: ArbitraryProperties;
   timeout?: TimeDelta;
 }
+
+const evaluatorSemaphoreRegistry: Record<string, Semaphore> = {};
 
 export class AutoblocksTracer {
   private _traceId: string | undefined;
@@ -66,6 +72,56 @@ export class AutoblocksTracer {
     };
   }
 
+  private runEvaluatorUnsafe(args: {
+    event: TracerEvent;
+    evaluator: BaseEventEvaluator;
+  }) {
+    if (!evaluatorSemaphoreRegistry[args.evaluator.id]) {
+      evaluatorSemaphoreRegistry[args.evaluator.id] = new Semaphore(
+        args.evaluator.maxConcurrency,
+      );
+    }
+    const semaphore = evaluatorSemaphoreRegistry[args.evaluator.id];
+    if (!semaphore) {
+      throw new Error(`[${args.evaluator.id}] semaphore not found.`);
+    }
+    return semaphore.run(async () => {
+      return await args.evaluator.evaluateEvent({
+        event: args.event,
+      });
+    });
+  }
+
+  private async runEvaluatorsUnsafe(args: {
+    event: TracerEvent;
+    evaluators: BaseEventEvaluator[];
+  }) {
+    const evaluationPromises = await Promise.allSettled(
+      args.evaluators.map((evaluator) =>
+        this.runEvaluatorUnsafe({ event: args.event, evaluator }),
+      ),
+    );
+    const evaluationsResult: EvaluationWithIds[] = [];
+    evaluationPromises.forEach((evaluationPromise, i) => {
+      const evaluator = args.evaluators[i];
+      if (evaluationPromise.status === 'fulfilled') {
+        evaluationsResult.push({
+          id: crypto.randomUUID(),
+          score: evaluationPromise.value.score,
+          threshold: evaluationPromise.value.threshold,
+          metadata: evaluationPromise.value.metadata,
+          evaluatorExternalId: evaluator.id,
+        });
+      } else {
+        console.error(
+          `${evaluator.id} evaluator failed. `,
+          evaluationPromise.reason,
+        );
+      }
+    });
+    return evaluationsResult;
+  }
+
   private async sendEventUnsafe(
     message: string,
     args?: SendEventArgs,
@@ -87,6 +143,25 @@ export class AutoblocksTracer {
       args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
       args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
+
+    if (args?.evaluators) {
+      try {
+        const evaluations = await this.runEvaluatorsUnsafe({
+          event: {
+            message,
+            traceId,
+            timestamp,
+            properties,
+          },
+          evaluators: args.evaluators,
+        });
+        if (evaluations.length) {
+          properties['evaluations'] = evaluations;
+        }
+      } catch (e) {
+        console.error('Failed to execute evaluators. ', e);
+      }
+    }
 
     const resp = await fetch(this.ingestionBaseUrl, {
       method: 'POST',

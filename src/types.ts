@@ -16,15 +16,6 @@ export interface PromptTracking {
   }[];
 }
 
-export interface SendEventArgs {
-  traceId?: string;
-  spanId?: string;
-  parentSpanId?: string;
-  timestamp?: string;
-  properties?: ArbitraryProperties;
-  promptTracking?: PromptTracking;
-}
-
 export interface TimeDelta {
   minutes?: number;
   seconds?: number;
