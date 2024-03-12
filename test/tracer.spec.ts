@@ -1,5 +1,7 @@
 import { AutoblocksTracer } from '../src/index';
+import { BaseEventEvaluator, Evaluation } from '../src/testing';
 import { AutoblocksEnvVar } from '../src/util';
+import crypto from 'crypto';
 
 describe('Autoblocks Tracer', () => {
   let mockFetch: jest.SpyInstance;
@@ -485,6 +487,282 @@ describe('Autoblocks Tracer', () => {
             templates: [],
           },
         },
+      });
+    });
+  });
+
+  describe('Evaluators', () => {
+    const mockUuid = 'a8d8614b-6ef7-4c5a-bd12-2e17a3c9f0d8';
+    let cryptoMock: jest.SpyInstance | undefined;
+
+    class MyEvaluator extends BaseEventEvaluator {
+      id = 'my-evaluator';
+
+      evaluateEvent(): Evaluation {
+        return {
+          score: 0.9,
+        };
+      }
+    }
+
+    class MyFullInfoEvaluator extends BaseEventEvaluator {
+      id = 'my-full-info-evaluator';
+
+      evaluateEvent(): Evaluation {
+        return {
+          score: 0.9,
+          threshold: { gt: 0, lte: 1 },
+          metadata: {
+            'some-metadata-key': 'some-metadata-value',
+          },
+        };
+      }
+    }
+
+    class MyAsyncEvaluator extends BaseEventEvaluator {
+      id = 'my-async-evaluator';
+
+      async evaluateEvent(): Promise<Evaluation> {
+        return Promise.resolve({ score: 0.9 });
+      }
+    }
+
+    class MyAsyncFullInfoEvaluator extends BaseEventEvaluator {
+      id = 'my-async-full-info-evaluator';
+
+      async evaluateEvent(): Promise<Evaluation> {
+        return Promise.resolve({
+          score: 0.9,
+          threshold: { gt: 0, lte: 1 },
+          metadata: {
+            'some-metadata-key': 'some-metadata-value',
+          },
+        });
+      }
+    }
+
+    beforeEach(() => {
+      cryptoMock = jest.spyOn(crypto, 'randomUUID').mockReturnValue(mockUuid);
+    });
+
+    afterEach(() => {
+      cryptoMock?.mockClear();
+    });
+
+    it('sends a message with minimal info', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      const { traceId } = await tracer.sendEvent('mock-message', {
+        evaluators: [new MyEvaluator()],
+      });
+
+      expect(traceId).toEqual('mock-trace-id');
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: {
+          evaluations: [
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: undefined,
+              metadata: undefined,
+              evaluatorExternalId: 'my-evaluator',
+            },
+          ],
+        },
+      });
+    });
+
+    it('sends a message with all info', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      const { traceId } = await tracer.sendEvent('mock-message', {
+        properties: {
+          'my-prop-key': 'my-prop-value',
+        },
+        traceId: 'my-trace-id',
+        evaluators: [new MyFullInfoEvaluator()],
+      });
+
+      expect(traceId).toEqual('mock-trace-id');
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: 'my-trace-id',
+        timestamp,
+        properties: {
+          'my-prop-key': 'my-prop-value',
+          evaluations: [
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: {
+                gt: 0,
+                lte: 1,
+              },
+              metadata: {
+                'some-metadata-key': 'some-metadata-value',
+              },
+              evaluatorExternalId: 'my-full-info-evaluator',
+            },
+          ],
+        },
+      });
+    });
+
+    it('handles async evaluators', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      const { traceId } = await tracer.sendEvent('mock-message', {
+        evaluators: [new MyAsyncEvaluator()],
+      });
+
+      expect(traceId).toEqual('mock-trace-id');
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: {
+          evaluations: [
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: undefined,
+              metadata: undefined,
+              evaluatorExternalId: 'my-async-evaluator',
+            },
+          ],
+        },
+      });
+    });
+
+    it('handles multiple evaluators', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      const { traceId } = await tracer.sendEvent('mock-message', {
+        evaluators: [
+          new MyEvaluator(),
+          new MyAsyncEvaluator(),
+          new MyFullInfoEvaluator(),
+          new MyAsyncFullInfoEvaluator(),
+        ],
+      });
+
+      expect(traceId).toEqual('mock-trace-id');
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: {
+          evaluations: [
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: undefined,
+              metadata: undefined,
+              evaluatorExternalId: 'my-evaluator',
+            },
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: undefined,
+              metadata: undefined,
+              evaluatorExternalId: 'my-async-evaluator',
+            },
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: {
+                gt: 0,
+                lte: 1,
+              },
+              metadata: {
+                'some-metadata-key': 'some-metadata-value',
+              },
+              evaluatorExternalId: 'my-full-info-evaluator',
+            },
+            {
+              id: mockUuid,
+              score: 0.9,
+              threshold: {
+                gt: 0,
+                lte: 1,
+              },
+              metadata: {
+                'some-metadata-key': 'some-metadata-value',
+              },
+              evaluatorExternalId: 'my-async-full-info-evaluator',
+            },
+          ],
+        },
+      });
+    });
+
+    describe('errors', () => {
+      it('does not block if there is an evaluator error', async () => {
+        class ErrorEvaluator extends BaseEventEvaluator {
+          id = 'error-evaluator';
+
+          evaluateEvent(): Evaluation {
+            throw new Error('Something unexpected happened');
+            return {
+              score: 0.9,
+            };
+          }
+        }
+        const tracer = new AutoblocksTracer('mock-ingestion-key');
+        const { traceId } = await tracer.sendEvent('mock-message', {
+          evaluators: [new ErrorEvaluator()],
+        });
+
+        expect(traceId).toEqual('mock-trace-id');
+
+        expectPostRequest({
+          message: 'mock-message',
+          traceId: undefined,
+          timestamp,
+          properties: {},
+        });
+      });
+
+      describe('Autoblocks code error', () => {
+        let runEvaluatorUnsafeSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+          runEvaluatorUnsafeSpy = jest
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .spyOn(AutoblocksTracer.prototype as any, 'runEvaluatorUnsafe');
+        });
+
+        afterEach(() => {
+          runEvaluatorUnsafeSpy.mockRestore();
+        });
+        it('does not block if there is an error in our code running the evaluation', async () => {
+          class ErrorEvaluator extends BaseEventEvaluator {
+            id = 'error-evaluator';
+
+            evaluateEvent(): Evaluation {
+              throw new Error('Something unexpected happened');
+            }
+          }
+          const tracer = new AutoblocksTracer('mock-ingestion-key');
+          runEvaluatorUnsafeSpy.mockImplementationOnce(() => {
+            throw Error('Brutal!');
+          });
+          const { traceId } = await tracer.sendEvent('mock-message', {
+            evaluators: [new ErrorEvaluator()],
+          });
+
+          expect(traceId).toEqual('mock-trace-id');
+
+          expectPostRequest({
+            message: 'mock-message',
+            traceId: undefined,
+            timestamp,
+            properties: {},
+          });
+        });
       });
     });
   });

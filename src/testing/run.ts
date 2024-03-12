@@ -101,6 +101,7 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
     evaluatorExternalId: args.evaluator.id,
     score: evaluation.score,
     threshold: evaluation.threshold,
+    metadata: evaluation.metadata,
   });
 }
 
