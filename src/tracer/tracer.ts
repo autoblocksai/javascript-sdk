@@ -26,7 +26,6 @@ export class AutoblocksTracer {
 
   private readonly ingestionBaseUrl: string =
     'https://ingest-event.autoblocks.ai';
-  private readonly cliServerAddress: string | undefined;
   private readonly ingestionKey: string;
   private readonly timeoutMs: number;
 
@@ -48,9 +47,6 @@ export class AutoblocksTracer {
     }
 
     this.ingestionKey = key;
-    this.cliServerAddress = readEnv(
-      AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
-    );
     this.timeoutMs = convertTimeDeltaToMilliSeconds(
       args?.timeout || { seconds: 5 },
     );
@@ -195,7 +191,10 @@ export class AutoblocksTracer {
     message: string,
     args?: SendEventArgs,
   ): Promise<string> {
-    if (!this.cliServerAddress) {
+    const cliServerAddress = readEnv(
+      AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
+    );
+    if (!cliServerAddress) {
       throw new Error('Tried to send test event without a CLI server address.');
     }
     const store = testCaseRunAsyncLocalStorage.getStore();
@@ -207,7 +206,7 @@ export class AutoblocksTracer {
 
     const properties = this.mergeProperties(args);
 
-    await fetch(`${this.cliServerAddress}/events`, {
+    await fetch(`${cliServerAddress}/events`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -232,7 +231,9 @@ export class AutoblocksTracer {
     args?: SendEventArgs,
   ): Promise<{ traceId?: string }> {
     try {
-      if (this.cliServerAddress) {
+      // This store should only be set in the context of a test run
+      const store = testCaseRunAsyncLocalStorage.getStore();
+      if (store) {
         const traceId = await this.sendTestEventUnsafe(message, args);
         return { traceId };
       } else {
