@@ -758,6 +758,8 @@ describe('Testing SDK', () => {
         });
         return message;
       },
+      // This should be equal to or greater than the number of test cases
+      // to correctly test concurrency when sending test events
       maxTestCaseConcurrency: 2,
     });
 
