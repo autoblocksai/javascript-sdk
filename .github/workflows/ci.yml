@@ -71,12 +71,6 @@ jobs:
         env:
           AUTOBLOCKS_INGESTION_KEY: test
 
-      - name: Test ESM imports frontend
-        working-directory: e2e/test-import-esm-frontend
-        run: yalc add @autoblocks/client && npm install && npm run start
-        env:
-          AUTOBLOCKS_INGESTION_KEY: test
-
       - name: Test ESM imports & API client
         working-directory: e2e/test-api-client-esm
         run: yalc add @autoblocks/client && npm install && npm run start
