@@ -193,41 +193,41 @@ export class AutoblocksTracer {
     await resp.json();
   }
 
-  // private async sendTestEventUnsafe(
-  //   message: string,
-  //   args?: SendEventArgs,
-  // ): Promise<undefined> {
-  //   if (!this.cliServerAddress) {
-  //     throw new Error('Tried to send test event without a CLI server address.');
-  //   }
-  //   const { testCaseAsyncLocalStorage } = await import('../asyncLocalStorage');
-  //   const store = testCaseAsyncLocalStorage.getStore();
-  //   if (!store) {
-  //     throw new Error('Tried to send test event outside of test run.');
-  //   }
-  //   const traceId = args?.traceId || this.traceId;
-  //   const timestamp = args?.timestamp || new Date().toISOString();
+  private async sendTestEventUnsafe(
+    message: string,
+    args?: SendEventArgs,
+  ): Promise<undefined> {
+    if (!this.cliServerAddress) {
+      throw new Error('Tried to send test event without a CLI server address.');
+    }
+    const { testCaseAsyncLocalStorage } = await import('../asyncLocalStorage');
+    const store = testCaseAsyncLocalStorage.getStore();
+    if (!store) {
+      throw new Error('Tried to send test event outside of test run.');
+    }
+    const traceId = args?.traceId || this.traceId;
+    const timestamp = args?.timestamp || new Date().toISOString();
 
-  //   const properties = this.mergeProperties(args);
+    const properties = this.mergeProperties(args);
 
-  //   await fetch(`${this.cliServerAddress}/events`, {
-  //     method: 'POST',
-  //     headers: {
-  //       ...AUTOBLOCKS_HEADERS,
-  //     },
-  //     body: JSON.stringify({
-  //       testExternalId: store.testId,
-  //       testCaseHash: store.testCaseHash,
-  //       event: {
-  //         message,
-  //         traceId,
-  //         timestamp,
-  //         properties,
-  //       },
-  //     }),
-  //     signal: AbortSignal.timeout(this.timeoutMs),
-  //   });
-  // }
+    await fetch(`${this.cliServerAddress}/events`, {
+      method: 'POST',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+      },
+      body: JSON.stringify({
+        testExternalId: store.testId,
+        testCaseHash: store.testCaseHash,
+        event: {
+          message,
+          traceId,
+          timestamp,
+          properties,
+        },
+      }),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+  }
 
   public async sendEvent(
     message: string,
@@ -235,7 +235,7 @@ export class AutoblocksTracer {
   ): Promise<undefined> {
     try {
       if (this.cliServerAddress) {
-        //await this.sendTestEventUnsafe(message, args);
+        await this.sendTestEventUnsafe(message, args);
       } else {
         await this.sendEventUnsafe(message, args);
       }
