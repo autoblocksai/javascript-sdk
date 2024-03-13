@@ -11,7 +11,7 @@ import {
   type TimeDelta,
   type PromptTracking,
   type HeadlessPrompt,
-} from '../../../common/types';
+} from '../../../common/models';
 import {
   readEnv,
   AutoblocksEnvVar,

@@ -1,4 +1,4 @@
-import type { TimeDelta } from './common/types';
+import type { TimeDelta } from './common/models';
 import {
   convertTimeDeltaToMilliSeconds,
   readEnv,

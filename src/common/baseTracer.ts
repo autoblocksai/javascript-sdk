@@ -4,15 +4,16 @@ import {
   readEnv,
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
-} from '../../common/util';
+} from './util';
 import type {
   ArbitraryProperties,
   TimeDelta,
   BaseEventEvaluator,
   TracerEvent,
-} from '../../common/types';
-import { Semaphore } from '../../common/semaphore';
-import type { SendEventArgs, EvaluationWithIds } from './models';
+  SendEventArgs,
+  EvaluationWithIds,
+} from './models';
+import { Semaphore } from './semaphore';
 
 interface TracerArgs {
   ingestionKey?: string;

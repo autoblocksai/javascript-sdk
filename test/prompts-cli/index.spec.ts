@@ -1,4 +1,4 @@
-import { zHeadlessPromptSchema } from '../../src/common/types';
+import { zHeadlessPromptSchema } from '../../src/common/models';
 import {
   parseAndSortHeadlessPrompts,
   autogenerationConfigs,

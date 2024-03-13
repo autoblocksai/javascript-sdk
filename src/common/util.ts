@@ -1,4 +1,4 @@
-import type { TimeDelta } from './types';
+import type { TimeDelta } from './models';
 import packageJson from '../../package.json';
 
 export enum AutoblocksEnvVar {

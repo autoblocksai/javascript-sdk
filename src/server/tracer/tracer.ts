@@ -3,8 +3,8 @@ import {
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
 } from '../../common/util';
-import type { SendEventArgs } from './models';
-import { BaseAutoblocksTracer } from './baseTracer';
+import type { SendEventArgs } from '../../common/models';
+import { BaseAutoblocksTracer } from '../../common/baseTracer';
 import { testCaseAsyncLocalStorage } from '../asyncLocalStorage';
 
 export class AutoblocksTracer extends BaseAutoblocksTracer {

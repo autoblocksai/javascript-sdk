@@ -67,6 +67,16 @@ export interface TracerEvent {
   properties: ArbitraryProperties;
 }
 
+export interface SendEventArgs {
+  traceId?: string;
+  spanId?: string;
+  parentSpanId?: string;
+  timestamp?: string;
+  properties?: ArbitraryProperties;
+  promptTracking?: PromptTracking;
+  evaluators?: BaseEventEvaluator[];
+}
+
 /*
  * Evaluators
  */
@@ -81,6 +91,11 @@ export interface Evaluation {
   score: number;
   threshold?: Threshold;
   metadata?: ArbitraryProperties;
+}
+
+export interface EvaluationWithIds extends Evaluation {
+  id: string;
+  evaluatorExternalId: string;
 }
 
 export abstract class BaseTestEvaluator<TestCaseType, OutputType> {

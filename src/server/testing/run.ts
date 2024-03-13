@@ -1,6 +1,6 @@
 import { testCaseAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../../common/util';
-import { BaseTestEvaluator } from '../../common/types';
+import { BaseTestEvaluator } from '../../common/models';
 import { Semaphore } from '../../common/semaphore';
 import { makeTestCaseHash, isPrimitive } from './util';
 
