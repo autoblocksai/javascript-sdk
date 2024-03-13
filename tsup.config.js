@@ -3,6 +3,7 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: [
     'src/index.ts',
+    'src/browser/tracer/index.ts',
     'src/prompts/index.ts',
     'src/prompts-cli/index.ts',
     'src/testing/index.ts',
@@ -11,5 +12,4 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   dts: true,
-  splitting: true,
 });

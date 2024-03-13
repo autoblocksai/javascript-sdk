@@ -13,6 +13,10 @@
       "require": "./dist/index.js",
       "import": "./dist/index.mjs"
     },
+    "./browser/tracer": {
+      "require": "./dist/browser/tracer/index.js",
+      "import": "./dist/browser/tracer/index.mjs"
+    },
     "./prompts-cli": {
       "require": "./dist/prompts-cli/index.js",
       "import": "./dist/prompts-cli/index.mjs"
@@ -28,6 +32,9 @@
   },
   "typesVersions": {
     "*": {
+      "browser": [
+        "./dist/browser/tracer/index.d.ts"
+      ],
       "prompts-cli": [
         "./dist/prompts-cli/index.d.ts"
       ],

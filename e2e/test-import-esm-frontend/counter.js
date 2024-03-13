@@ -1,4 +1,4 @@
-import { AutoblocksTracer } from '@autoblocks/client';
+import { AutoblocksTracer } from '@autoblocks/client/browser/tracer';
 
 const tracer = new AutoblocksTracer(process.env.AUTOBLOCKS_INGESTION_KEY);
 
