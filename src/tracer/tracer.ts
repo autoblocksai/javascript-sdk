@@ -9,6 +9,7 @@ import { Semaphore } from '../testing/util';
 import crypto from 'crypto';
 import { type SendEventArgs, EvaluationWithIds } from './models';
 import { BaseEventEvaluator, TracerEvent } from '../testing';
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -25,6 +26,7 @@ export class AutoblocksTracer {
 
   private readonly ingestionBaseUrl: string =
     'https://ingest-event.autoblocks.ai';
+  private readonly cliServerAddress: string | undefined;
   private readonly ingestionKey: string;
   private readonly timeoutMs: number;
 
@@ -46,6 +48,9 @@ export class AutoblocksTracer {
     }
 
     this.ingestionKey = key;
+    this.cliServerAddress = readEnv(
+      AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
+    );
     this.timeoutMs = convertTimeDeltaToMilliSeconds(
       args?.timeout || { seconds: 5 },
     );
@@ -122,20 +127,14 @@ export class AutoblocksTracer {
     return evaluationsResult;
   }
 
-  private async sendEventUnsafe(
-    message: string,
-    args?: SendEventArgs,
-  ): Promise<string> {
-    const traceId = args?.traceId || this.traceId;
-    const timestamp = args?.timestamp || new Date().toISOString();
-
+  private mergeProperties(args?: SendEventArgs) {
     if (args?.properties?.promptTracking && args?.promptTracking) {
       console.warn(
         'Ignoring the `promptTracking` field on the `properties` argument since it is also specified as a top-level argument.',
       );
     }
 
-    const properties = Object.assign(
+    return Object.assign(
       {},
       this.properties,
       args?.properties,
@@ -143,6 +142,16 @@ export class AutoblocksTracer {
       args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
       args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
+  }
+
+  private async sendEventUnsafe(
+    message: string,
+    args?: SendEventArgs,
+  ): Promise<string> {
+    const traceId = args?.traceId || this.traceId;
+    const timestamp = args?.timestamp || new Date().toISOString();
+
+    const properties = this.mergeProperties(args);
 
     if (args?.evaluators) {
       try {
@@ -182,13 +191,54 @@ export class AutoblocksTracer {
     return data.traceId;
   }
 
+  private async sendTestEventUnsafe(
+    message: string,
+    args?: SendEventArgs,
+  ): Promise<string> {
+    if (!this.cliServerAddress) {
+      throw new Error('Tried to send test event without a CLI server address.');
+    }
+    const store = testCaseRunAsyncLocalStorage.getStore();
+    if (!store) {
+      throw new Error('Tried to send test event outside of test run.');
+    }
+    const traceId = args?.traceId || this.traceId || crypto.randomUUID();
+    const timestamp = args?.timestamp || new Date().toISOString();
+
+    const properties = this.mergeProperties(args);
+
+    await fetch(`${this.cliServerAddress}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        testExternalId: store.testId,
+        testCaseHash: store.testCaseHash,
+        event: {
+          message,
+          traceId,
+          timestamp,
+          properties,
+        },
+      }),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    return traceId;
+  }
+
   public async sendEvent(
     message: string,
     args?: SendEventArgs,
   ): Promise<{ traceId?: string }> {
     try {
-      const traceId = await this.sendEventUnsafe(message, args);
-      return { traceId };
+      if (this.cliServerAddress) {
+        const traceId = await this.sendTestEventUnsafe(message, args);
+        return { traceId };
+      } else {
+        const traceId = await this.sendEventUnsafe(message, args);
+        return { traceId };
+      }
     } catch (err) {
       if (readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
         throw err;
