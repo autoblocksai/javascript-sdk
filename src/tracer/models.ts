@@ -1,6 +1,9 @@
-import { Evaluation } from '../testing';
-import { BaseEventEvaluator } from '../testing/models';
-import { ArbitraryProperties, PromptTracking } from '../types';
+import type {
+  ArbitraryProperties,
+  BaseEventEvaluator,
+  PromptTracking,
+  Evaluation,
+} from '../types';
 
 export interface SendEventArgs {
   traceId?: string;

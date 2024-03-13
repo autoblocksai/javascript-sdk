@@ -1,7 +1,8 @@
 import { testCaseAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
-import { BaseTestEvaluator } from './models';
-import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
+import { BaseTestEvaluator } from '../types';
+import { Semaphore } from '../semaphore';
+import { makeTestCaseHash, isPrimitive } from './util';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
 

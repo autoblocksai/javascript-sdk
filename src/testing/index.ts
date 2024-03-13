@@ -5,4 +5,4 @@ export {
   type Threshold,
   type Evaluation,
   type TracerEvent,
-} from './models';
+} from '../types';

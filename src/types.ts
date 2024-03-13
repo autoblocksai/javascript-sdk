@@ -5,6 +5,9 @@ import { z } from 'zod';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ArbitraryProperties = Record<string | number, any>;
 
+/*
+ * Prompts
+ */
 export interface PromptTracking {
   id: string;
   version?: string;
@@ -53,3 +56,50 @@ export const zHeadlessPromptSchema = z
   });
 
 export type HeadlessPrompt = z.infer<typeof zHeadlessPromptSchema>;
+
+/*
+ * Tracer
+ */
+export interface TracerEvent {
+  traceId?: string;
+  message: string;
+  timestamp: string;
+  properties: ArbitraryProperties;
+}
+
+/*
+ * Evaluators
+ */
+export interface Threshold {
+  lt?: number;
+  lte?: number;
+  gt?: number;
+  gte?: number;
+}
+
+export interface Evaluation {
+  score: number;
+  threshold?: Threshold;
+  metadata?: ArbitraryProperties;
+}
+
+export abstract class BaseTestEvaluator<TestCaseType, OutputType> {
+  abstract get id(): string;
+
+  maxConcurrency: number = 10;
+
+  abstract evaluateTestCase(args: {
+    testCase: TestCaseType;
+    output: OutputType;
+  }): Evaluation | Promise<Evaluation>;
+}
+
+export abstract class BaseEventEvaluator {
+  abstract get id(): string;
+
+  maxConcurrency: number = 10;
+
+  abstract evaluateEvent(args: {
+    event: TracerEvent;
+  }): Evaluation | Promise<Evaluation>;
+}

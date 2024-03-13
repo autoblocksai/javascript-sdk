@@ -1,4 +1,4 @@
-import { Semaphore } from '../../src/testing/util';
+import { Semaphore } from '../../src/semaphore';
 
 describe('Semaphore', () => {
   it('initializes with the correct available count', () => {

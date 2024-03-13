@@ -4,11 +4,15 @@ import {
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
 } from '../util';
-import type { ArbitraryProperties, TimeDelta } from '../types';
-import { Semaphore } from '../testing/util';
+import type {
+  ArbitraryProperties,
+  TimeDelta,
+  BaseEventEvaluator,
+  TracerEvent,
+} from '../types';
+import { Semaphore } from '../semaphore';
 import crypto from 'crypto';
 import { type SendEventArgs, EvaluationWithIds } from './models';
-import { BaseEventEvaluator, TracerEvent } from '../testing';
 
 interface TracerArgs {
   ingestionKey?: string;
