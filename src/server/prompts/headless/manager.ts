@@ -11,14 +11,14 @@ import {
   type TimeDelta,
   type PromptTracking,
   type HeadlessPrompt,
-} from '../../types';
+} from '../../../common/types';
 import {
   readEnv,
   AutoblocksEnvVar,
   convertTimeDeltaToMilliSeconds,
   HeadlessPromptSpecialVersion,
   AUTOBLOCKS_HEADERS,
-} from '../../util';
+} from '../../../common/util';
 import { renderTemplate } from '../util';
 
 const UNDEPLOYED = 'undeployed';

@@ -1,4 +1,4 @@
-import { replaceOptionalPlaceholders } from '../../src/prompts/util';
+import { replaceOptionalPlaceholders } from '../../src/server/prompts/util';
 
 const testCases = [
   {

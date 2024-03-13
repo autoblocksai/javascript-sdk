@@ -1,6 +1,6 @@
-import { readEnv, AutoblocksEnvVar } from '../../util';
-import type { SendEventArgs } from '../../tracer/models';
-import { BaseAutoblocksTracer } from '../../tracer/baseTracer';
+import { readEnv, AutoblocksEnvVar } from '../../common/util';
+import type { SendEventArgs } from '../../server/tracer/models';
+import { BaseAutoblocksTracer } from '../../server/tracer/baseTracer';
 
 export class AutoblocksTracer extends BaseAutoblocksTracer {
   public async sendEvent(

@@ -1,6 +1,6 @@
 import { AutoblocksTracer } from '../src/index';
-import { BaseEventEvaluator, Evaluation } from '../src/testing';
-import { AutoblocksEnvVar } from '../src/util';
+import { BaseEventEvaluator, Evaluation } from '../src/server/testing';
+import { AutoblocksEnvVar } from '../src/common/util';
 import crypto from 'crypto';
 
 describe('Autoblocks Tracer', () => {

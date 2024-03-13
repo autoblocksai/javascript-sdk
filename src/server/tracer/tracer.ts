@@ -1,4 +1,8 @@
-import { readEnv, AutoblocksEnvVar, AUTOBLOCKS_HEADERS } from '../util';
+import {
+  readEnv,
+  AutoblocksEnvVar,
+  AUTOBLOCKS_HEADERS,
+} from '../../common/util';
 import type { SendEventArgs } from './models';
 import { BaseAutoblocksTracer } from './baseTracer';
 import { testCaseAsyncLocalStorage } from '../asyncLocalStorage';

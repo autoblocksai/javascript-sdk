@@ -1,5 +1,9 @@
-import { runTestSuite, BaseTestEvaluator, Evaluation } from '../../src/testing';
-import * as testingUtilModule from '../../src/testing/util';
+import {
+  runTestSuite,
+  BaseTestEvaluator,
+  Evaluation,
+} from '../../src/server/testing';
+import * as testingUtilModule from '../../src/server/testing/util';
 import crypto from 'crypto';
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';

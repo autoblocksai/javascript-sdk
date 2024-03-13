@@ -3,7 +3,7 @@ import type {
   BaseEventEvaluator,
   PromptTracking,
   Evaluation,
-} from '../types';
+} from '../../common/types';
 
 export interface SendEventArgs {
   traceId?: string;

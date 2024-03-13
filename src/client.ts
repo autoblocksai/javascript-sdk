@@ -1,10 +1,10 @@
-import type { TimeDelta } from './types';
+import type { TimeDelta } from './common/types';
 import {
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
-} from './util';
+} from './common/util';
 
 export interface View {
   id: string;

@@ -4,9 +4,9 @@ export default defineConfig({
   entry: [
     'src/index.ts',
     'src/browser/tracer/index.ts',
-    'src/prompts/index.ts',
-    'src/prompts-cli/index.ts',
-    'src/testing/index.ts',
+    'src/server/prompts/index.ts',
+    'src/server/prompts-cli/index.ts',
+    'src/server/testing/index.ts',
   ],
   format: ['cjs', 'esm'],
   sourcemap: true,

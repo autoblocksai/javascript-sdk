@@ -1,8 +1,8 @@
-import { zHeadlessPromptSchema } from '../../src/types';
+import { zHeadlessPromptSchema } from '../../src/common/types';
 import {
   parseAndSortHeadlessPrompts,
   autogenerationConfigs,
-} from '../../src/prompts-cli';
+} from '../../src/server/prompts-cli';
 import { z } from 'zod';
 
 describe('Prompts CLI', () => {

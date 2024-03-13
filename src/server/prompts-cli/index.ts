@@ -5,8 +5,8 @@ import {
   AutoblocksEnvVar,
   HeadlessPromptSpecialVersion,
   AUTOBLOCKS_HEADERS,
-} from '../util';
-import { zHeadlessPromptSchema, type HeadlessPrompt } from '../types';
+} from '../../common/util';
+import { zHeadlessPromptSchema, type HeadlessPrompt } from '../../common/types';
 
 interface ParsedTemplate {
   id: string;

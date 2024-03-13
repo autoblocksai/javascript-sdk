@@ -1,5 +1,5 @@
 import type { TimeDelta } from './types';
-import packageJson from '../package.json';
+import packageJson from '../../package.json';
 
 export enum AutoblocksEnvVar {
   AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',

@@ -18,16 +18,16 @@
       "import": "./dist/browser/tracer/index.mjs"
     },
     "./prompts-cli": {
-      "require": "./dist/prompts-cli/index.js",
-      "import": "./dist/prompts-cli/index.mjs"
+      "require": "./dist/server/prompts-cli/index.js",
+      "import": "./dist/server/prompts-cli/index.mjs"
     },
     "./prompts": {
-      "require": "./dist/prompts/index.js",
-      "import": "./dist/prompts/index.mjs"
+      "require": "./dist/server/prompts/index.js",
+      "import": "./dist/server/prompts/index.mjs"
     },
     "./testing": {
-      "require": "./dist/testing/index.js",
-      "import": "./dist/testing/index.mjs"
+      "require": "./dist/server/testing/index.js",
+      "import": "./dist/server/testing/index.mjs"
     }
   },
   "typesVersions": {
@@ -36,13 +36,13 @@
         "./dist/browser/tracer/index.d.ts"
       ],
       "prompts-cli": [
-        "./dist/prompts-cli/index.d.ts"
+        "./dist/server/prompts-cli/index.d.ts"
       ],
       "prompts": [
-        "./dist/prompts/index.d.ts"
+        "./dist/server/prompts/index.d.ts"
       ],
       "testing": [
-        "./dist/testing/index.d.ts"
+        "./dist/server/testing/index.d.ts"
       ]
     }
   },

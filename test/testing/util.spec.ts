@@ -1,4 +1,4 @@
-import { Semaphore } from '../../src/semaphore';
+import { Semaphore } from '../../src/common/semaphore';
 
 describe('Semaphore', () => {
   it('initializes with the correct available count', () => {
