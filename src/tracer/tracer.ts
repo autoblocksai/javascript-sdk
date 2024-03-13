@@ -9,7 +9,6 @@ import { Semaphore } from '../testing/util';
 import crypto from 'crypto';
 import { type SendEventArgs, EvaluationWithIds } from './models';
 import { BaseEventEvaluator, TracerEvent } from '../testing';
-import { testCaseAsyncLocalStorage } from '../asyncLocalStorage';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -197,6 +196,7 @@ export class AutoblocksTracer {
     if (!this.cliServerAddress) {
       throw new Error('Tried to send test event without a CLI server address.');
     }
+    const { testCaseAsyncLocalStorage } = await import('../asyncLocalStorage');
     const store = testCaseAsyncLocalStorage.getStore();
     if (!store) {
       throw new Error('Tried to send test event outside of test run.');
