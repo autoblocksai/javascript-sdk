@@ -1,3 +1,4 @@
+import { testCaseAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import { BaseTestEvaluator } from './models';
 import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
@@ -140,23 +141,27 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   testCaseHash: string;
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
 }): Promise<OutputType> {
-  const semaphore = testCaseSemaphoreRegistry[args.testId];
-  if (!semaphore) {
-    throw new Error(`[${args.testId}] Test case semaphore not found.`);
-  }
+  return testCaseAsyncLocalStorage.run(
+    { testCaseHash: args.testCaseHash, testId: args.testId },
+    async () => {
+      const semaphore = testCaseSemaphoreRegistry[args.testId];
+      if (!semaphore) {
+        throw new Error(`[${args.testId}] Test case semaphore not found.`);
+      }
+      const output = await semaphore.run(async () => {
+        return await args.fn({ testCase: args.testCase });
+      });
 
-  const output = await semaphore.run(async () => {
-    return await args.fn({ testCase: args.testCase });
-  });
+      await client.post('/results', {
+        testExternalId: args.testId,
+        testCaseHash: args.testCaseHash,
+        testCaseBody: args.testCase,
+        testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
+      });
 
-  await client.post('/results', {
-    testExternalId: args.testId,
-    testCaseHash: args.testCaseHash,
-    testCaseBody: args.testCase,
-    testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
-  });
-
-  return output;
+      return output;
+    },
+  );
 }
 
 async function runTestCase<TestCaseType, OutputType>(args: {
