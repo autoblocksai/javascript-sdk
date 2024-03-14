@@ -43,9 +43,6 @@ jobs:
 
       - name: Run tests
         run: npm run test
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Run build
         run: npm run build
@@ -78,17 +75,8 @@ jobs:
           AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
           AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
 
-      - name: Test Local Prompt Manager
-        working-directory: e2e/test-local-prompt-manager-ts
-        run: |
-          yalc add @autoblocks/client && \
-          npm install && \
-          npm run gen && \
-          tsc --noEmit && \
-          npm run test
-
-      - name: Test Headless Prompt Manager
-        working-directory: e2e/test-headless-prompt-manager-ts
+      - name: Test Prompt Manager
+        working-directory: e2e/test-prompt-manager-ts
         run: |
           yalc add @autoblocks/client && \
           npm install && \

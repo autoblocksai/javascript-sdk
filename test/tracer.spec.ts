@@ -419,15 +419,17 @@ describe('Autoblocks Tracer', () => {
         },
         promptTracking: {
           id: 'my-prompt-tracking-id',
+          version: '1.1',
           templates: [
             {
               id: 'my-prompt-template-id',
+              version: '1.0',
               template: 'my-prompt-template',
-              properties: {
-                name: 'my-prompt-name',
-              },
             },
           ],
+          params: {
+            x: 1,
+          },
         },
       });
 
@@ -439,15 +441,17 @@ describe('Autoblocks Tracer', () => {
           hello: 'world',
           promptTracking: {
             id: 'my-prompt-tracking-id',
+            version: '1.1',
             templates: [
               {
                 id: 'my-prompt-template-id',
+                version: '1.0',
                 template: 'my-prompt-template',
-                properties: {
-                  name: 'my-prompt-name',
-                },
               },
             ],
+            params: {
+              x: 1,
+            },
           },
         },
       });
