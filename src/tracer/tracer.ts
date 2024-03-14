@@ -226,27 +226,20 @@ export class AutoblocksTracer {
     return traceId;
   }
 
-  public async sendEvent(
-    message: string,
-    args?: SendEventArgs,
-  ): Promise<object> {
-    // Returns an empty object to match the return type of the original sendEvent method
+  public async sendEvent(message: string, args?: SendEventArgs): Promise<void> {
     try {
       // This store should only be set in the context of a test run
       const store = testCaseRunAsyncLocalStorage.getStore();
       if (store) {
         await this.sendTestEventUnsafe(message, args);
-        return {};
       } else {
         await this.sendEventUnsafe(message, args);
-        return {};
       }
     } catch (err) {
       if (readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
         throw err;
       }
       console.error(`Error sending event to Autoblocks: ${err}`);
-      return {};
     }
   }
 }
