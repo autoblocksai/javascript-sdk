@@ -78,6 +78,15 @@ describe('AutoblocksPromptManager v1.0', () => {
             template: 'Hello, {{ optional? }}! My name is {{ name }}.',
           },
         ],
+        params: {
+          frequencyPenalty: 0,
+          maxTokens: 256,
+          model: 'gpt-4',
+          presencePenalty: 0.3,
+          stopSequences: [],
+          temperature: 0.7,
+          topP: 1,
+        },
       });
     });
   });
@@ -145,6 +154,15 @@ describe('AutoblocksPromptManager v1 latest', () => {
             template: 'Hello, {{ optional? }}! My name is {{ name }}.',
           },
         ],
+        params: {
+          frequencyPenalty: 0,
+          maxTokens: 256,
+          model: 'gpt-4',
+          presencePenalty: -0.3,
+          stopSequences: [],
+          temperature: 0.7,
+          topP: 1,
+        },
       });
     });
   });
@@ -252,6 +270,15 @@ describe('AutoblocksPromptManager v2.1', () => {
             template: 'I am template c and I have no params',
           },
         ],
+        params: {
+          frequencyPenalty: 0,
+          maxTokens: 256,
+          model: 'gpt-4',
+          presencePenalty: -0.3,
+          stopSequences: [],
+          temperature: 0.7,
+          topP: 1,
+        },
       });
     });
   });

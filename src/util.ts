@@ -21,7 +21,7 @@ export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   return totalSeconds * 1000 + milliseconds;
 };
 
-export enum HeadlessPromptSpecialVersion {
+export enum PromptSpecialVersion {
   LATEST = 'latest',
   DANGEROUSLY_USE_UNDEPLOYED = 'dangerously-use-undeployed',
 }

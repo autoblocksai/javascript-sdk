@@ -7,13 +7,13 @@ export type ArbitraryProperties = Record<string | number, any>;
 
 export interface PromptTracking {
   id: string;
-  version?: string;
+  version: string;
   templates: {
     id: string;
-    version?: string;
+    version: string;
     template: string;
-    properties?: ArbitraryProperties;
   }[];
+  params?: Record<string, unknown>;
 }
 
 export interface TimeDelta {
@@ -22,34 +22,22 @@ export interface TimeDelta {
   milliseconds?: number;
 }
 
-export const zHeadlessPromptSchema = z
-  .object({
-    id: z.string(),
-    version: z.string(),
-    templates: z.array(
-      z.object({
-        id: z.string(),
-        version: z.string(),
-        template: z.string(),
-      }),
-    ),
-    params: z
-      .object({
-        version: z.string(),
-        params: z.record(z.string(), z.unknown()),
-      })
-      .nullish(),
-  })
-  .transform((prompt) => {
-    return {
-      ...prompt,
-      get majorVersion(): string {
-        return prompt.version.split('.')[0];
-      },
-      get minorVersion(): string {
-        return prompt.version.split('.')[1];
-      },
-    };
-  });
+export const zPromptSchema = z.object({
+  id: z.string(),
+  version: z.string(),
+  templates: z.array(
+    z.object({
+      id: z.string(),
+      version: z.string(),
+      template: z.string(),
+    }),
+  ),
+  params: z
+    .object({
+      version: z.string(),
+      params: z.record(z.string(), z.unknown()),
+    })
+    .nullish(),
+});
 
-export type HeadlessPrompt = z.infer<typeof zHeadlessPromptSchema>;
+export type Prompt = z.infer<typeof zPromptSchema>;

@@ -1,5 +1,5 @@
 {
-  "name": "test-local-prompt-manager-ts",
+  "name": "test-prompt-manager-ts",
   "version": "0.0.0",
   "private": true,
   "engines": {
@@ -15,15 +15,11 @@
     "@types/jest": "*",
     "jest": "*",
     "nodemon": "*",
-    "openai": "*",
     "ts-jest": "*",
     "typescript": "*"
   },
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
-  },
-  "autoblocks": {
-    "promptsDirectory": "prompt-templates"
   }
 }
