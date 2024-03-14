@@ -1,3 +1,4 @@
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import { BaseTestEvaluator } from './models';
 import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
@@ -145,9 +146,17 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     throw new Error(`[${args.testId}] Test case semaphore not found.`);
   }
 
-  const output = await semaphore.run(async () => {
-    return await args.fn({ testCase: args.testCase });
-  });
+  const output = await testCaseRunAsyncLocalStorage.run(
+    {
+      testCaseHash: args.testCaseHash,
+      testId: args.testId,
+    },
+    async () => {
+      return await semaphore.run(async () => {
+        return await args.fn({ testCase: args.testCase });
+      });
+    },
+  );
 
   await client.post('/results', {
     testExternalId: args.testId,

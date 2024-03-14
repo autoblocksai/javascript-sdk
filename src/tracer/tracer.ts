@@ -9,6 +9,7 @@ import { Semaphore } from '../testing/util';
 import crypto from 'crypto';
 import { type SendEventArgs, EvaluationWithIds } from './models';
 import { BaseEventEvaluator, TracerEvent } from '../testing';
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -122,20 +123,14 @@ export class AutoblocksTracer {
     return evaluationsResult;
   }
 
-  private async sendEventUnsafe(
-    message: string,
-    args?: SendEventArgs,
-  ): Promise<string> {
-    const traceId = args?.traceId || this.traceId;
-    const timestamp = args?.timestamp || new Date().toISOString();
-
+  private makeRequestPayload(args?: SendEventArgs) {
     if (args?.properties?.promptTracking && args?.promptTracking) {
       console.warn(
         'Ignoring the `promptTracking` field on the `properties` argument since it is also specified as a top-level argument.',
       );
     }
 
-    const properties = Object.assign(
+    const mergedProperties = Object.assign(
       {},
       this.properties,
       args?.properties,
@@ -143,6 +138,22 @@ export class AutoblocksTracer {
       args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
       args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
+
+    const traceId = args?.traceId || this.traceId;
+    const timestamp = args?.timestamp || new Date().toISOString();
+
+    return {
+      traceId,
+      timestamp,
+      properties: mergedProperties,
+    };
+  }
+
+  private async sendEventUnsafe(
+    message: string,
+    args?: SendEventArgs,
+  ): Promise<void> {
+    const { properties, traceId, timestamp } = this.makeRequestPayload(args);
 
     if (args?.evaluators) {
       try {
@@ -163,7 +174,7 @@ export class AutoblocksTracer {
       }
     }
 
-    const resp = await fetch(this.ingestionBaseUrl, {
+    await fetch(this.ingestionBaseUrl, {
       method: 'POST',
       headers: {
         ...AUTOBLOCKS_HEADERS,
@@ -177,24 +188,58 @@ export class AutoblocksTracer {
       }),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
-
-    const data = await resp.json();
-    return data.traceId;
   }
 
-  public async sendEvent(
+  private async sendTestEventUnsafe(
     message: string,
-    args?: SendEventArgs,
-  ): Promise<{ traceId?: string }> {
+    // We do not run evaluators for test events
+    args?: Omit<SendEventArgs, 'evaluators'>,
+  ): Promise<void> {
+    const cliServerAddress = readEnv(
+      AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
+    );
+    if (!cliServerAddress) {
+      throw new Error('Tried to send test event without a CLI server address.');
+    }
+    const store = testCaseRunAsyncLocalStorage.getStore();
+    if (!store) {
+      throw new Error('Tried to send test event outside of test run.');
+    }
+    const { properties, traceId, timestamp } = this.makeRequestPayload(args);
+
+    await fetch(`${cliServerAddress}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        testExternalId: store.testId,
+        testCaseHash: store.testCaseHash,
+        event: {
+          message,
+          traceId,
+          timestamp,
+          properties,
+        },
+      }),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+  }
+
+  public async sendEvent(message: string, args?: SendEventArgs): Promise<void> {
     try {
-      const traceId = await this.sendEventUnsafe(message, args);
-      return { traceId };
+      // This store should only be set in the context of a test run
+      const store = testCaseRunAsyncLocalStorage.getStore();
+      if (store) {
+        await this.sendTestEventUnsafe(message, args);
+      } else {
+        await this.sendEventUnsafe(message, args);
+      }
     } catch (err) {
       if (readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
         throw err;
       }
       console.error(`Error sending event to Autoblocks: ${err}`);
-      return {};
     }
   }
 }

@@ -1,3 +1,4 @@
+import { AutoblocksTracer } from '../../src';
 import { runTestSuite, BaseTestEvaluator, Evaluation } from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
@@ -35,7 +36,11 @@ describe('Testing SDK', () => {
     expect(mockFetch).toHaveBeenCalledTimes(num);
   };
 
-  const expectPostRequest = (args: { path: string; body: unknown }) => {
+  const expectPostRequest = (args: {
+    path: string;
+    body: unknown;
+    abortSignal?: AbortSignal;
+  }) => {
     expect(mockFetch).toHaveBeenCalledWith(
       `${MOCK_CLI_SERVER_ADDRESS}${args.path}`,
       {
@@ -44,6 +49,7 @@ describe('Testing SDK', () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: args.abortSignal,
       },
     );
   };
@@ -701,6 +707,132 @@ describe('Testing SDK', () => {
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '{"result":"1 + 2 = 3"}',
+      },
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+  });
+
+  it('collects test events', async () => {
+    const timestamp = new Date().toISOString();
+
+    class MyEvaluator1 extends BaseTestEvaluator<MyTestCase, string> {
+      id = 'my-evaluator-1';
+
+      evaluateTestCase(): Evaluation {
+        return { score: 0.5 };
+      }
+    }
+
+    const sleep = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        { x: 1, y: 2 },
+        { x: 3, y: 4 },
+      ],
+      testCaseHash: ['x', 'y'],
+      evaluators: [new MyEvaluator1()],
+      fn: async ({ testCase }: { testCase: MyTestCase }) => {
+        const tracer = new AutoblocksTracer({
+          ingestionKey: 'test',
+          timeout: {
+            milliseconds: 1000,
+          },
+        });
+        // Simulate one doing more work than the other to make sure concurrency is handled correctly
+        if (testCase.x === 1) {
+          await sleep(500);
+        }
+        const message = `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`;
+        await tracer.sendEvent(message, {
+          timestamp,
+          traceId: 'test-trace-id',
+          properties: {},
+        });
+        return message;
+      },
+      // This should be equal to or greater than the number of test cases
+      // to correctly test concurrency when sending test events
+      maxTestCaseConcurrency: 2,
+    });
+
+    expectNumPosts(8);
+
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+    expectPostRequest({
+      path: '/events',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`12`),
+        event: {
+          message: '1 + 2 = 3',
+          traceId: 'test-trace-id',
+          timestamp,
+          properties: {},
+        },
+      },
+      abortSignal: AbortSignal.timeout(1000),
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`12`),
+        testCaseBody: { x: 1, y: 2 },
+        testCaseOutput: '1 + 2 = 3',
+      },
+    });
+    expectPostRequest({
+      path: '/events',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`34`),
+        event: {
+          message: '3 + 4 = 7',
+          traceId: 'test-trace-id',
+          timestamp,
+          properties: {},
+        },
+      },
+      abortSignal: AbortSignal.timeout(1000),
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`34`),
+        testCaseBody: { x: 3, y: 4 },
+        testCaseOutput: '3 + 4 = 7',
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`12`),
+        evaluatorExternalId: 'my-evaluator-1',
+        score: 0.5,
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`34`),
+        evaluatorExternalId: 'my-evaluator-1',
+        score: 0.5,
       },
     });
     expectPostRequest({
