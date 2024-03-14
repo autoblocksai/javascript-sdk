@@ -155,6 +155,7 @@ export class AutoblocksTracer {
   ): Promise<void> {
     const { properties, traceId, timestamp } = this.makeRequestPayload(args);
 
+    // We only run evaluators on production events
     if (args?.evaluators) {
       try {
         const evaluations = await this.runEvaluatorsUnsafe({
