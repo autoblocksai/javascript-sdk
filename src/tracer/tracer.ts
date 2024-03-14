@@ -155,7 +155,6 @@ export class AutoblocksTracer {
   ): Promise<void> {
     const { properties, traceId, timestamp } = this.makeRequestPayload(args);
 
-    // We only run evaluators on production events
     if (args?.evaluators) {
       try {
         const evaluations = await this.runEvaluatorsUnsafe({
@@ -193,7 +192,8 @@ export class AutoblocksTracer {
 
   private async sendTestEventUnsafe(
     message: string,
-    args?: SendEventArgs,
+    // We do not run evaluators for test events
+    args?: Omit<SendEventArgs, 'evaluators'>,
   ): Promise<void> {
     const cliServerAddress = readEnv(
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
