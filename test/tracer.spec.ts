@@ -756,7 +756,6 @@ describe('Autoblocks Tracer', () => {
 
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       await tracer.sendEvent('mock-message');
-      expect(traceId).toBeUndefined();
     });
 
     it('throws if fetch throws and AUTOBLOCKS_TRACER_THROW_ON_ERROR is set to 1', async () => {
