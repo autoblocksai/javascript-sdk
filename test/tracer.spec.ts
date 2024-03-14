@@ -139,9 +139,7 @@ describe('Autoblocks Tracer', () => {
   describe('Sending Events', () => {
     it('sends a message', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
-      const { traceId } = await tracer.sendEvent('mock-message');
-
-      expect(traceId).toEqual('mock-trace-id');
+      await tracer.sendEvent('mock-message');
 
       expectPostRequest({
         message: 'mock-message',
@@ -154,11 +152,10 @@ describe('Autoblocks Tracer', () => {
     it('sends a message with properties', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
 
-      const { traceId } = await tracer.sendEvent('mock-message', {
+      await tracer.sendEvent('mock-message', {
         properties: { x: 1 },
       });
 
-      expect(traceId).toEqual('mock-trace-id');
       expectPostRequest({
         message: 'mock-message',
         traceId: undefined,
@@ -172,9 +169,7 @@ describe('Autoblocks Tracer', () => {
         properties: { x: 1 },
       });
 
-      const { traceId } = await tracer.sendEvent('mock-message');
-
-      expect(traceId).toEqual('mock-trace-id');
+      await tracer.sendEvent('mock-message');
 
       expectPostRequest({
         message: 'mock-message',
@@ -188,9 +183,8 @@ describe('Autoblocks Tracer', () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       tracer.setProperties({ x: 1 });
 
-      const { traceId } = await tracer.sendEvent('mock-message');
+      await tracer.sendEvent('mock-message');
 
-      expect(traceId).toEqual('mock-trace-id');
       expectPostRequest({
         message: 'mock-message',
         traceId: undefined,
@@ -203,9 +197,8 @@ describe('Autoblocks Tracer', () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
       tracer.updateProperties({ x: 1 });
 
-      const { traceId } = await tracer.sendEvent('mock-message');
+      await tracer.sendEvent('mock-message');
 
-      expect(traceId).toEqual('mock-trace-id');
       expectPostRequest({
         message: 'mock-message',
         traceId: undefined,
@@ -220,11 +213,10 @@ describe('Autoblocks Tracer', () => {
       });
       tracer.updateProperties({ x: 10 });
 
-      const { traceId } = await tracer.sendEvent('mock-message', {
+      await tracer.sendEvent('mock-message', {
         properties: { y: 20 },
       });
 
-      expect(traceId).toEqual('mock-trace-id');
       expectPostRequest({
         message: 'mock-message',
         traceId: undefined,
@@ -240,9 +232,8 @@ describe('Autoblocks Tracer', () => {
       tracer.updateProperties({ x: 10 });
       tracer.setProperties({ x: 100 });
 
-      const { traceId } = await tracer.sendEvent('mock-message');
+      await tracer.sendEvent('mock-message');
 
-      expect(traceId).toEqual('mock-trace-id');
       expectPostRequest({
         message: 'mock-message',
         traceId: undefined,
@@ -551,11 +542,9 @@ describe('Autoblocks Tracer', () => {
 
     it('sends a message with minimal info', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
-      const { traceId } = await tracer.sendEvent('mock-message', {
+      await tracer.sendEvent('mock-message', {
         evaluators: [new MyEvaluator()],
       });
-
-      expect(traceId).toEqual('mock-trace-id');
 
       expectPostRequest({
         message: 'mock-message',
@@ -577,15 +566,13 @@ describe('Autoblocks Tracer', () => {
 
     it('sends a message with all info', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
-      const { traceId } = await tracer.sendEvent('mock-message', {
+      await tracer.sendEvent('mock-message', {
         properties: {
           'my-prop-key': 'my-prop-value',
         },
         traceId: 'my-trace-id',
         evaluators: [new MyFullInfoEvaluator()],
       });
-
-      expect(traceId).toEqual('mock-trace-id');
 
       expectPostRequest({
         message: 'mock-message',
@@ -613,11 +600,9 @@ describe('Autoblocks Tracer', () => {
 
     it('handles async evaluators', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
-      const { traceId } = await tracer.sendEvent('mock-message', {
+      await tracer.sendEvent('mock-message', {
         evaluators: [new MyAsyncEvaluator()],
       });
-
-      expect(traceId).toEqual('mock-trace-id');
 
       expectPostRequest({
         message: 'mock-message',
@@ -639,7 +624,7 @@ describe('Autoblocks Tracer', () => {
 
     it('handles multiple evaluators', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
-      const { traceId } = await tracer.sendEvent('mock-message', {
+      await tracer.sendEvent('mock-message', {
         evaluators: [
           new MyEvaluator(),
           new MyAsyncEvaluator(),
@@ -647,8 +632,6 @@ describe('Autoblocks Tracer', () => {
           new MyAsyncFullInfoEvaluator(),
         ],
       });
-
-      expect(traceId).toEqual('mock-trace-id');
 
       expectPostRequest({
         message: 'mock-message',
@@ -712,11 +695,9 @@ describe('Autoblocks Tracer', () => {
           }
         }
         const tracer = new AutoblocksTracer('mock-ingestion-key');
-        const { traceId } = await tracer.sendEvent('mock-message', {
+        await tracer.sendEvent('mock-message', {
           evaluators: [new ErrorEvaluator()],
         });
-
-        expect(traceId).toEqual('mock-trace-id');
 
         expectPostRequest({
           message: 'mock-message',
@@ -750,11 +731,9 @@ describe('Autoblocks Tracer', () => {
           runEvaluatorUnsafeSpy.mockImplementationOnce(() => {
             throw Error('Brutal!');
           });
-          const { traceId } = await tracer.sendEvent('mock-message', {
+          await tracer.sendEvent('mock-message', {
             evaluators: [new ErrorEvaluator()],
           });
-
-          expect(traceId).toEqual('mock-trace-id');
 
           expectPostRequest({
             message: 'mock-message',
@@ -776,7 +755,7 @@ describe('Autoblocks Tracer', () => {
       mockFetch.mockRejectedValueOnce('mock-error');
 
       const tracer = new AutoblocksTracer('mock-ingestion-key');
-      const { traceId } = await tracer.sendEvent('mock-message');
+      await tracer.sendEvent('mock-message');
       expect(traceId).toBeUndefined();
     });
 
