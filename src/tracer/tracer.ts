@@ -123,14 +123,14 @@ export class AutoblocksTracer {
     return evaluationsResult;
   }
 
-  private mergeProperties(args?: SendEventArgs) {
+  private makeRequestPayload(args?: SendEventArgs) {
     if (args?.properties?.promptTracking && args?.promptTracking) {
       console.warn(
         'Ignoring the `promptTracking` field on the `properties` argument since it is also specified as a top-level argument.',
       );
     }
 
-    return Object.assign(
+    const mergedProperties = Object.assign(
       {},
       this.properties,
       args?.properties,
@@ -138,16 +138,22 @@ export class AutoblocksTracer {
       args?.parentSpanId ? { parentSpanId: args.parentSpanId } : {},
       args?.promptTracking ? { promptTracking: args.promptTracking } : {},
     );
+
+    const traceId = args?.traceId || this.traceId;
+    const timestamp = args?.timestamp || new Date().toISOString();
+
+    return {
+      traceId,
+      timestamp,
+      properties: mergedProperties,
+    };
   }
 
   private async sendEventUnsafe(
     message: string,
     args?: SendEventArgs,
-  ): Promise<string> {
-    const traceId = args?.traceId || this.traceId;
-    const timestamp = args?.timestamp || new Date().toISOString();
-
-    const properties = this.mergeProperties(args);
+  ): Promise<void> {
+    const { properties, traceId, timestamp } = this.makeRequestPayload(args);
 
     if (args?.evaluators) {
       try {
@@ -168,7 +174,7 @@ export class AutoblocksTracer {
       }
     }
 
-    const resp = await fetch(this.ingestionBaseUrl, {
+    await fetch(this.ingestionBaseUrl, {
       method: 'POST',
       headers: {
         ...AUTOBLOCKS_HEADERS,
@@ -182,15 +188,12 @@ export class AutoblocksTracer {
       }),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
-
-    const data = await resp.json();
-    return data.traceId;
   }
 
   private async sendTestEventUnsafe(
     message: string,
     args?: SendEventArgs,
-  ): Promise<string> {
+  ): Promise<void> {
     const cliServerAddress = readEnv(
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
     );
@@ -201,10 +204,7 @@ export class AutoblocksTracer {
     if (!store) {
       throw new Error('Tried to send test event outside of test run.');
     }
-    const traceId = args?.traceId || this.traceId || crypto.randomUUID();
-    const timestamp = args?.timestamp || new Date().toISOString();
-
-    const properties = this.mergeProperties(args);
+    const { properties, traceId, timestamp } = this.makeRequestPayload(args);
 
     await fetch(`${cliServerAddress}/events`, {
       method: 'POST',
@@ -223,7 +223,6 @@ export class AutoblocksTracer {
       }),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
-    return traceId;
   }
 
   public async sendEvent(message: string, args?: SendEventArgs): Promise<void> {
