@@ -1,5 +1,11 @@
 import { AutoblocksTracer } from '../../src';
-import { runTestSuite, BaseTestEvaluator, Evaluation } from '../../src/testing';
+import {
+  runTestSuite,
+  BaseTestEvaluator,
+  BaseEventEvaluator,
+  Evaluation,
+  TracerEvent,
+} from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
 
@@ -832,6 +838,106 @@ describe('Testing SDK', () => {
         testExternalId: 'my-test-id',
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator-1',
+        score: 0.5,
+      },
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+  });
+
+  it('handles evaluators that implement both BaseTestEvaluator and BaseEventEvaluator', async () => {
+    type T = { x: number };
+    type O = string;
+
+    class MyEvaluator
+      extends BaseTestEvaluator<T, O>
+      implements BaseEventEvaluator
+    {
+      id = 'my-evaluator';
+
+      private someSharedImplementation(x: number) {
+        return x;
+      }
+
+      evaluateEvent(args: { event: TracerEvent }): Evaluation {
+        return {
+          score: this.someSharedImplementation(args.event.properties['x']),
+        };
+      }
+
+      evaluateTestCase(args: { testCase: T; output: O }): Evaluation {
+        return {
+          score: this.someSharedImplementation(args.testCase.x),
+        };
+      }
+    }
+
+    const timestamp = new Date().toISOString();
+
+    await runTestSuite<T, O>({
+      id: 'my-test-id',
+      testCaseHash: ['x'],
+      testCases: [{ x: 0.5 }],
+      evaluators: [new MyEvaluator()],
+      fn: async ({ testCase }) => {
+        const tracer = new AutoblocksTracer('mock-ingestion-key');
+
+        await tracer.sendEvent('this is a test', {
+          timestamp,
+          traceId: 'test-trace-id',
+          properties: {
+            x: testCase.x,
+          },
+        });
+
+        return 'whatever';
+      },
+    });
+
+    expectNumPosts(5);
+
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+    expectPostRequest({
+      path: '/events',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`0.5`),
+        event: {
+          message: 'this is a test',
+          traceId: 'test-trace-id',
+          timestamp,
+          properties: {
+            x: 0.5,
+            // Note: event evaluators are not run within test suites
+          },
+        },
+      },
+      abortSignal: AbortSignal.timeout(5_000),
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`0.5`),
+        testCaseBody: { x: 0.5 },
+        testCaseOutput: 'whatever',
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`0.5`),
+        evaluatorExternalId: 'my-evaluator',
         score: 0.5,
       },
     });
