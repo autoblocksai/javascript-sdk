@@ -712,15 +712,15 @@ describe('Autoblocks Tracer', () => {
           return x;
         }
 
-        evaluateEvent(args: { event: TracerEvent }): Evaluation {
-          return {
-            score: this.someSharedImplementation(args.event.properties['x']),
-          };
-        }
-
         evaluateTestCase(args: { testCase: T; output: O }): Evaluation {
           return {
             score: this.someSharedImplementation(args.testCase.x),
+          };
+        }
+
+        evaluateEvent(args: { event: TracerEvent }): Evaluation {
+          return {
+            score: this.someSharedImplementation(args.event.properties['x']),
           };
         }
       }
