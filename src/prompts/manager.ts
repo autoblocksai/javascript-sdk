@@ -328,7 +328,7 @@ class PromptRenderer<
       id: this.prompt.id,
       version: this.prompt.version,
       templates: this.prompt.templates,
-      params: this.prompt.params?.params ?? undefined,
+      params: this.prompt.params ?? undefined,
     };
   }
 }

@@ -79,13 +79,16 @@ describe('AutoblocksPromptManager v1.0', () => {
           },
         ],
         params: {
-          frequencyPenalty: 0,
-          maxTokens: 256,
-          model: 'gpt-4',
-          presencePenalty: 0.3,
-          stopSequences: [],
-          temperature: 0.7,
-          topP: 1,
+          version: '1.0',
+          params: {
+            frequencyPenalty: 0,
+            maxTokens: 256,
+            model: 'gpt-4',
+            presencePenalty: 0.3,
+            stopSequences: [],
+            temperature: 0.7,
+            topP: 1,
+          },
         },
       });
     });
@@ -155,13 +158,16 @@ describe('AutoblocksPromptManager v1 latest', () => {
           },
         ],
         params: {
-          frequencyPenalty: 0,
-          maxTokens: 256,
-          model: 'gpt-4',
-          presencePenalty: -0.3,
-          stopSequences: [],
-          temperature: 0.7,
-          topP: 1,
+          version: '1.1',
+          params: {
+            frequencyPenalty: 0,
+            maxTokens: 256,
+            model: 'gpt-4',
+            presencePenalty: -0.3,
+            stopSequences: [],
+            temperature: 0.7,
+            topP: 1,
+          },
         },
       });
     });
@@ -271,13 +277,16 @@ describe('AutoblocksPromptManager v2.1', () => {
           },
         ],
         params: {
-          frequencyPenalty: 0,
-          maxTokens: 256,
-          model: 'gpt-4',
-          presencePenalty: -0.3,
-          stopSequences: [],
-          temperature: 0.7,
-          topP: 1,
+          version: '1.1',
+          params: {
+            frequencyPenalty: 0,
+            maxTokens: 256,
+            model: 'gpt-4',
+            presencePenalty: -0.3,
+            stopSequences: [],
+            temperature: 0.7,
+            topP: 1,
+          },
         },
       });
     });
