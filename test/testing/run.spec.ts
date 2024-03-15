@@ -2,9 +2,9 @@ import { AutoblocksTracer } from '../../src';
 import {
   runTestSuite,
   BaseTestEvaluator,
-  BaseEventEvaluator,
   Evaluation,
   TracerEvent,
+  BaseEvaluator,
 } from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
@@ -92,7 +92,7 @@ describe('Testing SDK', () => {
     );
   });
 
-  it('sends an error if the evaluators are not instances of BaseTestEvaluator', async () => {
+  it('sends an error if the evaluators are not instances of BaseTestEvaluator or BaseEvaluator', async () => {
     // Looks like an evaluator but doesn't extend BaseTestEvaluator
     class MyEvaluator {
       evaluateTestCase() {
@@ -117,10 +117,10 @@ describe('Testing SDK', () => {
     expect(req.body.evaluatorExternalId).toBeNull();
     expect(req.body.error.name).toEqual('Error');
     expect(req.body.error.message).toEqual(
-      '[my-test-id] Evaluators must be instances of BaseTestEvaluator.',
+      '[my-test-id] Evaluators must be instances of BaseTestEvaluator or BaseEvaluator.',
     );
     expect(req.body.error.stacktrace).toContain(
-      'Error: [my-test-id] Evaluators must be instances of BaseTestEvaluator.',
+      'Error: [my-test-id] Evaluators must be instances of BaseTestEvaluator or BaseEvaluator.',
     );
   });
 
@@ -853,10 +853,7 @@ describe('Testing SDK', () => {
     type T = { x: number };
     type O = string;
 
-    class MyEvaluator
-      extends BaseTestEvaluator<T, O>
-      implements BaseEventEvaluator
-    {
+    class MyEvaluator extends BaseEvaluator<T, O> {
       id = 'my-evaluator';
 
       private someSharedImplementation(x: number) {

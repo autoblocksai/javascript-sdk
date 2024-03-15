@@ -1,7 +1,7 @@
 import { AutoblocksTracer } from '../src/index';
 import {
+  BaseEvaluator,
   BaseEventEvaluator,
-  BaseTestEvaluator,
   Evaluation,
   TracerEvent,
 } from '../src/testing';
@@ -705,10 +705,7 @@ describe('Autoblocks Tracer', () => {
       type T = { x: number };
       type O = string;
 
-      class MyCombinedEvaluator
-        extends BaseTestEvaluator<T, O>
-        implements BaseEventEvaluator
-      {
+      class MyCombinedEvaluator extends BaseEvaluator<T, O> {
         id = 'my-combined-evaluator';
 
         private someSharedImplementation(x: number) {

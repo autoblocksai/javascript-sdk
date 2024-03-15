@@ -1,6 +1,6 @@
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
-import { BaseTestEvaluator } from './models';
+import { BaseTestEvaluator, BaseEvaluator } from './models';
 import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
@@ -244,11 +244,15 @@ export async function runTestSuite<
       throw new Error(`[${args.id}] No test cases provided.`);
     }
     args.evaluators.forEach((evaluator) => {
-      if (!(evaluator instanceof BaseTestEvaluator)) {
-        throw new Error(
-          `[${args.id}] Evaluators must be instances of ${BaseTestEvaluator.name}.`,
-        );
+      if (evaluator instanceof BaseEvaluator) {
+        return;
       }
+      if (evaluator instanceof BaseTestEvaluator) {
+        return;
+      }
+      throw new Error(
+        `[${args.id}] Evaluators must be instances of ${BaseTestEvaluator.name} or ${BaseEvaluator.name}.`,
+      );
     });
   } catch (err) {
     await sendError({
