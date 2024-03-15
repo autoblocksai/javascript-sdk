@@ -701,7 +701,7 @@ describe('Autoblocks Tracer', () => {
       });
     });
 
-    it('handles evaluators that implement both BaseTestEvaluator and BaseEventEvaluator', async () => {
+    it('handles evaluators that implement BaseEvaluator', async () => {
       type T = { x: number };
       type O = string;
 
