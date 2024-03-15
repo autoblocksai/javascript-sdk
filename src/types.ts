@@ -13,7 +13,10 @@ export interface PromptTracking {
     version: string;
     template: string;
   }[];
-  params?: Record<string, unknown>;
+  params?: {
+    version: string;
+    params: Record<string, unknown>;
+  };
 }
 
 export interface TimeDelta {

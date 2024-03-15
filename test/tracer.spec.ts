@@ -428,7 +428,10 @@ describe('Autoblocks Tracer', () => {
             },
           ],
           params: {
-            x: 1,
+            version: '1.2',
+            params: {
+              x: 1,
+            },
           },
         },
       });
@@ -450,7 +453,10 @@ describe('Autoblocks Tracer', () => {
               },
             ],
             params: {
-              x: 1,
+              version: '1.2',
+              params: {
+                x: 1,
+              },
             },
           },
         },
