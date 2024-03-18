@@ -1,5 +1,11 @@
 import { AutoblocksTracer } from '../../src';
-import { runTestSuite, BaseTestEvaluator, Evaluation } from '../../src/testing';
+import {
+  runTestSuite,
+  BaseTestEvaluator,
+  Evaluation,
+  TracerEvent,
+  BaseEvaluator,
+} from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
 
@@ -86,7 +92,7 @@ describe('Testing SDK', () => {
     );
   });
 
-  it('sends an error if the evaluators are not instances of BaseTestEvaluator', async () => {
+  it('sends an error if the evaluators are not instances of BaseTestEvaluator or BaseEvaluator', async () => {
     // Looks like an evaluator but doesn't extend BaseTestEvaluator
     class MyEvaluator {
       evaluateTestCase() {
@@ -111,10 +117,10 @@ describe('Testing SDK', () => {
     expect(req.body.evaluatorExternalId).toBeNull();
     expect(req.body.error.name).toEqual('Error');
     expect(req.body.error.message).toEqual(
-      '[my-test-id] Evaluators must be instances of BaseTestEvaluator.',
+      '[my-test-id] Evaluators must be instances of BaseTestEvaluator or BaseEvaluator.',
     );
     expect(req.body.error.stacktrace).toContain(
-      'Error: [my-test-id] Evaluators must be instances of BaseTestEvaluator.',
+      'Error: [my-test-id] Evaluators must be instances of BaseTestEvaluator or BaseEvaluator.',
     );
   });
 
@@ -832,6 +838,104 @@ describe('Testing SDK', () => {
         testExternalId: 'my-test-id',
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator-1',
+        score: 0.5,
+      },
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+  });
+
+  it('handles evaluators that implement BaseEvaluator', async () => {
+    type T = { x: number };
+    type O = string;
+
+    class MyEvaluator extends BaseEvaluator<T, O> {
+      id = 'my-evaluator';
+
+      private someSharedImplementation(x: number) {
+        return x;
+      }
+
+      evaluateTestCase(args: { testCase: T; output: O }): Evaluation {
+        return {
+          score: this.someSharedImplementation(args.testCase.x),
+        };
+      }
+
+      evaluateEvent(args: { event: TracerEvent }): Evaluation {
+        return {
+          score: this.someSharedImplementation(args.event.properties['x']),
+        };
+      }
+    }
+
+    const timestamp = new Date().toISOString();
+
+    await runTestSuite<T, O>({
+      id: 'my-test-id',
+      testCaseHash: ['x'],
+      testCases: [{ x: 0.5 }],
+      evaluators: [new MyEvaluator()],
+      fn: async ({ testCase }) => {
+        const tracer = new AutoblocksTracer('mock-ingestion-key');
+
+        await tracer.sendEvent('this is a test', {
+          timestamp,
+          traceId: 'test-trace-id',
+          properties: {
+            x: testCase.x,
+          },
+          evaluators: [new MyEvaluator()],
+        });
+
+        return 'whatever';
+      },
+    });
+
+    expectNumPosts(5);
+
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+    expectPostRequest({
+      path: '/events',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`0.5`),
+        event: {
+          message: 'this is a test',
+          traceId: 'test-trace-id',
+          timestamp,
+          properties: {
+            x: 0.5,
+            // Note: event evaluators are not run within test suites
+          },
+        },
+      },
+      abortSignal: AbortSignal.timeout(5_000),
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`0.5`),
+        testCaseBody: { x: 0.5 },
+        testCaseOutput: 'whatever',
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`0.5`),
+        evaluatorExternalId: 'my-evaluator',
         score: 0.5,
       },
     });

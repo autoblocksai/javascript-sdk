@@ -20,21 +20,59 @@ export interface TracerEvent {
   properties: ArbitraryProperties;
 }
 
-export abstract class BaseTestEvaluator<TestCaseType, OutputType> {
+interface TestEvaluator<TestCaseType, OutputType> {
+  evaluateTestCase(args: {
+    testCase: TestCaseType;
+    output: OutputType;
+  }): Evaluation | Promise<Evaluation>;
+}
+
+interface EventEvaluator {
+  evaluateEvent(args: { event: TracerEvent }): Evaluation | Promise<Evaluation>;
+}
+
+abstract class _BaseEvaluator {
   abstract get id(): string;
 
   maxConcurrency: number = 10;
+}
 
+/**
+ * An ABC for users that are implementing an evaluator that will only be run against test cases.
+ */
+export abstract class BaseTestEvaluator<TestCaseType, OutputType>
+  extends _BaseEvaluator
+  implements TestEvaluator<TestCaseType, OutputType>
+{
   abstract evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;
   }): Evaluation | Promise<Evaluation>;
 }
 
-export abstract class BaseEventEvaluator {
-  abstract get id(): string;
+/**
+ * An ABC for users that are implementing an evaluator that will only be run against production events.
+ */
+export abstract class BaseEventEvaluator
+  extends _BaseEvaluator
+  implements EventEvaluator
+{
+  abstract evaluateEvent(args: {
+    event: TracerEvent;
+  }): Evaluation | Promise<Evaluation>;
+}
 
-  maxConcurrency: number = 10;
+/**
+ * An ABC for users that are implementing an evaluator that will be run against both test cases and production events.
+ */
+export abstract class BaseEvaluator<TestCaseType, OutputType>
+  extends _BaseEvaluator
+  implements TestEvaluator<TestCaseType, OutputType>, EventEvaluator
+{
+  abstract evaluateTestCase(args: {
+    testCase: TestCaseType;
+    output: OutputType;
+  }): Evaluation | Promise<Evaluation>;
 
   abstract evaluateEvent(args: {
     event: TracerEvent;
