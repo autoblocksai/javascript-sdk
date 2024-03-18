@@ -1,5 +1,10 @@
 import { AutoblocksTracer } from '../src/index';
-import { BaseEventEvaluator, Evaluation } from '../src/testing';
+import {
+  BaseEvaluator,
+  BaseEventEvaluator,
+  Evaluation,
+  TracerEvent,
+} from '../src/testing';
 import { AutoblocksEnvVar } from '../src/util';
 import crypto from 'crypto';
 
@@ -493,9 +498,6 @@ describe('Autoblocks Tracer', () => {
   });
 
   describe('Evaluators', () => {
-    const mockUuid = 'a8d8614b-6ef7-4c5a-bd12-2e17a3c9f0d8';
-    let cryptoMock: jest.SpyInstance | undefined;
-
     class MyEvaluator extends BaseEventEvaluator {
       id = 'my-evaluator';
 
@@ -542,12 +544,19 @@ describe('Autoblocks Tracer', () => {
       }
     }
 
+    const mockUUIDs = Array.from({ length: 10 }, () => crypto.randomUUID());
+
+    let cryptoMock: jest.SpyInstance | undefined;
+
     beforeEach(() => {
-      cryptoMock = jest.spyOn(crypto, 'randomUUID').mockReturnValue(mockUuid);
+      cryptoMock = jest.spyOn(crypto, 'randomUUID');
+      mockUUIDs.forEach((uuid) => {
+        cryptoMock?.mockReturnValueOnce(uuid);
+      });
     });
 
     afterEach(() => {
-      cryptoMock?.mockClear();
+      cryptoMock?.mockRestore();
     });
 
     it('sends a message with minimal info', async () => {
@@ -563,7 +572,7 @@ describe('Autoblocks Tracer', () => {
         properties: {
           evaluations: [
             {
-              id: mockUuid,
+              id: mockUUIDs[0],
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
@@ -592,7 +601,7 @@ describe('Autoblocks Tracer', () => {
           'my-prop-key': 'my-prop-value',
           evaluations: [
             {
-              id: mockUuid,
+              id: mockUUIDs[0],
               score: 0.9,
               threshold: {
                 gt: 0,
@@ -621,7 +630,7 @@ describe('Autoblocks Tracer', () => {
         properties: {
           evaluations: [
             {
-              id: mockUuid,
+              id: mockUUIDs[0],
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
@@ -650,21 +659,21 @@ describe('Autoblocks Tracer', () => {
         properties: {
           evaluations: [
             {
-              id: mockUuid,
+              id: mockUUIDs[0],
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
               evaluatorExternalId: 'my-evaluator',
             },
             {
-              id: mockUuid,
+              id: mockUUIDs[1],
               score: 0.9,
               threshold: undefined,
               metadata: undefined,
               evaluatorExternalId: 'my-async-evaluator',
             },
             {
-              id: mockUuid,
+              id: mockUUIDs[2],
               score: 0.9,
               threshold: {
                 gt: 0,
@@ -676,7 +685,7 @@ describe('Autoblocks Tracer', () => {
               evaluatorExternalId: 'my-full-info-evaluator',
             },
             {
-              id: mockUuid,
+              id: mockUUIDs[3],
               score: 0.9,
               threshold: {
                 gt: 0,
@@ -686,6 +695,57 @@ describe('Autoblocks Tracer', () => {
                 'some-metadata-key': 'some-metadata-value',
               },
               evaluatorExternalId: 'my-async-full-info-evaluator',
+            },
+          ],
+        },
+      });
+    });
+
+    it('handles evaluators that implement BaseEvaluator', async () => {
+      type T = { x: number };
+      type O = string;
+
+      class MyCombinedEvaluator extends BaseEvaluator<T, O> {
+        id = 'my-combined-evaluator';
+
+        private someSharedImplementation(x: number) {
+          return x;
+        }
+
+        evaluateTestCase(args: { testCase: T; output: O }): Evaluation {
+          return {
+            score: this.someSharedImplementation(args.testCase.x),
+          };
+        }
+
+        evaluateEvent(args: { event: TracerEvent }): Evaluation {
+          return {
+            score: this.someSharedImplementation(args.event.properties['x']),
+          };
+        }
+      }
+
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+      await tracer.sendEvent('mock-message', {
+        properties: {
+          x: 0.5,
+        },
+        evaluators: [new MyCombinedEvaluator()],
+      });
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: {
+          x: 0.5,
+          evaluations: [
+            {
+              id: mockUUIDs[0],
+              score: 0.5,
+              threshold: undefined,
+              metadata: undefined,
+              evaluatorExternalId: 'my-combined-evaluator',
             },
           ],
         },
@@ -729,6 +789,7 @@ describe('Autoblocks Tracer', () => {
         afterEach(() => {
           runEvaluatorUnsafeSpy.mockRestore();
         });
+
         it('does not block if there is an error in our code running the evaluation', async () => {
           class ErrorEvaluator extends BaseEventEvaluator {
             id = 'error-evaluator';
