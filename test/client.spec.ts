@@ -1,5 +1,5 @@
 import { AutoblocksAPIClient } from '../src/index';
-import { AutoblocksEnvVar } from '../src/util';
+import { API_ENDPOINT, AutoblocksEnvVar } from '../src/util';
 
 describe('Autoblocks Client', () => {
   let mockFetch: jest.SpyInstance;
@@ -17,36 +17,30 @@ describe('Autoblocks Client', () => {
       const client = new AutoblocksAPIClient('mock-api-key');
       await client.getViews();
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.autoblocks.ai/views',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
-            Authorization: 'Bearer mock-api-key',
-          },
-          signal: AbortSignal.timeout(60_000),
+      expect(mockFetch).toHaveBeenCalledWith(`${API_ENDPOINT}/views`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+          Authorization: 'Bearer mock-api-key',
         },
-      );
+        signal: AbortSignal.timeout(60_000),
+      });
     });
 
     it('accepts api key in args', async () => {
       const client = new AutoblocksAPIClient({ apiKey: 'mock-api-key' });
       await client.getViews();
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.autoblocks.ai/views',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
-            Authorization: 'Bearer mock-api-key',
-          },
-          signal: AbortSignal.timeout(60_000),
+      expect(mockFetch).toHaveBeenCalledWith(`${API_ENDPOINT}/views`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+          Authorization: 'Bearer mock-api-key',
         },
-      );
+        signal: AbortSignal.timeout(60_000),
+      });
     });
 
     it('accepts api key as environment variable', async () => {
@@ -55,18 +49,15 @@ describe('Autoblocks Client', () => {
       const client = new AutoblocksAPIClient();
       await client.getViews();
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.autoblocks.ai/views',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
-            Authorization: 'Bearer mock-api-key',
-          },
-          signal: AbortSignal.timeout(60_000),
+      expect(mockFetch).toHaveBeenCalledWith(`${API_ENDPOINT}/views`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+          Authorization: 'Bearer mock-api-key',
         },
-      );
+        signal: AbortSignal.timeout(60_000),
+      });
 
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY];
     });
@@ -83,18 +74,15 @@ describe('Autoblocks Client', () => {
         const client = new AutoblocksAPIClient('mock-api-key', { timeout });
         await client.getViews();
 
-        expect(mockFetch).toHaveBeenCalledWith(
-          'https://api.autoblocks.ai/views',
-          {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
-              Authorization: 'Bearer mock-api-key',
-            },
-            signal: AbortSignal.timeout(expected),
+        expect(mockFetch).toHaveBeenCalledWith(`${API_ENDPOINT}/views`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+            Authorization: 'Bearer mock-api-key',
           },
-        );
+          signal: AbortSignal.timeout(expected),
+        });
       },
     );
 
@@ -111,18 +99,15 @@ describe('Autoblocks Client', () => {
       });
       await client.getViews();
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.autoblocks.ai/views',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
-            Authorization: 'Bearer mock-api-key',
-          },
-          signal: AbortSignal.timeout(expected),
+      expect(mockFetch).toHaveBeenCalledWith(`${API_ENDPOINT}/views`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+          Authorization: 'Bearer mock-api-key',
         },
-      );
+        signal: AbortSignal.timeout(expected),
+      });
     });
   });
 });

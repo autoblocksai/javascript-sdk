@@ -5,6 +5,7 @@ import {
   AutoblocksEnvVar,
   PromptSpecialVersion,
   AUTOBLOCKS_HEADERS,
+  API_ENDPOINT,
 } from '../util';
 import { zPromptSchema, type Prompt } from '../types';
 
@@ -259,7 +260,7 @@ function parseTemplate(args: { id: string; content: string }): ParsedTemplate {
 async function getAllPromptsFromAPI(args: {
   apiKey: string;
 }): Promise<ParsedPrompt[]> {
-  const resp = await fetch(`https://api.autoblocks.ai/prompts`, {
+  const resp = await fetch(`${API_ENDPOINT}/prompts`, {
     method: 'GET',
     headers: {
       ...AUTOBLOCKS_HEADERS,

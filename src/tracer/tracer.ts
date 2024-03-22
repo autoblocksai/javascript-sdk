@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { type SendEventArgs, EvaluationWithIds } from './models';
 import { BaseEventEvaluator, TracerEvent } from '../testing';
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
+import { INGESTION_ENDPOINT } from '../util';
 
 interface TracerArgs {
   ingestionKey?: string;
@@ -24,8 +25,6 @@ export class AutoblocksTracer {
   private _traceId: string | undefined;
   private properties: ArbitraryProperties;
 
-  private readonly ingestionBaseUrl: string =
-    'https://ingest-event.autoblocks.ai';
   private readonly ingestionKey: string;
   private readonly timeoutMs: number;
 
@@ -174,7 +173,7 @@ export class AutoblocksTracer {
       }
     }
 
-    await fetch(this.ingestionBaseUrl, {
+    await fetch(INGESTION_ENDPOINT, {
       method: 'POST',
       headers: {
         ...AUTOBLOCKS_HEADERS,

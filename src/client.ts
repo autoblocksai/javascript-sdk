@@ -4,6 +4,7 @@ import {
   readEnv,
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
+  API_ENDPOINT,
 } from './util';
 
 export interface View {
@@ -84,7 +85,6 @@ interface ClientArgs {
 }
 
 export class AutoblocksAPIClient {
-  private readonly apiBaseUrl: string = 'https://api.autoblocks.ai';
   private readonly apiKey: string;
   private readonly timeoutMs: number;
 
@@ -110,7 +110,7 @@ export class AutoblocksAPIClient {
   }
 
   private async get<T>(path: string): Promise<T> {
-    const resp = await fetch(`${this.apiBaseUrl}${path}`, {
+    const resp = await fetch(`${API_ENDPOINT}${path}`, {
       method: 'GET',
       headers: {
         ...AUTOBLOCKS_HEADERS,
@@ -122,7 +122,7 @@ export class AutoblocksAPIClient {
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const resp = await fetch(`${this.apiBaseUrl}${path}`, {
+    const resp = await fetch(`${API_ENDPOINT}${path}`, {
       method: 'POST',
       headers: {
         ...AUTOBLOCKS_HEADERS,

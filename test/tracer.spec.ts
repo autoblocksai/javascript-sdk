@@ -5,7 +5,7 @@ import {
   Evaluation,
   TracerEvent,
 } from '../src/testing';
-import { AutoblocksEnvVar } from '../src/util';
+import { AutoblocksEnvVar, INGESTION_ENDPOINT } from '../src/util';
 import crypto from 'crypto';
 
 describe('Autoblocks Tracer', () => {
@@ -33,19 +33,16 @@ describe('Autoblocks Tracer', () => {
   });
 
   const expectPostRequest = (body: unknown, timeoutMs?: number) => {
-    expect(mockFetch).toHaveBeenCalledWith(
-      'https://ingest-event.autoblocks.ai',
-      {
-        method: 'POST',
-        body: JSON.stringify(body),
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer mock-ingestion-key',
-          'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
-        },
-        signal: AbortSignal.timeout(timeoutMs || 5_000),
+    expect(mockFetch).toHaveBeenCalledWith(INGESTION_ENDPOINT, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer mock-ingestion-key',
+        'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
       },
-    );
+      signal: AbortSignal.timeout(timeoutMs || 5_000),
+    });
   };
 
   describe('constructor', () => {
