@@ -18,8 +18,40 @@ import {
   convertTimeDeltaToMilliSeconds,
   PromptSpecialVersion,
   AUTOBLOCKS_HEADERS,
+  API_ENDPOINT,
 } from '../util';
 import { renderTemplate } from './util';
+
+/**
+ * Note that we check for the presence of the CLI environment
+ * variable and not the test case local storage because the
+ * local storage vars aren't set until runTestSuite is called,
+ * whereas a prompt manager might have already been imported
+ * and initialized by the time runTestSuite is called.
+ */
+const isTestingContext = (): boolean => {
+  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS) !== undefined;
+};
+
+/**
+ * The AUTOBLOCKS_PROMPT_SNAPSHOTS environment variable is a JSON-stringified
+ * map of prompt IDs to snapshot IDs. This is set in CI test runs triggered
+ * from the UI.
+ */
+const promptSnapshotsMap = (): Record<string, string> => {
+  if (!isTestingContext()) {
+    return {};
+  }
+
+  const promptSnapshotsRaw = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS,
+  );
+  if (!promptSnapshotsRaw) {
+    return {};
+  }
+
+  return JSON.parse(promptSnapshotsRaw);
+};
 
 const UNDEPLOYED = 'undeployed';
 
@@ -37,10 +69,14 @@ export class AutoblocksPromptManager<
   private readonly minorVersionsToRequest: string[];
 
   private readonly apiKey: string;
-  private readonly apiBaseUrl: string = 'https://api.autoblocks.ai';
 
   // Map of minor version -> prompt
   private prompts: Record<string, Prompt> = {};
+
+  // Used in a testing context to override the prompt with
+  // a snapshot if AUTOBLOCKS_PROMPT_SNAPSHOTS is set for this
+  // prompt ID.
+  private promptSnapshot: Prompt | undefined = undefined;
 
   private readonly refreshIntervalTimer: NodeJS.Timer | undefined;
   private readonly refreshTimeoutMs: number;
@@ -78,11 +114,21 @@ export class AutoblocksPromptManager<
     }
     this.apiKey = apiKey;
 
-    if (
-      this.minorVersionsToRequest.some(
-        (version) => version === PromptSpecialVersion.LATEST,
-      )
-    ) {
+    this.refreshTimeoutMs = convertTimeDeltaToMilliSeconds(
+      args.refreshTimeout || { seconds: 30 },
+    );
+    this.initTimeoutMs = convertTimeDeltaToMilliSeconds(
+      args.initTimeout || { seconds: 30 },
+    );
+
+    if (this.minorVersionsToRequest.includes(PromptSpecialVersion.LATEST)) {
+      if (isTestingContext()) {
+        this.logger.info(
+          'Prompt refreshing is disabled when in a testing context.',
+        );
+        return;
+      }
+
       const refreshInterval = args.refreshInterval || { seconds: 10 };
       const refreshIntervalMs = convertTimeDeltaToMilliSeconds(refreshInterval);
       if (refreshIntervalMs < 1000) {
@@ -100,13 +146,6 @@ export class AutoblocksPromptManager<
         refreshIntervalMs,
       );
     }
-
-    this.refreshTimeoutMs = convertTimeDeltaToMilliSeconds(
-      args.refreshTimeout || { seconds: 30 },
-    );
-    this.initTimeoutMs = convertTimeDeltaToMilliSeconds(
-      args.initTimeout || { seconds: 30 },
-    );
   }
 
   private get logger() {
@@ -135,7 +174,16 @@ export class AutoblocksPromptManager<
     minorVersion = encodeURIComponent(minorVersion);
     majorVersion = encodeURIComponent(majorVersion);
 
-    return `${this.apiBaseUrl}/prompts/${promptId}/major/${majorVersion}/minor/${minorVersion}`;
+    return `${API_ENDPOINT}/prompts/${promptId}/major/${majorVersion}/minor/${minorVersion}`;
+  }
+
+  private makeSnapshotValidateOverrideRequestUrl(args: {
+    snapshotId: string;
+  }): string {
+    const promptId = encodeURIComponent(this.id);
+    const snapshotId = encodeURIComponent(args.snapshotId);
+
+    return `${API_ENDPOINT}/prompts/${promptId}/snapshots/${snapshotId}/validate`;
   }
 
   private async getPrompt(args: {
@@ -168,6 +216,72 @@ export class AutoblocksPromptManager<
     return undefined;
   }
 
+  /**
+   * If this prompt has a snapshot set, use the /validate endpoint to check if the
+   * major version this prompt manager is configured to use is compatible to be
+   * overridden with the snapshot.
+   */
+  private async setPromptSnapshot(args: { snapshotId: string }): Promise<void> {
+    // Double check we're in a testing context
+    if (!isTestingContext()) {
+      this.logger.error(
+        "Can't set prompt snapshot unless in a testing context.",
+      );
+      return;
+    }
+
+    // Double check the given snapshotId belongs to this prompt manager
+    const expectedSnapshotId = promptSnapshotsMap()[this.id];
+    if (args.snapshotId !== expectedSnapshotId) {
+      throw new Error(
+        `Snapshot ID '${args.snapshotId}' does not match the snapshot ID for this prompt manager '${expectedSnapshotId}'.`,
+      );
+    }
+
+    if (this.majorVersion === PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED) {
+      throw new Error(
+        `Prompt snapshot overrides are not yet supported for prompt managers using 'dangerously-use-undeployed'.
+        Reach out to support@autoblocks.ai for more details.`,
+      );
+    }
+
+    const url = this.makeSnapshotValidateOverrideRequestUrl({
+      snapshotId: args.snapshotId,
+    });
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        majorVersion: parseInt(this.majorVersion, 10),
+      }),
+      signal: AbortSignal.timeout(this.initTimeoutMs),
+    });
+
+    if (resp.status === 409) {
+      // The /validate endpoint returns this status code when the snapshot is
+      // not compatible with the major version this prompt manager
+      // is configured to use.
+      throw new Error(
+        `Can't override prompt '${this.id}' with snapshot '${args.snapshotId}' because it is not compatible with major version '${this.majorVersion}'.`,
+      );
+    }
+
+    const data = await resp.json();
+
+    // Throw for any unexpected errors
+    if (!resp.ok) {
+      throw new Error(`HTTP Error: ${JSON.stringify(data)}`);
+    }
+
+    this.logger.warn(
+      `Overriding prompt '${this.id}' with prompt snapshot '${args.snapshotId}'!`,
+    );
+    this.promptSnapshot = zPromptSchema.parse(data);
+  }
+
   private async refreshLatest(): Promise<void> {
     try {
       // Get the latest minor version within this prompt's major version
@@ -198,36 +312,49 @@ export class AutoblocksPromptManager<
     }
   }
 
+  private async initUnsafe(): Promise<void> {
+    if (isTestingContext() && promptSnapshotsMap()[this.id]) {
+      // Set the prompt snapshot if we're in a testing context and a
+      // snapshot is set for this manager's prompt ID
+      const snapshotId = promptSnapshotsMap()[this.id];
+      await this.setPromptSnapshot({ snapshotId });
+      return;
+    }
+
+    // Not in testing context or no snapshot set, proceed as configured
+    const prompts = await Promise.all(
+      this.minorVersionsToRequest.map(async (minorVersion) => {
+        const prompt = await this.getPrompt({
+          minorVersion,
+          timeoutMs: this.initTimeoutMs,
+          throwOnError: true,
+        });
+        return [minorVersion, prompt] as const;
+      }),
+    );
+
+    // Make the map of minor version -> prompt
+    const promptsMap: Record<string, Prompt> = {};
+    prompts.forEach(([minorVersion, prompt]) => {
+      if (prompt) {
+        // NOTE: Use minorVersion from the `prompts` array, not `prompt.minorVersion`,
+        // since for `minorVersion=latest`, `prompt.minorVersion` will be the actual
+        // version of the prompt but we want to use `latest` as the key.
+        promptsMap[minorVersion] = prompt;
+      } else {
+        throw new Error(
+          `Failed to fetch version v${this.majorVersion}.${minorVersion}`,
+        );
+      }
+    });
+
+    // Set the prompts
+    this.prompts = promptsMap;
+  }
+
   async init(): Promise<void> {
     try {
-      const prompts = await Promise.all(
-        this.minorVersionsToRequest.map(async (minorVersion) => {
-          const prompt = await this.getPrompt({
-            minorVersion,
-            timeoutMs: this.initTimeoutMs,
-            throwOnError: true,
-          });
-          return [minorVersion, prompt] as const;
-        }),
-      );
-
-      // Make the map of minor version -> prompt
-      const promptsMap: Record<string, Prompt> = {};
-      prompts.forEach(([minorVersion, prompt]) => {
-        if (prompt) {
-          // NOTE: Use minorVersion from the `prompts` array, not `prompt.minorVersion`,
-          // since for `minorVersion=latest`, `prompt.minorVersion` will be the actual
-          // version of the prompt but we want to use `latest` as the key.
-          promptsMap[minorVersion] = prompt;
-        } else {
-          throw new Error(
-            `Failed to fetch version v${this.majorVersion}.${minorVersion}`,
-          );
-        }
-      });
-
-      // Set the prompts
-      this.prompts = promptsMap;
+      await this.initUnsafe();
     } catch (err) {
       this.logger.error(`Failed to initialize prompt manager: ${err}`);
       throw err;
@@ -241,8 +368,13 @@ export class AutoblocksPromptManager<
     }
   }
 
-  private choosePrompt(): Prompt | undefined {
-    if (this.majorVersion === PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED) {
+  private chooseExecutionPrompt(): Prompt | undefined {
+    if (isTestingContext() && this.promptSnapshot) {
+      // Always use the prompt snapshot if it is set
+      return this.promptSnapshot;
+    } else if (
+      this.majorVersion === PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED
+    ) {
       return this.prompts[UNDEPLOYED];
     } else if (Array.isArray(this.minorVersion)) {
       const weightTotal = this.minorVersion.reduce(
@@ -269,7 +401,7 @@ export class AutoblocksPromptManager<
   exec<T = unknown>(
     fn: (args: { prompt: PromptRenderer<PromptId, MajorVersion> }) => T,
   ): T {
-    const prompt = this.choosePrompt();
+    const prompt = this.chooseExecutionPrompt();
     if (!prompt) {
       throw new Error(
         `[${this.id}@${this.majorVersion}] Failed to choose execution prompt. Did you initialize the prompt manager?`,

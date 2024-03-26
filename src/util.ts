@@ -1,11 +1,15 @@
 import type { TimeDelta } from './types';
 import packageJson from '../package.json';
 
+export const INGESTION_ENDPOINT = 'https://ingest-event.autoblocks.ai';
+export const API_ENDPOINT = 'https://api.autoblocks.ai';
+
 export enum AutoblocksEnvVar {
   AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',
   AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY',
   AUTOBLOCKS_TRACER_THROW_ON_ERROR = 'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
   AUTOBLOCKS_CLI_SERVER_ADDRESS = 'AUTOBLOCKS_CLI_SERVER_ADDRESS',
+  AUTOBLOCKS_PROMPT_SNAPSHOTS = 'AUTOBLOCKS_PROMPT_SNAPSHOTS',
 }
 
 export const readEnv = (key: string): string | undefined => {
