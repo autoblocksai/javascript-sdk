@@ -7,5 +7,5 @@ module.exports = {
   resetMocks: true,
   resetModules: true,
   restoreMocks: true,
-  testPathIgnorePatterns: ['node_modules', 'e2e'],
+  testPathIgnorePatterns: ['node_modules', '<rootDir>/e2e'],
 };

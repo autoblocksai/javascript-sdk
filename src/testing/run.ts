@@ -2,6 +2,7 @@ import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import { BaseTestEvaluator, BaseEvaluator } from './models';
 import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
+import { flush } from '../tracer';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
 
@@ -157,6 +158,11 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
       });
     },
   );
+
+  // Flush the logs before we send the result, since the CLI
+  // accumulates the events and sends them as a batch along
+  // with the result.
+  await flush();
 
   await client.post('/results', {
     testExternalId: args.testId,
