@@ -292,18 +292,10 @@ export async function flush(timeout?: TimeDelta): Promise<void> {
   const timeoutMilliseconds = convertTimeDeltaToMilliSeconds(
     timeout || { seconds: 30 },
   );
-  console.debug(
-    `Flushing background tasks with timeout of ${timeoutMilliseconds}ms.`,
-  );
 
   if (backgroundTasks.size === 0) {
-    console.debug('No background tasks to flush.');
     return;
   }
-
-  console.debug(
-    `Waiting for ${backgroundTasks.size} background tasks to finish...`,
-  );
 
   const startTime = Date.now();
   while (
@@ -317,7 +309,5 @@ export async function flush(timeout?: TimeDelta): Promise<void> {
     console.error(
       `Timed out waiting for background tasks to flush. ${backgroundTasks.size} tasks left unfinished.`,
     );
-  } else {
-    console.debug('Successfully flushed all background tasks.');
   }
 }
