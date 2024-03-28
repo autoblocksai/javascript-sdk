@@ -69,13 +69,16 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@godaddy/terminus": "^4.12.1",
     "@tsconfig/node18": "^18.2.2",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.3",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "express": "^4.19.2",
     "husky": "^9.0.0",
     "jest": "^29.6.2",
     "lint-staged": "^15.0.0",

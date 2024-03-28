@@ -9,7 +9,7 @@ describe('Autoblocks Client', () => {
       .spyOn(global, 'fetch')
       // @ts-expect-error - TS wants me to fully mock a fetch response, but we only
       // need the json() method
-      .mockResolvedValue({ json: () => Promise.resolve({}) });
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({}) });
   });
 
   describe('constructor', () => {

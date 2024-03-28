@@ -73,7 +73,7 @@ const main = async () => {
 
   // Send test event
   const testTraceId = crypto.randomUUID();
-  await tracer.sendEvent(E2E_TESTS_EXPECTED_MESSAGE, { traceId: testTraceId });
+  tracer.sendEvent(E2E_TESTS_EXPECTED_MESSAGE, { traceId: testTraceId });
 
   // Find the test event we just sent
   let retries = 10;

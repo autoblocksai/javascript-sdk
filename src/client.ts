@@ -110,7 +110,8 @@ export class AutoblocksAPIClient {
   }
 
   private async get<T>(path: string): Promise<T> {
-    const resp = await fetch(`${API_ENDPOINT}${path}`, {
+    const url = `${API_ENDPOINT}${path}`;
+    const resp = await fetch(url, {
       method: 'GET',
       headers: {
         ...AUTOBLOCKS_HEADERS,
@@ -118,11 +119,17 @@ export class AutoblocksAPIClient {
       },
       signal: AbortSignal.timeout(this.timeoutMs),
     });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: GET ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
     return resp.json();
   }
 
   private async post<T>(path: string, body: unknown): Promise<T> {
-    const resp = await fetch(`${API_ENDPOINT}${path}`, {
+    const url = `${API_ENDPOINT}${path}`;
+    const resp = await fetch(url, {
       method: 'POST',
       headers: {
         ...AUTOBLOCKS_HEADERS,
@@ -131,6 +138,11 @@ export class AutoblocksAPIClient {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: POST ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
     return resp.json();
   }
 

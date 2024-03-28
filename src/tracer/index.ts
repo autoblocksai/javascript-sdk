@@ -1,1 +1,1 @@
-export { AutoblocksTracer } from './tracer';
+export { AutoblocksTracer, flush } from './tracer';

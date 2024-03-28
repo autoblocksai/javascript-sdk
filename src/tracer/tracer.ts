@@ -19,7 +19,16 @@ interface TracerArgs {
   timeout?: TimeDelta;
 }
 
+interface BackgroundTask {}
+
+const backgroundTasks = new Set<BackgroundTask>();
+
 const evaluatorSemaphoreRegistry: Record<string, Semaphore> = {};
+
+// This is pulled into a function and exported so that we can
+// more easily mock it in our jest tests without using jest.useFakeTimers(),
+// which causes issues with setImmediate.
+export const makeISOTimestamp = () => new Date().toISOString();
 
 export class AutoblocksTracer {
   private _traceId: string | undefined;
@@ -139,7 +148,7 @@ export class AutoblocksTracer {
     );
 
     const traceId = args?.traceId || this.traceId;
-    const timestamp = args?.timestamp || new Date().toISOString();
+    const timestamp = args?.timestamp || makeISOTimestamp();
 
     return {
       traceId,
@@ -148,7 +157,7 @@ export class AutoblocksTracer {
     };
   }
 
-  private async sendEventUnsafe(
+  private async sendRealEventUnsafe(
     message: string,
     args?: SendEventArgs,
   ): Promise<void> {
@@ -225,20 +234,90 @@ export class AutoblocksTracer {
     });
   }
 
-  public async sendEvent(message: string, args?: SendEventArgs): Promise<void> {
-    try {
-      // This store should only be set in the context of a test run
-      const store = testCaseRunAsyncLocalStorage.getStore();
-      if (store) {
-        await this.sendTestEventUnsafe(message, args);
-      } else {
-        await this.sendEventUnsafe(message, args);
+  private sendEventUnsafe(message: string, args?: SendEventArgs): void {
+    // Generate the timestamp now so that it reflects the time
+    // the event was sent and not when the task was picked up
+    // by the event loop
+    const argsWithTimestamp: SendEventArgs = {
+      timestamp: makeISOTimestamp(),
+      // Our timestamp will be overridden with the user's timestamp
+      // if it's set
+      ...args,
+    };
+
+    // Use an object reference to keep track of whether or not this
+    // event has been sent. We'll add it to the set now and then delete
+    // it once it's finished.
+    const task: BackgroundTask = {};
+    backgroundTasks.add(task);
+
+    setImmediate(async () => {
+      try {
+        // This store should only be set in the context of a test run
+        const store = testCaseRunAsyncLocalStorage.getStore();
+        if (store) {
+          await this.sendTestEventUnsafe(message, argsWithTimestamp);
+        } else {
+          await this.sendRealEventUnsafe(message, argsWithTimestamp);
+        }
+      } catch (err) {
+        console.error(`Error sending event to Autoblocks: ${err}`);
+        if (
+          readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1'
+        ) {
+          throw err;
+        }
+      } finally {
+        backgroundTasks.delete(task);
       }
+    });
+  }
+
+  public sendEvent(message: string, args?: SendEventArgs): void {
+    try {
+      this.sendEventUnsafe(message, args);
     } catch (err) {
+      console.error(`Error sending event to Autoblocks: ${err}`);
       if (readEnv(AutoblocksEnvVar.AUTOBLOCKS_TRACER_THROW_ON_ERROR) === '1') {
         throw err;
       }
-      console.error(`Error sending event to Autoblocks: ${err}`);
     }
+  }
+}
+
+/**
+ * Wait for all pending tasks to complete.
+ */
+export async function flush(timeout?: TimeDelta): Promise<void> {
+  const timeoutMilliseconds = convertTimeDeltaToMilliSeconds(
+    timeout || { seconds: 30 },
+  );
+  console.debug(
+    `Flushing background tasks with timeout of ${timeoutMilliseconds}ms.`,
+  );
+
+  if (backgroundTasks.size === 0) {
+    console.debug('No background tasks to flush.');
+    return;
+  }
+
+  console.debug(
+    `Waiting for ${backgroundTasks.size} background tasks to finish...`,
+  );
+
+  const startTime = Date.now();
+  while (
+    backgroundTasks.size > 0 &&
+    Date.now() - startTime < timeoutMilliseconds
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  if (backgroundTasks.size > 0) {
+    console.error(
+      `Timed out waiting for background tasks to flush. ${backgroundTasks.size} tasks left unfinished.`,
+    );
+  } else {
+    console.debug('Successfully flushed all background tasks.');
   }
 }

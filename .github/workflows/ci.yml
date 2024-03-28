@@ -43,6 +43,9 @@ jobs:
 
       - name: Run tests
         run: npm run test
+        env:
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
 
       - name: Run build
         run: npm run build

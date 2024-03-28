@@ -757,7 +757,7 @@ describe('Testing SDK', () => {
           await sleep(500);
         }
         const message = `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`;
-        await tracer.sendEvent(message, {
+        tracer.sendEvent(message, {
           timestamp,
           traceId: 'test-trace-id',
           properties: {},
@@ -883,7 +883,7 @@ describe('Testing SDK', () => {
       fn: async ({ testCase }) => {
         const tracer = new AutoblocksTracer('mock-ingestion-key');
 
-        await tracer.sendEvent('this is a test', {
+        tracer.sendEvent('this is a test', {
           timestamp,
           traceId: 'test-trace-id',
           properties: {
