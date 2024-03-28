@@ -245,6 +245,9 @@ export class AutoblocksTracer {
       ...args,
     };
 
+    // Use an object reference to keep track of whether or not this
+    // event has been sent. We'll add it to the set now and then delete
+    // it once it's finished.
     const task: BackgroundTask = {};
     backgroundTasks.add(task);
 
@@ -290,11 +293,11 @@ export async function flush(timeout?: TimeDelta): Promise<void> {
     timeout || { seconds: 30 },
   );
   console.debug(
-    `Flushing background tasks with timeout of ${timeoutMilliseconds}ms`,
+    `Flushing background tasks with timeout of ${timeoutMilliseconds}ms.`,
   );
 
   if (backgroundTasks.size === 0) {
-    console.debug('No background tasks to flush');
+    console.debug('No background tasks to flush.');
     return;
   }
 
@@ -315,6 +318,6 @@ export async function flush(timeout?: TimeDelta): Promise<void> {
       `Timed out waiting for background tasks to flush. ${backgroundTasks.size} tasks left unfinished.`,
     );
   } else {
-    console.debug('Successfully flushed all background tasks');
+    console.debug('Successfully flushed all background tasks.');
   }
 }
