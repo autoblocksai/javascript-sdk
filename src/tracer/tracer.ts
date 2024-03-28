@@ -25,7 +25,7 @@ const backgroundTasks = new Set<BackgroundTask>();
 
 const evaluatorSemaphoreRegistry: Record<string, Semaphore> = {};
 
-// This is pulled into a functinon and exported so that we can
+// This is pulled into a function and exported so that we can
 // more easily mock it in our jest tests without using jest.useFakeTimers(),
 // which causes issues with setImmediate.
 export const makeISOTimestamp = () => new Date().toISOString();
