@@ -42,8 +42,8 @@ export interface Trace {
 
 export interface ManagedTestCase {
   body: Record<string, unknown>;
-  createdAt: Date;
-  updateAt: Date;
+  createdAt: string;
+  updateAt: string;
 }
 
 interface RelativeTimeFilter {
@@ -203,6 +203,9 @@ export class AutoblocksAPIClient {
   public async getTestCases(args: {
     testSuiteId: string;
   }): Promise<ManagedTestCase[]> {
-    return this.get(`/testing/test-suites/${args.testSuiteId}/test-cases`);
+    const result: { testCases: ManagedTestCase[] } = await this.get(
+      `/testing/test-suites/${args.testSuiteId}/test-cases`,
+    );
+    return result.testCases;
   }
 }
