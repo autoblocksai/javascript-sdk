@@ -40,6 +40,12 @@ export interface Trace {
   events: Event[];
 }
 
+export interface ManagedTestCase {
+  body: Record<string, unknown>;
+  createdAt: Date;
+  updateAt: Date;
+}
+
 interface RelativeTimeFilter {
   type: 'relative';
   seconds?: number;
@@ -192,5 +198,11 @@ export class AutoblocksAPIClient {
     datasetId: string;
   }): Promise<DatasetWithItems> {
     return this.get(`/datasets/${args.datasetId}`);
+  }
+
+  public async getTestCases(args: {
+    testSuiteId: string;
+  }): Promise<ManagedTestCase[]> {
+    return this.get(`/testing/test-suites/${args.testSuiteId}/test-cases`);
   }
 }
