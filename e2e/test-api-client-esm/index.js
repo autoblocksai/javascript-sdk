@@ -73,10 +73,11 @@ const main = async () => {
     throw new Error(`View ${E2E_TESTS_VIEW_ID} not found!`);
   }
 
+  // Fetch test cases
   const testCases = await client.getTestCases({
     testSuiteId: E2E_TEST_SUITE_ID,
   });
-
+  console.log(`Found ${testCases.length} test cases`);
   assertEqual(testCases[0].id, E2E_TEST_CASE_ID);
 
   // Send test event
