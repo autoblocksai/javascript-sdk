@@ -201,10 +201,7 @@ export class AutoblocksAPIClient {
 
   public async getTestCases(args: {
     testSuiteId: string;
-  }): Promise<ManagedTestCase[]> {
-    const result: { testCases: ManagedTestCase[] } = await this.get(
-      `/test-suites/${args.testSuiteId}/test-cases`,
-    );
-    return result.testCases;
+  }): Promise<{ testCases: ManagedTestCase[] }> {
+    return this.get(`/test-suites/${args.testSuiteId}/test-cases`);
   }
 }

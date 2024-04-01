@@ -74,7 +74,7 @@ const main = async () => {
   }
 
   // Fetch test cases
-  const testCases = await client.getTestCases({
+  const { testCases } = await client.getTestCases({
     testSuiteId: E2E_TEST_SUITE_ID,
   });
   console.log(`Found ${testCases.length} test cases`);
