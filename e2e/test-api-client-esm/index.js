@@ -12,6 +12,8 @@ const E2E_TESTS_VIEW_ID = 'cllmlk8py0003l608vd83dc03';
 const E2E_TESTS_DATASET_ID = 'clpup7f9400075us75nin99f0';
 const E2E_TESTS_TRACE_ID = '4943bb26-3526-4e9c-bcd1-62f08baa621a';
 const E2E_TESTS_EXPECTED_MESSAGE = 'sdk.e2e';
+const E2E_TEST_SUITE_ID = 'my-test-suite';
+const E2E_TEST_CASE_ID = 'cluh2cwla0001d590dha70npc';
 
 const assertEqual = (x, y) => {
   if (x !== y) {
@@ -70,6 +72,13 @@ const main = async () => {
   if (!views.some((view) => view.id === E2E_TESTS_VIEW_ID)) {
     throw new Error(`View ${E2E_TESTS_VIEW_ID} not found!`);
   }
+
+  // Fetch test cases
+  const { testCases } = await client.getTestCases({
+    testSuiteId: E2E_TEST_SUITE_ID,
+  });
+  console.log(`Found ${testCases.length} test cases`);
+  assertEqual(testCases[0].id, E2E_TEST_CASE_ID);
 
   // Send test event
   const testTraceId = crypto.randomUUID();
