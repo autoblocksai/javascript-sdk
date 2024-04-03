@@ -110,4 +110,24 @@ describe('Autoblocks Client', () => {
       });
     });
   });
+
+  describe('getTestCases', () => {
+    it('Should fetch test cases', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              testCases: [{ id: '123', body: { input: 'test' } }],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const testCaseResult = await client.getTestCases<{ input: string }>({
+        testSuiteId: 'something',
+      });
+      expect(testCaseResult.testCases[0].body.input).toEqual('test');
+    });
+  });
 });
