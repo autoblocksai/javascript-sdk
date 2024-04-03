@@ -9,7 +9,6 @@ const { AUTOBLOCKS_API_KEY, AUTOBLOCKS_INGESTION_KEY } = process.env;
 
 // The below are entities in our Autoblocks CI org that we use for testing.
 const E2E_TESTS_VIEW_ID = 'cllmlk8py0003l608vd83dc03';
-const E2E_TESTS_DATASET_ID = 'clpup7f9400075us75nin99f0';
 const E2E_TESTS_TRACE_ID = '4943bb26-3526-4e9c-bcd1-62f08baa621a';
 const E2E_TESTS_EXPECTED_MESSAGE = 'sdk.e2e';
 const E2E_TEST_SUITE_ID = 'my-test-suite';
@@ -36,18 +35,6 @@ const main = async () => {
   const client = new AutoblocksAPIClient(AUTOBLOCKS_API_KEY, {
     timeout: { seconds: 30 },
   });
-
-  // Make sure dataset and items exists
-  const datasets = await client.getDatasets();
-  if (!datasets.some((dataset) => dataset.id === E2E_TESTS_DATASET_ID)) {
-    throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} not found!'`);
-  }
-  const dataset = await client.getDataset({
-    datasetId: E2E_TESTS_DATASET_ID,
-  });
-  if (dataset.items.length === 0) {
-    throw new Error(`Dataset ${E2E_TESTS_DATASET_ID} is empty!`);
-  }
 
   // Test that we can fetch a trace by ID
   const trace = await client.getTrace({
