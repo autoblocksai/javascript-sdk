@@ -13,7 +13,10 @@ const evaluatorSemaphoreRegistry: Record<
 > = {}; // testId -> evaluatorId -> Semaphore
 
 const client = {
-  post: async (path: string, data: unknown): Promise<void> => {
+  post: async (args: {
+    path: string;
+    body: unknown;
+  }): Promise<Pick<Response, 'ok'>> => {
     const serverAddress = readEnv(
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
     );
@@ -28,15 +31,18 @@ $ npx autoblocks testing exec -- <your test command>
     }
 
     try {
-      await fetch(serverAddress + path, {
+      return await fetch(serverAddress + args.path, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(args.body),
       });
-    } catch (err) {
+    } catch {
       // Ignore, any errors for these requests are displayed by the CLI server
+      return {
+        ok: false,
+      };
     }
   },
 };
@@ -60,14 +66,17 @@ async function sendError(args: {
           errorStack: '',
         };
 
-  await client.post('/errors', {
-    testExternalId: args.testId,
-    testCaseHash: args.testCaseHash,
-    evaluatorExternalId: args.evaluatorId,
-    error: {
-      name: errorName,
-      message: errorMessage,
-      stacktrace: errorStack,
+  await client.post({
+    path: '/errors',
+    body: {
+      testExternalId: args.testId,
+      testCaseHash: args.testCaseHash,
+      evaluatorExternalId: args.evaluatorId,
+      error: {
+        name: errorName,
+        message: errorMessage,
+        stacktrace: errorStack,
+      },
     },
   });
 }
@@ -97,13 +106,16 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
     });
   });
 
-  await client.post('/evals', {
-    testExternalId: args.testId,
-    testCaseHash: args.testCaseHash,
-    evaluatorExternalId: args.evaluator.id,
-    score: evaluation.score,
-    threshold: evaluation.threshold,
-    metadata: evaluation.metadata,
+  await client.post({
+    path: '/evals',
+    body: {
+      testExternalId: args.testId,
+      testCaseHash: args.testCaseHash,
+      evaluatorExternalId: args.evaluator.id,
+      score: evaluation.score,
+      threshold: evaluation.threshold,
+      metadata: evaluation.metadata,
+    },
   });
 }
 
@@ -164,11 +176,14 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   // with the result.
   await flush();
 
-  await client.post('/results', {
-    testExternalId: args.testId,
-    testCaseHash: args.testCaseHash,
-    testCaseBody: args.testCase,
-    testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
+  await client.post({
+    path: '/results',
+    body: {
+      testExternalId: args.testId,
+      testCaseHash: args.testCaseHash,
+      testCaseBody: args.testCase,
+      testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
+    },
   });
 
   return output;
@@ -289,7 +304,17 @@ export async function runTestSuite<
     ]),
   );
 
-  await client.post('/start', { testExternalId: args.id });
+  const startResp = await client.post({
+    path: '/start',
+    body: { testExternalId: args.id },
+  });
+  if (!startResp.ok) {
+    // Don't allow the run to continue if /start failed, since all subsequent
+    // requests will fail if the CLI was not able to start the run.
+    // Also note we don't need to sendError here, since the CLI will
+    // have reported the HTTP error itself.
+    return;
+  }
 
   try {
     await Promise.allSettled(
@@ -312,5 +337,5 @@ export async function runTestSuite<
     });
   }
 
-  await client.post('/end', { testExternalId: args.id });
+  await client.post({ path: '/end', body: { testExternalId: args.id } });
 }

@@ -24,10 +24,10 @@ describe('Testing SDK', () => {
   let mockFetch: jest.SpyInstance;
 
   beforeEach(() => {
-    mockFetch = jest
-      .spyOn(global, 'fetch')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .mockResolvedValue({ json: () => Promise.resolve() } as any);
+    mockFetch = jest.spyOn(global, 'fetch').mockResolvedValue({
+      json: () => Promise.resolve(),
+      ok: true,
+    } as Response);
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1009,6 +1009,47 @@ describe('Testing SDK', () => {
       expect(errorReq.body.error.stacktrace).toContain(
         'Error: an error in isPrimitive',
       );
+    });
+  });
+});
+
+/**
+ * This is a separate describe() because the main one mocks
+ * all fetch requests to be successful. This one will test
+ * unsuccessful fetch requests within each test.
+ */
+describe('Testing SDK with HTTP Errors', () => {
+  beforeAll(() => {
+    process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS = MOCK_CLI_SERVER_ADDRESS;
+  });
+
+  afterAll(() => {
+    delete process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS;
+  });
+
+  it('stops if /start fails', async () => {
+    const mockFetch = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValueOnce({ ok: false } as Response);
+
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [{ x: 1, y: 2 }],
+      testCaseHash: ['x', 'y'],
+      evaluators: [],
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
+        `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(mockFetch).toHaveBeenCalledWith(`${MOCK_CLI_SERVER_ADDRESS}/start`, {
+      method: 'POST',
+      body: JSON.stringify({
+        testExternalId: 'my-test-id',
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   });
 });
