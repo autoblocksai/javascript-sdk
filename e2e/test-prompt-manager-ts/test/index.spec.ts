@@ -62,24 +62,20 @@ describe('AutoblocksPromptManager v1.0', () => {
 
   it('provides tracking info', () => {
     manager.exec(({ prompt }) => {
-      const tracking = prompt.track();
-      expect(tracking).toEqual({
+      expect(prompt.track()).toEqual({
         id: 'used-by-ci-dont-delete',
         version: '1.0',
         templates: [
           {
             id: 'template-a',
-            version: '1.0',
             template: 'Hello, {{ name }}! The weather is {{ weather }} today.',
           },
           {
             id: 'template-b',
-            version: '1.0',
             template: 'Hello, {{ optional? }}! My name is {{ name }}.',
           },
         ],
         params: {
-          version: '1.0',
           params: {
             frequencyPenalty: 0,
             maxTokens: 256,
@@ -141,24 +137,20 @@ describe('AutoblocksPromptManager v1 latest', () => {
 
   it('provides tracking info', () => {
     manager.exec(({ prompt }) => {
-      const tracking = prompt.track();
-      expect(tracking).toEqual({
+      expect(prompt.track()).toEqual({
         id: 'used-by-ci-dont-delete',
         version: '1.1',
         templates: [
           {
             id: 'template-a',
-            version: '1.0',
             template: 'Hello, {{ name }}! The weather is {{ weather }} today.',
           },
           {
             id: 'template-b',
-            version: '1.0',
             template: 'Hello, {{ optional? }}! My name is {{ name }}.',
           },
         ],
         params: {
-          version: '1.1',
           params: {
             frequencyPenalty: 0,
             maxTokens: 256,
@@ -255,29 +247,24 @@ describe('AutoblocksPromptManager v2.1', () => {
 
   it('provides tracking info', () => {
     manager.exec(({ prompt }) => {
-      const tracking = prompt.track();
-      expect(tracking).toEqual({
+      expect(prompt.track()).toEqual({
         id: 'used-by-ci-dont-delete',
         version: '2.1',
         templates: [
           {
             id: 'template-a',
-            version: '1.0',
             template: 'Hello, {{ name }}! The weather is {{ weather }} today.',
           },
           {
             id: 'template-b',
-            version: '1.1',
             template: 'Hello {{ optional? }}! My name is {{ name }}.',
           },
           {
             id: 'template-c',
-            version: '1.0',
             template: 'I am template c and I have no params',
           },
         ],
         params: {
-          version: '1.1',
           params: {
             frequencyPenalty: 0,
             maxTokens: 256,

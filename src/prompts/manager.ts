@@ -34,23 +34,23 @@ const isTestingContext = (): boolean => {
 };
 
 /**
- * The AUTOBLOCKS_PROMPT_SNAPSHOTS environment variable is a JSON-stringified
- * map of prompt IDs to snapshot IDs. This is set in CI test runs triggered
+ * The AUTOBLOCKS_PROMPT_REVISIONS environment variable is a JSON-stringified
+ * map of prompt IDs to revision IDs. This is set in CI test runs triggered
  * from the UI.
  */
-const promptSnapshotsMap = (): Record<string, string> => {
+const promptRevisionsMap = (): Record<string, string> => {
   if (!isTestingContext()) {
     return {};
   }
 
-  const promptSnapshotsRaw = readEnv(
-    AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS,
+  const promptRevisionsRaw = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS,
   );
-  if (!promptSnapshotsRaw) {
+  if (!promptRevisionsRaw) {
     return {};
   }
 
-  return JSON.parse(promptSnapshotsRaw);
+  return JSON.parse(promptRevisionsRaw);
 };
 
 const UNDEPLOYED = 'undeployed';
@@ -74,9 +74,9 @@ export class AutoblocksPromptManager<
   private prompts: Record<string, Prompt> = {};
 
   // Used in a testing context to override the prompt with
-  // a snapshot if AUTOBLOCKS_PROMPT_SNAPSHOTS is set for this
+  // a revision if AUTOBLOCKS_PROMPT_REVISIONS is set for this
   // prompt ID.
-  private promptSnapshot: Prompt | undefined = undefined;
+  private promptRevisionOverride: Prompt | undefined = undefined;
 
   private readonly refreshIntervalTimer: NodeJS.Timer | undefined;
   private readonly refreshTimeoutMs: number;
@@ -177,13 +177,13 @@ export class AutoblocksPromptManager<
     return `${API_ENDPOINT}/prompts/${promptId}/major/${majorVersion}/minor/${minorVersion}`;
   }
 
-  private makeSnapshotValidateOverrideRequestUrl(args: {
-    snapshotId: string;
+  private makeRevisionValidateOverrideRequestUrl(args: {
+    revisionId: string;
   }): string {
     const promptId = encodeURIComponent(this.id);
-    const snapshotId = encodeURIComponent(args.snapshotId);
+    const revisionId = encodeURIComponent(args.revisionId);
 
-    return `${API_ENDPOINT}/prompts/${promptId}/snapshots/${snapshotId}/validate`;
+    return `${API_ENDPOINT}/prompts/${promptId}/revisions/${revisionId}/validate`;
   }
 
   private async getPrompt(args: {
@@ -217,36 +217,38 @@ export class AutoblocksPromptManager<
   }
 
   /**
-   * If this prompt has a snapshot set, use the /validate endpoint to check if the
+   * If this prompt has a revision override set, use the /validate endpoint to check if the
    * major version this prompt manager is configured to use is compatible to be
-   * overridden with the snapshot.
+   * overridden with the revision.
    */
-  private async setPromptSnapshot(args: { snapshotId: string }): Promise<void> {
+  private async setPromptRevisionOverride(args: {
+    revisionId: string;
+  }): Promise<void> {
     // Double check we're in a testing context
     if (!isTestingContext()) {
       this.logger.error(
-        "Can't set prompt snapshot unless in a testing context.",
+        "Can't set prompt revision unless in a testing context.",
       );
       return;
     }
 
-    // Double check the given snapshotId belongs to this prompt manager
-    const expectedSnapshotId = promptSnapshotsMap()[this.id];
-    if (args.snapshotId !== expectedSnapshotId) {
+    // Double check the given revisionId belongs to this prompt manager
+    const expectedRevisionId = promptRevisionsMap()[this.id];
+    if (args.revisionId !== expectedRevisionId) {
       throw new Error(
-        `Snapshot ID '${args.snapshotId}' does not match the snapshot ID for this prompt manager '${expectedSnapshotId}'.`,
+        `Revision ID '${args.revisionId}' does not match the revision ID for this prompt manager '${expectedRevisionId}'.`,
       );
     }
 
     if (this.majorVersion === PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED) {
       throw new Error(
-        `Prompt snapshot overrides are not yet supported for prompt managers using 'dangerously-use-undeployed'.
+        `Prompt revision overrides are not yet supported for prompt managers using 'dangerously-use-undeployed'.
         Reach out to support@autoblocks.ai for more details.`,
       );
     }
 
-    const url = this.makeSnapshotValidateOverrideRequestUrl({
-      snapshotId: args.snapshotId,
+    const url = this.makeRevisionValidateOverrideRequestUrl({
+      revisionId: args.revisionId,
     });
     const resp = await fetch(url, {
       method: 'POST',
@@ -261,11 +263,11 @@ export class AutoblocksPromptManager<
     });
 
     if (resp.status === 409) {
-      // The /validate endpoint returns this status code when the snapshot is
+      // The /validate endpoint returns this status code when the revision is
       // not compatible with the major version this prompt manager
       // is configured to use.
       throw new Error(
-        `Can't override prompt '${this.id}' with snapshot '${args.snapshotId}' because it is not compatible with major version '${this.majorVersion}'.`,
+        `Can't override prompt '${this.id}' with revision '${args.revisionId}' because it is not compatible with major version '${this.majorVersion}'.`,
       );
     }
 
@@ -277,9 +279,9 @@ export class AutoblocksPromptManager<
     }
 
     this.logger.warn(
-      `Overriding prompt '${this.id}' with prompt snapshot '${args.snapshotId}'!`,
+      `Overriding prompt '${this.id}' with revision '${args.revisionId}'!`,
     );
-    this.promptSnapshot = zPromptSchema.parse(data);
+    this.promptRevisionOverride = zPromptSchema.parse(data);
   }
 
   private async refreshLatest(): Promise<void> {
@@ -313,15 +315,15 @@ export class AutoblocksPromptManager<
   }
 
   private async initUnsafe(): Promise<void> {
-    if (isTestingContext() && promptSnapshotsMap()[this.id]) {
-      // Set the prompt snapshot if we're in a testing context and a
-      // snapshot is set for this manager's prompt ID
-      const snapshotId = promptSnapshotsMap()[this.id];
-      await this.setPromptSnapshot({ snapshotId });
+    if (isTestingContext() && promptRevisionsMap()[this.id]) {
+      // Set the prompt revision override if we're in a testing context and a
+      // revision is set for this manager's prompt ID
+      const revisionId = promptRevisionsMap()[this.id];
+      await this.setPromptRevisionOverride({ revisionId });
       return;
     }
 
-    // Not in testing context or no snapshot set, proceed as configured
+    // Not in testing context or no revision override set, proceed as configured
     const prompts = await Promise.all(
       this.minorVersionsToRequest.map(async (minorVersion) => {
         const prompt = await this.getPrompt({
@@ -369,9 +371,9 @@ export class AutoblocksPromptManager<
   }
 
   private chooseExecutionPrompt(): Prompt | undefined {
-    if (isTestingContext() && this.promptSnapshot) {
-      // Always use the prompt snapshot if it is set
-      return this.promptSnapshot;
+    if (isTestingContext() && this.promptRevisionOverride) {
+      // Always use the prompt revision override if it is set
+      return this.promptRevisionOverride;
     } else if (
       this.majorVersion === PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED
     ) {
