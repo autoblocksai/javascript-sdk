@@ -496,12 +496,10 @@ describe('Autoblocks Tracer', () => {
           templates: [
             {
               id: 'my-prompt-template-id',
-              version: '1.0',
               template: 'my-prompt-template',
             },
           ],
           params: {
-            version: '1.2',
             params: {
               x: 1,
             },
@@ -522,12 +520,10 @@ describe('Autoblocks Tracer', () => {
             templates: [
               {
                 id: 'my-prompt-template-id',
-                version: '1.0',
                 template: 'my-prompt-template',
               },
             ],
             params: {
-              version: '1.2',
               params: {
                 x: 1,
               },

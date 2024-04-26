@@ -8,7 +8,7 @@ import { API_ENDPOINT, AutoblocksEnvVar } from '../../src/util';
 import { AutoblocksPromptManager } from '../../src/prompts';
 
 describe('Prompt Manager', () => {
-  describe('Snapshot Overrides', () => {
+  describe('Revision Overrides', () => {
     let mockFetch: jest.SpyInstance;
 
     const expectNumRequests = (num: number) => {
@@ -17,24 +17,23 @@ describe('Prompt Manager', () => {
 
     afterEach(() => {
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
-      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS];
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS];
     });
 
-    it('overrides with the prompt snapshot when the minor version is hardcoded', async () => {
+    it('overrides with the prompt revisions when the minor version is hardcoded', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
         JSON.stringify({
-          'my-prompt-id': 'my-snapshot-id',
+          'my-prompt-id': 'my-revision-id',
         });
 
-      const mockSnapshot = {
+      const mockRevision = {
         id: 'my-prompt-id',
-        version: 'snapshot:my-snapshot-id',
+        version: 'revision:my-revision-id',
         templates: [
           {
             id: 'my-template-id',
-            version: 'snapshot:my-snapshot-id',
             template: 'Hello, {{ name }}!',
           },
         ],
@@ -43,7 +42,7 @@ describe('Prompt Manager', () => {
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
-        json: () => Promise.resolve(mockSnapshot),
+        json: () => Promise.resolve(mockRevision),
       });
 
       const mgr = new AutoblocksPromptManager({
@@ -70,7 +69,7 @@ describe('Prompt Manager', () => {
 
       expectNumRequests(1);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_ENDPOINT}/prompts/my-prompt-id/snapshots/my-snapshot-id/validate`,
+        `${API_ENDPOINT}/prompts/my-prompt-id/revisions/my-revision-id/validate`,
         {
           method: 'POST',
           body: JSON.stringify({
@@ -86,21 +85,20 @@ describe('Prompt Manager', () => {
       );
     });
 
-    it('overrides with the prompt snapshot when the minor version is latest', async () => {
+    it('overrides with the prompt revision when the minor version is latest', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
         JSON.stringify({
-          'my-prompt-id': 'my-snapshot-id',
+          'my-prompt-id': 'my-revision-id',
         });
 
-      const mockSnapshot = {
+      const mockRevision = {
         id: 'my-prompt-id',
-        version: 'snapshot:my-snapshot-id',
+        version: 'revision:my-revision-id',
         templates: [
           {
             id: 'my-template-id',
-            version: 'snapshot:my-snapshot-id',
             template: 'Hello, {{ name }}!',
           },
         ],
@@ -109,7 +107,7 @@ describe('Prompt Manager', () => {
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
-        json: () => Promise.resolve(mockSnapshot),
+        json: () => Promise.resolve(mockRevision),
       });
 
       const mgr = new AutoblocksPromptManager({
@@ -136,7 +134,7 @@ describe('Prompt Manager', () => {
 
       expectNumRequests(1);
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_ENDPOINT}/prompts/my-prompt-id/snapshots/my-snapshot-id/validate`,
+        `${API_ENDPOINT}/prompts/my-prompt-id/revisions/my-revision-id/validate`,
         {
           method: 'POST',
           body: JSON.stringify({
@@ -152,12 +150,12 @@ describe('Prompt Manager', () => {
       );
     });
 
-    it('uses the configured version if the snapshot is for a different prompt manager', async () => {
+    it('uses the configured version if the revision is for a different prompt manager', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
         JSON.stringify({
-          'some-other-prompt-id': 'my-snapshot-id',
+          'some-other-prompt-id': 'my-revision-id',
         });
 
       const mockPrompt = {
@@ -166,7 +164,6 @@ describe('Prompt Manager', () => {
         templates: [
           {
             id: 'my-template-id',
-            version: '1.0',
             template: 'Hello, {{ name }}!',
           },
         ],
@@ -218,9 +215,9 @@ describe('Prompt Manager', () => {
     it('raises if the prompt is incompatible', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
         JSON.stringify({
-          'my-prompt-id': 'my-snapshot-id',
+          'my-prompt-id': 'my-revision-id',
         });
 
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -239,16 +236,16 @@ describe('Prompt Manager', () => {
       });
 
       expect(mgr.init()).rejects.toThrow(
-        "Can't override prompt 'my-prompt-id' with snapshot 'my-snapshot-id' because it is not compatible with major version '1'.",
+        "Can't override prompt 'my-prompt-id' with revision 'my-revision-id' because it is not compatible with major version '1'.",
       );
     });
 
     it('uses the configured version if not in a testing context', async () => {
       // CLI server address is not set, so we're not in a testing context
       // process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] = 'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_SNAPSHOTS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
         JSON.stringify({
-          'my-prompt-id': 'my-snapshot-id',
+          'my-prompt-id': 'my-revision-id',
         });
 
       const mockPrompt = {
@@ -257,7 +254,6 @@ describe('Prompt Manager', () => {
         templates: [
           {
             id: 'my-template-id',
-            version: '1.0',
             template: 'Hello, {{ name }}!',
           },
         ],

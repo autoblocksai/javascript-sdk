@@ -10,11 +10,9 @@ export interface PromptTracking {
   version: string;
   templates: {
     id: string;
-    version: string;
     template: string;
   }[];
   params?: {
-    version: string;
     params: Record<string, unknown>;
   };
 }
@@ -31,13 +29,11 @@ export const zPromptSchema = z.object({
   templates: z.array(
     z.object({
       id: z.string(),
-      version: z.string(),
       template: z.string(),
     }),
   ),
   params: z
     .object({
-      version: z.string(),
       params: z.record(z.string(), z.unknown()),
     })
     .nullish(),
