@@ -315,13 +315,14 @@ describe('AutoblocksPromptManager v1 weighted', () => {
   });
 });
 
-describe('Undeployed', () => {
+describe('Latest Undeployed', () => {
   const manager = new AutoblocksPromptManager({
     id: 'used-by-ci-dont-delete',
     version: {
       major: 'dangerously-use-undeployed',
-      minor: '',
+      minor: 'latest',
     },
+    apiKey: process.env.AUTOBLOCKS_API_KEY_USER,
   });
 
   beforeAll(async () => {
@@ -334,21 +335,60 @@ describe('Undeployed', () => {
 
   it('works', () => {
     manager.exec(({ prompt }) => {
-      expect(prompt.params).toBeDefined();
       expect(prompt.track().id).toEqual('used-by-ci-dont-delete');
-      expect(prompt.track().version).toEqual('undeployed');
+      expect(prompt.track().version.startsWith('revision:')).toBe(true);
+    });
+  });
+});
 
-      try {
-        // Just testing type checking here
-        prompt.render({
-          template: 'fdsa',
-          params: {
-            fdsa: 'fdsa',
+describe('Pinned Undeployed', () => {
+  const manager = new AutoblocksPromptManager({
+    id: 'used-by-ci-dont-delete',
+    version: {
+      major: 'dangerously-use-undeployed',
+      minor: 'clvig4j4l0003tskj39y42nys',
+    },
+    apiKey: process.env.AUTOBLOCKS_API_KEY_USER,
+  });
+
+  beforeAll(async () => {
+    await manager.init();
+  });
+
+  afterAll(() => {
+    manager.close();
+  });
+
+  it('works', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.track()).toEqual({
+        id: 'used-by-ci-dont-delete',
+        version: 'revision:clvig4j4l0003tskj39y42nys',
+        templates: [
+          {
+            id: 'template-a',
+            template: 'Hello, {{ name }}! The weather is {{ weather }} today!',
           },
-        });
-      } catch {
-        // expected
-      }
+          {
+            id: 'template-b',
+            template: 'Hello {{ optional? }}! My name is {{ name }}.',
+          },
+          {
+            id: 'template-c',
+            template: 'I am template c and I have no params',
+          },
+        ],
+        params: {
+          params: {
+            model: 'llama7b-v2-chat',
+            topK: 0,
+            maxTokens: 256,
+            temperature: 0.3,
+            topP: 1,
+            stopSequences: [],
+          },
+        },
+      });
     });
   });
 });
