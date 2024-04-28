@@ -70,7 +70,7 @@ export class AutoblocksConfig<T> {
     version: ConfigVersion;
     timeoutMs: number;
     apiKey: string;
-  }): Promise<Config | undefined> {
+  }): Promise<Config> {
     const url = this.makeRequestUrl({ id: args.id, version: args.version });
 
     const resp = await fetch(url, {
@@ -100,10 +100,6 @@ export class AutoblocksConfig<T> {
       ),
       apiKey: args.apiKey,
     });
-
-    if (!remoteConfig) {
-      return;
-    }
 
     if (args.parser) {
       try {
