@@ -5,14 +5,10 @@ import {
   readEnv,
   AUTOBLOCKS_HEADERS,
   convertTimeDeltaToMilliSeconds,
+  REVISION_UNDEPLOYED_VERSION,
+  RevisionSpecialVersionsEnum,
 } from '../util';
-import {
-  Config,
-  ConfigParameter,
-  ConfigSpecialVersion,
-  ConfigVersion,
-  zConfigSchema,
-} from './types';
+import { Config, ConfigParameter, ConfigVersion, zConfigSchema } from './types';
 
 /**
  * Note that we check for the presence of the CLI environment
@@ -56,8 +52,10 @@ export class AutoblocksConfig<T> {
   private makeRequestUrl(args: { id: string; version: ConfigVersion }): string {
     const configId = encodeURIComponent(args.id);
     let version: string;
-    if (args.version === ConfigSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED) {
-      version = 'undeployed';
+    if (
+      args.version === RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
+    ) {
+      version = REVISION_UNDEPLOYED_VERSION;
     } else {
       version = encodeURIComponent(args.version);
     }
@@ -124,14 +122,15 @@ export class AutoblocksConfig<T> {
       return revisionId;
     }
     if ('latest' in config) {
-      return ConfigSpecialVersion.LATEST;
-    } else if ('dangerouslyUseUndeployed' in config) {
-      return ConfigSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED;
+      return RevisionSpecialVersionsEnum.LATEST;
     } else if ('version' in config) {
       return config.version;
-    } else {
-      return config.revisionId;
     }
+
+    // Otherwise we are in the case of dangerouslyUseUndeployed
+    return 'latest' in config.dangerouslyUseUndeployed
+      ? RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
+      : config.dangerouslyUseUndeployed.revisionId;
   }
 
   private async activateRemoteConfigUnsafe(args: {
@@ -158,7 +157,7 @@ export class AutoblocksConfig<T> {
       parser: args.parser,
     });
 
-    if (version === ConfigSpecialVersion.LATEST && !isTestingContext()) {
+    if (version === RevisionSpecialVersionsEnum.LATEST && !isTestingContext()) {
       // Clear any existing interval timer in case they call this method multiple times.
       if (this.refreshIntervalTimer) {
         clearInterval(this.refreshIntervalTimer);

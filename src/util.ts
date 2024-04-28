@@ -26,10 +26,12 @@ export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   return totalSeconds * 1000 + milliseconds;
 };
 
-export enum PromptSpecialVersion {
+export enum RevisionSpecialVersionsEnum {
   LATEST = 'latest',
   DANGEROUSLY_USE_UNDEPLOYED = 'dangerously-use-undeployed',
 }
+
+export const REVISION_UNDEPLOYED_VERSION = 'undeployed';
 
 export const AUTOBLOCKS_HEADERS = {
   'Content-Type': 'application/json',

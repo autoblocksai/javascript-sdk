@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RevisionSpecialVersionsEnum } from '../util';
 
 export const zConfigSchema = z.object({
   id: z.string(),
@@ -8,12 +9,7 @@ export const zConfigSchema = z.object({
 
 export type Config = z.infer<typeof zConfigSchema>;
 
-export enum ConfigSpecialVersion {
-  LATEST = 'latest',
-  DANGEROUSLY_USE_UNDEPLOYED = 'dangerously-use-undeployed',
-}
-
-export type ConfigVersion = ConfigSpecialVersion | string;
+export type ConfigVersion = RevisionSpecialVersionsEnum | string;
 
 export const zConfigParameterSchema = z.union([
   z.object({
@@ -22,15 +18,18 @@ export const zConfigParameterSchema = z.union([
   }),
   z.object({
     id: z.string(),
-    dangerouslyUseUndeployed: z.literal(true),
-  }),
-  z.object({
-    id: z.string(),
     version: z.string(),
   }),
   z.object({
     id: z.string(),
-    revisionId: z.string(),
+    dangerouslyUseUndeployed: z.union([
+      z.object({
+        latest: z.literal(true),
+      }),
+      z.object({
+        revisionId: z.string(),
+      }),
+    ]),
   }),
 ]);
 

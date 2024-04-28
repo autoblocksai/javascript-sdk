@@ -275,7 +275,9 @@ describe('AutoblocksConfig', () => {
         await config.activateRemoteConfig({
           config: {
             id: 'my-config-id',
-            revisionId: 'my-revision-id',
+            dangerouslyUseUndeployed: {
+              revisionId: 'my-revision-id',
+            },
           },
           apiKey: 'mock-api-key',
         });
@@ -334,7 +336,9 @@ describe('AutoblocksConfig', () => {
         await config.activateRemoteConfig({
           config: {
             id: 'my-config-id',
-            dangerouslyUseUndeployed: true,
+            dangerouslyUseUndeployed: {
+              latest: true,
+            },
           },
           apiKey: 'mock-api-key',
         });
