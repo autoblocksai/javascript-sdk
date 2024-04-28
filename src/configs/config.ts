@@ -25,6 +25,26 @@ const isTestingContext = (): boolean => {
   return readEnv(AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS) !== undefined;
 };
 
+/**
+ * The AUTOBLOCKS_CONFIG_REVISIONS environment variable is a JSON-stringified
+ * map of config IDs to revision IDs. This is set in CI test runs triggered
+ * from the UI.
+ */
+const configRevisionsMap = (): Record<string, string> => {
+  if (!isTestingContext()) {
+    return {};
+  }
+
+  const configRevisionsRaw = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS,
+  );
+  if (!configRevisionsRaw) {
+    return {};
+  }
+
+  return JSON.parse(configRevisionsRaw);
+};
+
 export class AutoblocksConfig<T> {
   private _value: T;
   private refreshIntervalTimer: NodeJS.Timer | undefined;
@@ -102,7 +122,11 @@ export class AutoblocksConfig<T> {
   }
 
   private makeVersionFromConfigParameter(config: ConfigParameter): string {
-    // TODO: Handle override when running in test context.
+    // Overide the version using the revisionId in the map if it exists
+    const revisionId = configRevisionsMap()[config.id];
+    if (revisionId) {
+      return revisionId;
+    }
     if ('latest' in config) {
       return ConfigSpecialVersion.LATEST;
     } else if ('dangerouslyUseUndeployed' in config) {
