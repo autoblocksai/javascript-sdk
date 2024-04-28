@@ -161,18 +161,16 @@ export class AutoblocksPromptManager<
     const promptId = encodeURIComponent(this.id);
 
     let majorVersion: string;
-    let minorVersion: string;
+    let minorVersion: string = args.minorVersion;
 
     if (this.majorVersion === PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED) {
       majorVersion = UNDEPLOYED;
-      minorVersion = UNDEPLOYED;
     } else {
       majorVersion = this.majorVersion;
-      minorVersion = args.minorVersion;
     }
 
-    minorVersion = encodeURIComponent(minorVersion);
     majorVersion = encodeURIComponent(majorVersion);
+    minorVersion = encodeURIComponent(minorVersion);
 
     return `${API_ENDPOINT}/prompts/${promptId}/major/${majorVersion}/minor/${minorVersion}`;
   }
