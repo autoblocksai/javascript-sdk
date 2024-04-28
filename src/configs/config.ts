@@ -8,6 +8,7 @@ import {
 } from '../util';
 import {
   Config,
+  ConfigParameter,
   ConfigSpecialVersion,
   ConfigVersion,
   zConfigSchema,
@@ -41,24 +42,16 @@ export class AutoblocksConfig<T> {
   }): Promise<Config | undefined> {
     const url = this.makeRequestUrl({ id: args.id, version: args.version });
 
-    try {
-      const resp = await fetch(url, {
-        method: 'GET',
-        headers: {
-          ...AUTOBLOCKS_HEADERS,
-          Authorization: `Bearer ${args.apiKey}`,
-        },
-        signal: AbortSignal.timeout(args.timeoutMs),
-      });
-      const data = await resp.json();
-      return zConfigSchema.parse(data);
-    } catch (err) {
-      console.error(
-        `Failed to fetch config '${args.id}' version v${args.version}: ${err}`,
-      );
-    }
-
-    return undefined;
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+        Authorization: `Bearer ${args.apiKey}`,
+      },
+      signal: AbortSignal.timeout(args.timeoutMs),
+    });
+    const data = await resp.json();
+    return zConfigSchema.parse(data);
   }
 
   private async loadAndSetRemoteConfig(args: {
@@ -88,7 +81,7 @@ export class AutoblocksConfig<T> {
           this._value = parsed;
         }
       } catch (err) {
-        console.error(
+        throw new Error(
           `Failed to parse config '${args.id}' version v'${args.version}': ${err}`,
         );
       }
@@ -97,9 +90,20 @@ export class AutoblocksConfig<T> {
     }
   }
 
-  public async activateRemoteConfig(args: {
-    id: string;
-    version: ConfigVersion;
+  private makeVersionFromConfigParameter(config: ConfigParameter): string {
+    if ('latest' in config) {
+      return ConfigSpecialVersion.LATEST;
+    } else if ('dangerouslyUseUndeployed' in config) {
+      return ConfigSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED;
+    } else if ('version' in config) {
+      return config.version;
+    } else {
+      return config.revisionId;
+    }
+  }
+
+  private async activateRemoteConfigUnsafe(args: {
+    config: ConfigParameter;
     apiKey?: string;
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
@@ -108,36 +112,59 @@ export class AutoblocksConfig<T> {
   }) {
     const apiKey = args.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
     if (!apiKey) {
-      console.error(
-        `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable to activate remote config id '${args.id}'.`,
+      throw new Error(
+        `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable.`,
       );
-      return;
     }
+    const version = this.makeVersionFromConfigParameter(args.config);
 
     await this.loadAndSetRemoteConfig({
-      id: args.id,
-      version: args.version,
+      id: args.config.id,
+      version,
       apiKey,
       timeout: args.activateTimeout,
       parser: args.parser,
     });
 
-    if (args.version === ConfigSpecialVersion.LATEST) {
+    if (version === ConfigSpecialVersion.LATEST) {
       // Clear any existing interval timer in case they call this method multiple times.
       if (this.refreshIntervalTimer) {
         clearInterval(this.refreshIntervalTimer);
       }
       this.refreshIntervalTimer = setInterval(
         async () => {
-          await this.loadAndSetRemoteConfig({
-            id: args.id,
-            version: args.version,
-            apiKey,
-            timeout: args.refreshTimeout,
-            parser: args.parser,
-          });
+          try {
+            await this.loadAndSetRemoteConfig({
+              id: args.config.id,
+              version,
+              apiKey,
+              timeout: args.refreshTimeout,
+              parser: args.parser,
+            });
+          } catch (err) {
+            console.error(
+              `Failed to refresh config '${args.config.id}' version v${version}: ${err}`,
+            );
+          }
         },
         convertTimeDeltaToMilliSeconds(args.refreshInterval || { minutes: 5 }),
+      );
+    }
+  }
+
+  public async activateRemoteConfig(args: {
+    config: ConfigParameter;
+    apiKey?: string;
+    refreshInterval?: TimeDelta;
+    refreshTimeout?: TimeDelta;
+    activateTimeout?: TimeDelta;
+    parser?: (config: unknown) => T | undefined;
+  }) {
+    try {
+      await this.activateRemoteConfigUnsafe(args);
+    } catch (err) {
+      console.error(
+        `Failed to activate remote config '${args.config.id}': ${err}`,
       );
     }
   }

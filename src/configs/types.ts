@@ -14,3 +14,24 @@ export enum ConfigSpecialVersion {
 }
 
 export type ConfigVersion = ConfigSpecialVersion | string;
+
+export const zConfigParameterSchema = z.union([
+  z.object({
+    id: z.string(),
+    latest: z.literal(true),
+  }),
+  z.object({
+    id: z.string(),
+    dangerouslyUseUndeployed: z.literal(true),
+  }),
+  z.object({
+    id: z.string(),
+    version: z.string(),
+  }),
+  z.object({
+    id: z.string(),
+    revisionId: z.string(),
+  }),
+]);
+
+export type ConfigParameter = z.infer<typeof zConfigParameterSchema>;

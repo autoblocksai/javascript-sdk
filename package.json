@@ -57,7 +57,7 @@
     "type-check": "tsc --skipLibCheck --noEmit",
     "format": "prettier --write .",
     "lint": "eslint --ext .ts --max-warnings 0 .",
-    "test": "TZ=UTC jest test/configs/config",
+    "test": "TZ=UTC jest",
     "prepare": "husky install & npm run build"
   },
   "homepage": "https://github.com/autoblocksai/javascript-sdk",
