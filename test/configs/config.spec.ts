@@ -1,5 +1,6 @@
 import { AutoblocksConfig } from '../../src/configs';
 import { z } from 'zod';
+import { AutoblocksEnvVar } from '../../src/util';
 
 describe('AutoblocksConfig', () => {
   it('sets and gets default values', () => {
@@ -13,6 +14,11 @@ describe('AutoblocksConfig', () => {
     const expectNumRequests = (num: number) => {
       expect(mockFetch).toHaveBeenCalledTimes(num);
     };
+
+    afterEach(() => {
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS];
+    });
 
     it('activates a remote config without a parser', async () => {
       const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
@@ -165,6 +171,39 @@ describe('AutoblocksConfig', () => {
       await sleep(1_001);
       config.close();
       expectNumRequests(2);
+    }, 5000);
+
+    it('does not refresh in testing context', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
+        'http://localhost:3000';
+      const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
+      const mockConfig = {
+        id: 'my-config-id',
+        version: '1',
+        value: {
+          foo: 'bar',
+        },
+      };
+      // @ts-expect-error we don't need to mock everything here...
+      mockFetch = jest.spyOn(global, 'fetch').mockResolvedValue({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve(mockConfig),
+      });
+
+      await config.activateRemoteConfig({
+        config: {
+          id: 'my-config-id',
+          latest: true,
+        },
+        apiKey: 'mock-api-key',
+        refreshInterval: { seconds: 1 },
+      });
+      const sleep = (ms: number) =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+      await sleep(1_001);
+      config.close();
+      expectNumRequests(1);
     }, 5000);
 
     describe('Correctly Maps API Request', () => {

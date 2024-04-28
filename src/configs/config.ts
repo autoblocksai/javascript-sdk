@@ -14,6 +14,17 @@ import {
   zConfigSchema,
 } from './types';
 
+/**
+ * Note that we check for the presence of the CLI environment
+ * variable and not the test case local storage because the
+ * local storage vars aren't set until runTestSuite is called,
+ * whereas a AutoblocksConfig might have already been imported
+ * and activated by the time runTestSuite is called.
+ */
+const isTestingContext = (): boolean => {
+  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS) !== undefined;
+};
+
 export class AutoblocksConfig<T> {
   private _value: T;
   private refreshIntervalTimer: NodeJS.Timer | undefined;
@@ -91,6 +102,7 @@ export class AutoblocksConfig<T> {
   }
 
   private makeVersionFromConfigParameter(config: ConfigParameter): string {
+    // TODO: Handle override when running in test context.
     if ('latest' in config) {
       return ConfigSpecialVersion.LATEST;
     } else if ('dangerouslyUseUndeployed' in config) {
@@ -126,7 +138,7 @@ export class AutoblocksConfig<T> {
       parser: args.parser,
     });
 
-    if (version === ConfigSpecialVersion.LATEST) {
+    if (version === ConfigSpecialVersion.LATEST && !isTestingContext()) {
       // Clear any existing interval timer in case they call this method multiple times.
       if (this.refreshIntervalTimer) {
         clearInterval(this.refreshIntervalTimer);
