@@ -17,7 +17,7 @@ describe('AutoblocksConfig', () => {
 
     afterEach(() => {
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
-      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS];
+      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS];
     });
 
     it('activates a remote config without a parser', async () => {
