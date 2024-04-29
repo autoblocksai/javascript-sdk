@@ -12,6 +12,7 @@
     "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
   },
   "dependencies": {
+    "@autoblocks/client": "file:.yalc/@autoblocks/client",
     "@types/jest": "*",
     "jest": "*",
     "nodemon": "*",
