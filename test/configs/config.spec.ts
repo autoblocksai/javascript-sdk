@@ -20,95 +20,7 @@ describe('AutoblocksConfig', () => {
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS];
     });
 
-    it('activates a remote config without a parser', async () => {
-      const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
-        id: 'my-config-id',
-        version: '1',
-        value: {
-          foo: 'foo',
-        },
-      };
-      // @ts-expect-error we don't need to mock everything here...
-      mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockConfig),
-      });
-
-      await config.activateFromRemote({
-        config: {
-          id: 'my-config-id',
-          version: '1',
-        },
-        apiKey: 'mock-api-key',
-      });
-      expectNumRequests(1);
-      expect(config.value).toEqual({ foo: 'foo' });
-    });
-
-    it('activates a remote config without a parser and sets values to whatever comes back from api', async () => {
-      const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
-        id: 'my-config-id',
-        version: '1',
-        value: {
-          random: 'bar',
-        },
-      };
-      // @ts-expect-error we don't need to mock everything here...
-      mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockConfig),
-      });
-
-      await config.activateFromRemote({
-        config: {
-          id: 'my-config-id',
-          version: '1',
-        },
-        apiKey: 'mock-api-key',
-      });
-      expectNumRequests(1);
-      expect(config.value).toEqual({ random: 'bar' });
-    });
-
-    it('activates a remote config with a parser', async () => {
-      const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
-        id: 'my-config-id',
-        version: '1',
-        value: {
-          foo: 'foo',
-        },
-      };
-      // @ts-expect-error we don't need to mock everything here...
-      mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockConfig),
-      });
-
-      await config.activateFromRemote({
-        config: {
-          id: 'my-config-id',
-          version: '1',
-        },
-        apiKey: 'mock-api-key',
-        parser: (config) => {
-          return z
-            .object({
-              foo: z.string(),
-            })
-            .parse(config);
-        },
-      });
-      expectNumRequests(1);
-      expect(config.value).toEqual({ foo: 'foo' });
-    });
-
-    it('activates a remote config with a parser and handles error', async () => {
+    it('gracefully handles error in parser', async () => {
       const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
       const mockConfig = {
         id: 'my-config-id',
@@ -165,6 +77,13 @@ describe('AutoblocksConfig', () => {
         },
         apiKey: 'mock-api-key',
         refreshInterval: { seconds: 1 },
+        parser: (config) => {
+          return z
+            .object({
+              foo: z.string(),
+            })
+            .parse(config);
+        },
       });
       expect(config.value).toEqual({ foo: 'foo' });
 
@@ -216,6 +135,13 @@ describe('AutoblocksConfig', () => {
         },
         apiKey: 'mock-api-key',
         refreshInterval: { seconds: 1 },
+        parser: (config) => {
+          return z
+            .object({
+              foo: z.string(),
+            })
+            .parse(config);
+        },
       });
       expect(config.value).toEqual({ foo: 'foo' });
 
@@ -267,6 +193,13 @@ describe('AutoblocksConfig', () => {
         },
         apiKey: 'mock-api-key',
         refreshInterval: { seconds: 1 },
+        parser: (config) => {
+          return z
+            .object({
+              foo: z.string(),
+            })
+            .parse(config);
+        },
       });
       const sleep = (ms: number) =>
         new Promise((resolve) => setTimeout(resolve, ms));
@@ -286,7 +219,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            random: 'bar',
+            foo: 'bar',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -302,6 +235,13 @@ describe('AutoblocksConfig', () => {
             version: '1',
           },
           apiKey: 'mock-api-key',
+          parser: (config) => {
+            return z
+              .object({
+                foo: z.string(),
+              })
+              .parse(config);
+          },
         });
         expectNumRequests(1);
         expectApiUrl(
@@ -315,7 +255,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            random: 'bar',
+            foo: 'bar',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -333,6 +273,13 @@ describe('AutoblocksConfig', () => {
           apiKey: 'mock-api-key',
           // set high so test is deterministic
           refreshInterval: { minutes: 30 },
+          parser: (config) => {
+            return z
+              .object({
+                foo: z.string(),
+              })
+              .parse(config);
+          },
         });
         expectNumRequests(1);
         expectApiUrl(
@@ -347,7 +294,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            random: 'bar',
+            foo: 'bar',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -365,6 +312,13 @@ describe('AutoblocksConfig', () => {
             },
           },
           apiKey: 'mock-api-key',
+          parser: (config) => {
+            return z
+              .object({
+                foo: z.string(),
+              })
+              .parse(config);
+          },
         });
         expectNumRequests(1);
         expectApiUrl(
@@ -378,7 +332,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            random: 'bar',
+            foo: 'bar',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -396,6 +350,13 @@ describe('AutoblocksConfig', () => {
             },
           },
           apiKey: 'mock-api-key',
+          parser: (config) => {
+            return z
+              .object({
+                foo: z.string(),
+              })
+              .parse(config);
+          },
         });
         expectNumRequests(1);
         expectApiUrl(
@@ -433,6 +394,13 @@ describe('AutoblocksConfig', () => {
           },
           apiKey: 'mock-api-key',
           refreshInterval: { seconds: 1 },
+          parser: (config) => {
+            return z
+              .object({
+                foo: z.string(),
+              })
+              .parse(config);
+          },
         });
         expectNumRequests(1);
         expectApiUrl(

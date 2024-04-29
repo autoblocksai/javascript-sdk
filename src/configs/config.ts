@@ -100,7 +100,7 @@ export class AutoblocksConfig<T> {
     config: RemoteConfig;
     apiKey: string;
     timeout?: TimeDelta;
-    parser?: (config: unknown) => T | undefined;
+    parser: (config: unknown) => T | undefined;
   }) {
     const remoteConfig = await this.getRemoteConfig({
       config: args.config,
@@ -110,17 +110,13 @@ export class AutoblocksConfig<T> {
       apiKey: args.apiKey,
     });
 
-    if (args.parser) {
-      try {
-        const parsed = args.parser(remoteConfig.value);
-        if (parsed !== undefined) {
-          this._value = parsed;
-        }
-      } catch (err) {
-        throw new Error(`Failed to parse config '${args.config.id}': ${err}`);
+    try {
+      const parsed = args.parser(remoteConfig.value);
+      if (parsed !== undefined) {
+        this._value = parsed;
       }
-    } else {
-      this._value = remoteConfig.value as T;
+    } catch (err) {
+      throw new Error(`Failed to parse config '${args.config.id}': ${err}`);
     }
   }
 
@@ -130,7 +126,7 @@ export class AutoblocksConfig<T> {
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
     activateTimeout?: TimeDelta;
-    parser?: (config: unknown) => T | undefined;
+    parser: (config: unknown) => T | undefined;
   }) {
     const apiKey = args.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
     if (!apiKey) {
@@ -180,7 +176,7 @@ export class AutoblocksConfig<T> {
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
     activateTimeout?: TimeDelta;
-    parser?: (config: unknown) => T | undefined;
+    parser: (config: unknown) => T | undefined;
   }) {
     try {
       await this.activateFromRemoteUnsafe(args);
