@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {
   readEnv,
   AutoblocksEnvVar,
-  PromptSpecialVersion,
+  RevisionSpecialVersionsEnum,
   AUTOBLOCKS_HEADERS,
   API_ENDPOINT,
 } from '../util';
@@ -54,7 +54,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
           // Use `any` for everything when version is set to `undeployed`.
           // Allows the user to use any template or model params while
           // working with an undeployed prompt in the UI
-          generated += `\n    '${PromptSpecialVersion.DANGEROUSLY_USE_UNDEPLOYED}': {`;
+          generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': {`;
           generated += `\n      templates: any;`;
           generated += `\n      params: any;`;
           generated += `\n      minorVersions: any;`;
@@ -114,7 +114,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
             const minorVersions = promptsByMajorVersion.map(
               (prompt) => prompt.minorVersion,
             );
-            minorVersions.push(PromptSpecialVersion.LATEST);
+            minorVersions.push(RevisionSpecialVersionsEnum.LATEST);
 
             generated += `\n      minorVersions: '${minorVersions
               .sort()

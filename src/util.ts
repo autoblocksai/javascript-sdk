@@ -10,6 +10,7 @@ export enum AutoblocksEnvVar {
   AUTOBLOCKS_TRACER_THROW_ON_ERROR = 'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
   AUTOBLOCKS_CLI_SERVER_ADDRESS = 'AUTOBLOCKS_CLI_SERVER_ADDRESS',
   AUTOBLOCKS_PROMPT_REVISIONS = 'AUTOBLOCKS_PROMPT_REVISIONS',
+  AUTOBLOCKS_CONFIG_REVISIONS = 'AUTOBLOCKS_CONFIG_REVISIONS',
 }
 
 export const readEnv = (key: string): string | undefined => {
@@ -25,10 +26,12 @@ export const convertTimeDeltaToMilliSeconds = (delta: TimeDelta): number => {
   return totalSeconds * 1000 + milliseconds;
 };
 
-export enum PromptSpecialVersion {
+export enum RevisionSpecialVersionsEnum {
   LATEST = 'latest',
   DANGEROUSLY_USE_UNDEPLOYED = 'dangerously-use-undeployed',
 }
+
+export const REVISION_UNDEPLOYED_VERSION = 'undeployed';
 
 export const AUTOBLOCKS_HEADERS = {
   'Content-Type': 'application/json',
