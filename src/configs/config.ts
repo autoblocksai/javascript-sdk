@@ -7,7 +7,7 @@ import {
   convertTimeDeltaToMilliSeconds,
   RevisionSpecialVersionsEnum,
 } from '../util';
-import { Config, RemoteConfig, zConfigSchema } from './types';
+import { ConfigResponse, RemoteConfig, zConfigResponseSchema } from './types';
 
 /**
  * Note that we check for the presence of the CLI environment
@@ -81,7 +81,7 @@ export class AutoblocksConfig<T> {
     config: RemoteConfig;
     timeoutMs: number;
     apiKey: string;
-  }): Promise<Config> {
+  }): Promise<ConfigResponse> {
     const url = this.makeRequestUrl({ config: args.config });
 
     const resp = await fetch(url, {
@@ -93,7 +93,7 @@ export class AutoblocksConfig<T> {
       signal: AbortSignal.timeout(args.timeoutMs),
     });
     const data = await resp.json();
-    return zConfigSchema.parse(data);
+    return zConfigResponseSchema.parse(data);
   }
 
   private async loadAndSetRemoteConfig(args: {
