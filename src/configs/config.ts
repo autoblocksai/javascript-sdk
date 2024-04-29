@@ -5,10 +5,9 @@ import {
   readEnv,
   AUTOBLOCKS_HEADERS,
   convertTimeDeltaToMilliSeconds,
-  REVISION_UNDEPLOYED_VERSION,
   RevisionSpecialVersionsEnum,
 } from '../util';
-import { Config, ConfigParameter, ConfigVersion, zConfigSchema } from './types';
+import { Config, RemoteConfig, zConfigSchema } from './types';
 
 /**
  * Note that we check for the presence of the CLI environment
@@ -49,27 +48,40 @@ export class AutoblocksConfig<T> {
     this._value = value;
   }
 
-  private makeRequestUrl(args: { id: string; version: ConfigVersion }): string {
-    const configId = encodeURIComponent(args.id);
-    let version: string;
-    if (
-      args.version === RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
-    ) {
-      version = REVISION_UNDEPLOYED_VERSION;
-    } else {
-      version = encodeURIComponent(args.version);
+  private isRemoteConfigRefreshable(args: { remoteConfig: RemoteConfig }) {
+    return (
+      'latest' in args.remoteConfig ||
+      ('dangerouslyUseUndeployed' in args.remoteConfig &&
+        'latest' in args.remoteConfig.dangerouslyUseUndeployed)
+    );
+  }
+
+  private makeRequestUrl(args: { remoteConfig: RemoteConfig }): string {
+    const configId = encodeURIComponent(args.remoteConfig.id);
+    const base = `${API_ENDPOINT}/configs/${configId}`;
+    // Overide the version using the revisionId in the map if it exists
+    const revisionId = configRevisionsMap()[args.remoteConfig.id];
+    if (revisionId) {
+      return `${base}/revisions/${revisionId}`;
+    }
+    if ('latest' in args.remoteConfig) {
+      return `${base}/versions/${RevisionSpecialVersionsEnum.LATEST}`;
+    } else if ('version' in args.remoteConfig) {
+      return `${base}/versions/${args.remoteConfig.version}`;
     }
 
-    return `${API_ENDPOINT}/configs/${configId}/${version}`;
+    // Otherwise we are in the case of dangerouslyUseUndeployed
+    return 'latest' in args.remoteConfig.dangerouslyUseUndeployed
+      ? `${base}/revisions/${RevisionSpecialVersionsEnum.LATEST}`
+      : `${base}/revisions/${args.remoteConfig.dangerouslyUseUndeployed.revisionId}`;
   }
 
   private async getConfig(args: {
-    id: string;
-    version: ConfigVersion;
+    remoteConfig: RemoteConfig;
     timeoutMs: number;
     apiKey: string;
   }): Promise<Config> {
-    const url = this.makeRequestUrl({ id: args.id, version: args.version });
+    const url = this.makeRequestUrl({ remoteConfig: args.remoteConfig });
 
     const resp = await fetch(url, {
       method: 'GET',
@@ -84,15 +96,13 @@ export class AutoblocksConfig<T> {
   }
 
   private async loadAndSetRemoteConfig(args: {
-    id: string;
-    version: ConfigVersion;
+    remoteConfig: RemoteConfig;
     apiKey: string;
     timeout?: TimeDelta;
     parser?: (config: unknown) => T | undefined;
   }) {
     const remoteConfig = await this.getConfig({
-      id: args.id,
-      version: args.version,
+      remoteConfig: args.remoteConfig,
       timeoutMs: convertTimeDeltaToMilliSeconds(
         args.timeout || { seconds: 10 },
       ),
@@ -107,7 +117,7 @@ export class AutoblocksConfig<T> {
         }
       } catch (err) {
         throw new Error(
-          `Failed to parse config '${args.id}' version v'${args.version}': ${err}`,
+          `Failed to parse config '${args.remoteConfig.id}': ${err}`,
         );
       }
     } else {
@@ -115,26 +125,8 @@ export class AutoblocksConfig<T> {
     }
   }
 
-  private makeVersionFromConfigParameter(config: ConfigParameter): string {
-    // Overide the version using the revisionId in the map if it exists
-    const revisionId = configRevisionsMap()[config.id];
-    if (revisionId) {
-      return revisionId;
-    }
-    if ('latest' in config) {
-      return RevisionSpecialVersionsEnum.LATEST;
-    } else if ('version' in config) {
-      return config.version;
-    }
-
-    // Otherwise we are in the case of dangerouslyUseUndeployed
-    return 'latest' in config.dangerouslyUseUndeployed
-      ? RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
-      : config.dangerouslyUseUndeployed.revisionId;
-  }
-
   private async activateRemoteConfigUnsafe(args: {
-    config: ConfigParameter;
+    remoteConfig: RemoteConfig;
     apiKey?: string;
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
@@ -147,17 +139,18 @@ export class AutoblocksConfig<T> {
         `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable.`,
       );
     }
-    const version = this.makeVersionFromConfigParameter(args.config);
 
     await this.loadAndSetRemoteConfig({
-      id: args.config.id,
-      version,
+      remoteConfig: args.remoteConfig,
       apiKey,
       timeout: args.activateTimeout,
       parser: args.parser,
     });
 
-    if (version === RevisionSpecialVersionsEnum.LATEST && !isTestingContext()) {
+    if (
+      this.isRemoteConfigRefreshable({ remoteConfig: args.remoteConfig }) &&
+      !isTestingContext()
+    ) {
       // Clear any existing interval timer in case they call this method multiple times.
       if (this.refreshIntervalTimer) {
         clearInterval(this.refreshIntervalTimer);
@@ -166,15 +159,14 @@ export class AutoblocksConfig<T> {
         async () => {
           try {
             await this.loadAndSetRemoteConfig({
-              id: args.config.id,
-              version,
+              remoteConfig: args.remoteConfig,
               apiKey,
               timeout: args.refreshTimeout,
               parser: args.parser,
             });
           } catch (err) {
             console.error(
-              `Failed to refresh config '${args.config.id}' version v${version}: ${err}`,
+              `Failed to refresh config '${args.remoteConfig.id}': ${err}`,
             );
           }
         },
@@ -184,7 +176,7 @@ export class AutoblocksConfig<T> {
   }
 
   public async activateRemoteConfig(args: {
-    config: ConfigParameter;
+    remoteConfig: RemoteConfig;
     apiKey?: string;
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
@@ -195,7 +187,7 @@ export class AutoblocksConfig<T> {
       await this.activateRemoteConfigUnsafe(args);
     } catch (err) {
       console.error(
-        `Failed to activate remote config '${args.config.id}': ${err}`,
+        `Failed to activate remote config '${args.remoteConfig.id}': ${err}`,
       );
     }
   }

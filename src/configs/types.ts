@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { RevisionSpecialVersionsEnum } from '../util';
 
 export const zConfigSchema = z.object({
   id: z.string(),
@@ -9,9 +8,7 @@ export const zConfigSchema = z.object({
 
 export type Config = z.infer<typeof zConfigSchema>;
 
-export type ConfigVersion = RevisionSpecialVersionsEnum | string;
-
-export const zConfigParameterSchema = z.union([
+export const zRemoteConfigSchema = z.union([
   z.object({
     id: z.string(),
     latest: z.literal(true),
@@ -33,4 +30,4 @@ export const zConfigParameterSchema = z.union([
   }),
 ]);
 
-export type ConfigParameter = z.infer<typeof zConfigParameterSchema>;
+export type RemoteConfig = z.infer<typeof zRemoteConfigSchema>;
