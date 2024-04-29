@@ -48,40 +48,41 @@ export class AutoblocksConfig<T> {
     this._value = value;
   }
 
-  private isRemoteConfigRefreshable(args: { remoteConfig: RemoteConfig }) {
+  private isRemoteConfigRefreshable(args: { config: RemoteConfig }) {
     return (
-      'latest' in args.remoteConfig ||
-      ('dangerouslyUseUndeployed' in args.remoteConfig &&
-        'latest' in args.remoteConfig.dangerouslyUseUndeployed)
+      'latest' in args.config ||
+      ('dangerouslyUseUndeployed' in args.config &&
+        'latest' in args.config.dangerouslyUseUndeployed)
     );
   }
 
-  private makeRequestUrl(args: { remoteConfig: RemoteConfig }): string {
-    const configId = encodeURIComponent(args.remoteConfig.id);
+  private makeRequestUrl(args: { config: RemoteConfig }): string {
+    const configId = encodeURIComponent(args.config.id);
     const base = `${API_ENDPOINT}/configs/${configId}`;
     // Overide the version using the revisionId in the map if it exists
-    const revisionId = configRevisionsMap()[args.remoteConfig.id];
-    if (revisionId) {
+    const revisionId = configRevisionsMap()[args.config.id];
+    // we only use the override in testing context
+    if (revisionId && isTestingContext()) {
       return `${base}/revisions/${revisionId}`;
     }
-    if ('latest' in args.remoteConfig) {
+    if ('latest' in args.config) {
       return `${base}/versions/${RevisionSpecialVersionsEnum.LATEST}`;
-    } else if ('version' in args.remoteConfig) {
-      return `${base}/versions/${args.remoteConfig.version}`;
+    } else if ('version' in args.config) {
+      return `${base}/versions/${args.config.version}`;
     }
 
     // Otherwise we are in the case of dangerouslyUseUndeployed
-    return 'latest' in args.remoteConfig.dangerouslyUseUndeployed
+    return 'latest' in args.config.dangerouslyUseUndeployed
       ? `${base}/revisions/${RevisionSpecialVersionsEnum.LATEST}`
-      : `${base}/revisions/${args.remoteConfig.dangerouslyUseUndeployed.revisionId}`;
+      : `${base}/revisions/${args.config.dangerouslyUseUndeployed.revisionId}`;
   }
 
-  private async getConfig(args: {
-    remoteConfig: RemoteConfig;
+  private async getRemoteConfig(args: {
+    config: RemoteConfig;
     timeoutMs: number;
     apiKey: string;
   }): Promise<Config> {
-    const url = this.makeRequestUrl({ remoteConfig: args.remoteConfig });
+    const url = this.makeRequestUrl({ config: args.config });
 
     const resp = await fetch(url, {
       method: 'GET',
@@ -96,13 +97,13 @@ export class AutoblocksConfig<T> {
   }
 
   private async loadAndSetRemoteConfig(args: {
-    remoteConfig: RemoteConfig;
+    config: RemoteConfig;
     apiKey: string;
     timeout?: TimeDelta;
     parser?: (config: unknown) => T | undefined;
   }) {
-    const remoteConfig = await this.getConfig({
-      remoteConfig: args.remoteConfig,
+    const remoteConfig = await this.getRemoteConfig({
+      config: args.config,
       timeoutMs: convertTimeDeltaToMilliSeconds(
         args.timeout || { seconds: 10 },
       ),
@@ -116,17 +117,15 @@ export class AutoblocksConfig<T> {
           this._value = parsed;
         }
       } catch (err) {
-        throw new Error(
-          `Failed to parse config '${args.remoteConfig.id}': ${err}`,
-        );
+        throw new Error(`Failed to parse config '${args.config.id}': ${err}`);
       }
     } else {
       this._value = remoteConfig.value as T;
     }
   }
 
-  private async activateRemoteConfigUnsafe(args: {
-    remoteConfig: RemoteConfig;
+  private async activateFromRemoteUnsafe(args: {
+    config: RemoteConfig;
     apiKey?: string;
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
@@ -141,14 +140,14 @@ export class AutoblocksConfig<T> {
     }
 
     await this.loadAndSetRemoteConfig({
-      remoteConfig: args.remoteConfig,
+      config: args.config,
       apiKey,
       timeout: args.activateTimeout,
       parser: args.parser,
     });
 
     if (
-      this.isRemoteConfigRefreshable({ remoteConfig: args.remoteConfig }) &&
+      this.isRemoteConfigRefreshable({ config: args.config }) &&
       !isTestingContext()
     ) {
       // Clear any existing interval timer in case they call this method multiple times.
@@ -159,14 +158,14 @@ export class AutoblocksConfig<T> {
         async () => {
           try {
             await this.loadAndSetRemoteConfig({
-              remoteConfig: args.remoteConfig,
+              config: args.config,
               apiKey,
               timeout: args.refreshTimeout,
               parser: args.parser,
             });
           } catch (err) {
             console.error(
-              `Failed to refresh config '${args.remoteConfig.id}': ${err}`,
+              `Failed to refresh config '${args.config.id}': ${err}`,
             );
           }
         },
@@ -175,8 +174,8 @@ export class AutoblocksConfig<T> {
     }
   }
 
-  public async activateRemoteConfig(args: {
-    remoteConfig: RemoteConfig;
+  public async activateFromRemote(args: {
+    config: RemoteConfig;
     apiKey?: string;
     refreshInterval?: TimeDelta;
     refreshTimeout?: TimeDelta;
@@ -184,10 +183,10 @@ export class AutoblocksConfig<T> {
     parser?: (config: unknown) => T | undefined;
   }) {
     try {
-      await this.activateRemoteConfigUnsafe(args);
+      await this.activateFromRemoteUnsafe(args);
     } catch (err) {
       console.error(
-        `Failed to activate remote config '${args.remoteConfig.id}': ${err}`,
+        `Failed to activate remote config '${args.config.id}': ${err}`,
       );
     }
   }

@@ -36,8 +36,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           version: '1',
         },
@@ -63,8 +63,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           version: '1',
         },
@@ -90,8 +90,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           version: '1',
         },
@@ -124,8 +124,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           version: '1',
         },
@@ -158,8 +158,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           latest: true,
         },
@@ -207,8 +207,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           dangerouslyUseUndeployed: {
             latest: true,
@@ -260,8 +260,8 @@ describe('AutoblocksConfig', () => {
         json: () => Promise.resolve(mockConfig),
       });
 
-      await config.activateRemoteConfig({
-        remoteConfig: {
+      await config.activateFromRemote({
+        config: {
           id: 'my-config-id',
           latest: true,
         },
@@ -296,8 +296,8 @@ describe('AutoblocksConfig', () => {
           json: () => Promise.resolve(mockConfig),
         });
 
-        await config.activateRemoteConfig({
-          remoteConfig: {
+        await config.activateFromRemote({
+          config: {
             id: 'my-config-id',
             version: '1',
           },
@@ -325,8 +325,8 @@ describe('AutoblocksConfig', () => {
           json: () => Promise.resolve(mockConfig),
         });
 
-        await config.activateRemoteConfig({
-          remoteConfig: {
+        await config.activateFromRemote({
+          config: {
             id: 'my-config-id',
             latest: true,
           },
@@ -357,8 +357,8 @@ describe('AutoblocksConfig', () => {
           json: () => Promise.resolve(mockConfig),
         });
 
-        await config.activateRemoteConfig({
-          remoteConfig: {
+        await config.activateFromRemote({
+          config: {
             id: 'my-config-id',
             dangerouslyUseUndeployed: {
               revisionId: 'my-revision-id',
@@ -388,8 +388,8 @@ describe('AutoblocksConfig', () => {
           json: () => Promise.resolve(mockConfig),
         });
 
-        await config.activateRemoteConfig({
-          remoteConfig: {
+        await config.activateFromRemote({
+          config: {
             id: 'my-config-id',
             dangerouslyUseUndeployed: {
               latest: true,
@@ -426,8 +426,8 @@ describe('AutoblocksConfig', () => {
           json: () => Promise.resolve(mockConfig),
         });
 
-        await config.activateRemoteConfig({
-          remoteConfig: {
+        await config.activateFromRemote({
+          config: {
             id: 'my-config-id',
             version: '1',
           },
