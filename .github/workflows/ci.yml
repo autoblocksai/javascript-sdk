@@ -99,7 +99,7 @@ jobs:
           # User-scoped API key
           AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
 
-      - name: Test Prompt Manager
+      - name: Test Configs
         working-directory: e2e/test-configs-ts
         run: |
           npx yalc add @autoblocks/client && \
