@@ -169,7 +169,7 @@ export class AutoblocksConfig<T> {
             );
           }
         },
-        convertTimeDeltaToMilliSeconds(args.refreshInterval || { minutes: 5 }),
+        convertTimeDeltaToMilliSeconds(args.refreshInterval || { seconds: 10 }),
       );
     }
   }
