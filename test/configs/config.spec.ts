@@ -219,7 +219,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            foo: 'bar',
+            foo: 'from-remote',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -247,6 +247,7 @@ describe('AutoblocksConfig', () => {
         expectApiUrl(
           'https://api.autoblocks.ai/configs/my-config-id/versions/1',
         );
+        expect(config.value).toEqual({ foo: 'from-remote' });
       });
 
       it('maps latest', async () => {
@@ -255,7 +256,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            foo: 'bar',
+            foo: 'from-remote',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -285,6 +286,7 @@ describe('AutoblocksConfig', () => {
         expectApiUrl(
           'https://api.autoblocks.ai/configs/my-config-id/versions/latest',
         );
+        expect(config.value).toEqual({ foo: 'from-remote' });
         config.close();
       });
 
@@ -294,7 +296,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            foo: 'bar',
+            foo: 'from-remote',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -324,6 +326,7 @@ describe('AutoblocksConfig', () => {
         expectApiUrl(
           'https://api.autoblocks.ai/configs/my-config-id/revisions/my-revision-id',
         );
+        expect(config.value).toEqual({ foo: 'from-remote' });
       });
 
       it('maps dangerouslyUseUndeployed latest', async () => {
@@ -332,7 +335,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            foo: 'bar',
+            foo: 'from-remote',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -362,6 +365,7 @@ describe('AutoblocksConfig', () => {
         expectApiUrl(
           'https://api.autoblocks.ai/configs/my-config-id/revisions/latest',
         );
+        expect(config.value).toEqual({ foo: 'from-remote' });
         config.close();
       });
 
@@ -377,7 +381,7 @@ describe('AutoblocksConfig', () => {
           id: 'my-config-id',
           version: '1',
           value: {
-            foo: 'bar',
+            foo: 'from-remote',
           },
         };
         // @ts-expect-error we don't need to mock everything here...
@@ -406,6 +410,7 @@ describe('AutoblocksConfig', () => {
         expectApiUrl(
           'https://api.autoblocks.ai/configs/my-config-id/revisions/my-revision-id',
         );
+        expect(config.value).toEqual({ foo: 'from-remote' });
       });
     });
   });
