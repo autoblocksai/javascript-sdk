@@ -98,7 +98,6 @@ describe('AutoblocksConfig', () => {
         apiKey: 'mock-api-key',
         refreshInterval: { seconds: 1 },
         parser: (config) => {
-          console.log(config);
           return z
             .object({
               foo: z.string(),
