@@ -1,6 +1,10 @@
 import { AutoblocksConfig } from '../../src/configs';
 import { z } from 'zod';
 import { AutoblocksEnvVar } from '../../src/util';
+import {
+  RemoteConfigPropertyTypesEnum,
+  RemoteConfigResponse,
+} from '../../src/configs/types';
 
 describe('AutoblocksConfig', () => {
   it('sets and gets default values', () => {
@@ -22,12 +26,17 @@ describe('AutoblocksConfig', () => {
 
     it('gracefully handles error in parser', async () => {
       const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
+      const mockConfig: RemoteConfigResponse = {
         id: 'my-config-id',
-        version: '1',
-        value: {
-          random: 'bar',
-        },
+        version: '1.0',
+        properties: [
+          {
+            name: 'not-foo',
+            value: 'bar',
+            values: ['bar'],
+            type: RemoteConfigPropertyTypesEnum.ENUM,
+          },
+        ],
       };
       // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -39,7 +48,10 @@ describe('AutoblocksConfig', () => {
       await config.activateFromRemote({
         config: {
           id: 'my-config-id',
-          version: '1',
+          version: {
+            major: 1,
+            minor: 0,
+          },
         },
         apiKey: 'mock-api-key',
         parser: (config) => {
@@ -56,12 +68,17 @@ describe('AutoblocksConfig', () => {
 
     it('refreshes when using latest', async () => {
       const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
+      const mockConfig: RemoteConfigResponse = {
         id: 'my-config-id',
-        version: '1',
-        value: {
-          foo: 'foo',
-        },
+        version: '1.0',
+        properties: [
+          {
+            name: 'foo',
+            value: 'foo',
+            values: ['foo'],
+            type: RemoteConfigPropertyTypesEnum.ENUM,
+          },
+        ],
       };
       // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -73,11 +90,15 @@ describe('AutoblocksConfig', () => {
       await config.activateFromRemote({
         config: {
           id: 'my-config-id',
-          latest: true,
+          version: {
+            major: 1,
+            latest: true,
+          },
         },
         apiKey: 'mock-api-key',
         refreshInterval: { seconds: 1 },
         parser: (config) => {
+          console.log(config);
           return z
             .object({
               foo: z.string(),
@@ -88,12 +109,17 @@ describe('AutoblocksConfig', () => {
       expect(config.value).toEqual({ foo: 'foo' });
 
       // now sleep so it refreshes with new values
-      const mockConfig2 = {
+      const mockConfig2: RemoteConfigResponse = {
         id: 'my-config-id',
-        version: '2',
-        value: {
-          foo: 'foo-2',
-        },
+        version: '1.1',
+        properties: [
+          {
+            name: 'foo',
+            value: 'foo-2',
+            values: ['foo-2'],
+            type: RemoteConfigPropertyTypesEnum.ENUM,
+          },
+        ],
       };
       // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -112,12 +138,17 @@ describe('AutoblocksConfig', () => {
 
     it('refreshes when using dangerouslyUseUndeployed latest', async () => {
       const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
+      const mockConfig: RemoteConfigResponse = {
         id: 'my-config-id',
-        version: '1',
-        value: {
-          foo: 'foo',
-        },
+        version: 'revision:123',
+        properties: [
+          {
+            name: 'foo',
+            value: 'foo',
+            values: ['foo'],
+            type: RemoteConfigPropertyTypesEnum.ENUM,
+          },
+        ],
       };
       // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -146,12 +177,17 @@ describe('AutoblocksConfig', () => {
       expect(config.value).toEqual({ foo: 'foo' });
 
       // now sleep so it refreshes with new values
-      const mockConfig2 = {
+      const mockConfig2: RemoteConfigResponse = {
         id: 'my-config-id',
-        version: '2',
-        value: {
-          foo: 'foo-2',
-        },
+        version: 'revision:456',
+        properties: [
+          {
+            name: 'foo',
+            value: 'foo-2',
+            values: ['foo-2'],
+            type: RemoteConfigPropertyTypesEnum.ENUM,
+          },
+        ],
       };
       // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -172,12 +208,17 @@ describe('AutoblocksConfig', () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
       const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-      const mockConfig = {
+      const mockConfig: RemoteConfigResponse = {
         id: 'my-config-id',
-        version: '1',
-        value: {
-          foo: 'bar',
-        },
+        version: '1.0',
+        properties: [
+          {
+            name: 'foo',
+            value: 'foo',
+            values: ['foo'],
+            type: RemoteConfigPropertyTypesEnum.ENUM,
+          },
+        ],
       };
       // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -189,7 +230,10 @@ describe('AutoblocksConfig', () => {
       await config.activateFromRemote({
         config: {
           id: 'my-config-id',
-          latest: true,
+          version: {
+            major: 1,
+            latest: true,
+          },
         },
         apiKey: 'mock-api-key',
         refreshInterval: { seconds: 1 },
@@ -215,12 +259,17 @@ describe('AutoblocksConfig', () => {
 
       it('maps version', async () => {
         const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-        const mockConfig = {
+        const mockConfig: RemoteConfigResponse = {
           id: 'my-config-id',
-          version: '1',
-          value: {
-            foo: 'from-remote',
-          },
+          version: '1.0',
+          properties: [
+            {
+              name: 'foo',
+              value: 'from-remote',
+              values: ['from-remote'],
+              type: RemoteConfigPropertyTypesEnum.ENUM,
+            },
+          ],
         };
         // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -232,7 +281,10 @@ describe('AutoblocksConfig', () => {
         await config.activateFromRemote({
           config: {
             id: 'my-config-id',
-            version: '1',
+            version: {
+              major: 1,
+              minor: 0,
+            },
           },
           apiKey: 'mock-api-key',
           parser: (config) => {
@@ -245,19 +297,24 @@ describe('AutoblocksConfig', () => {
         });
         expectNumRequests(1);
         expectApiUrl(
-          'https://api.autoblocks.ai/configs/my-config-id/versions/1',
+          'https://api.autoblocks.ai/configs/my-config-id/major/1/minor/0',
         );
         expect(config.value).toEqual({ foo: 'from-remote' });
       });
 
       it('maps latest', async () => {
         const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-        const mockConfig = {
+        const mockConfig: RemoteConfigResponse = {
           id: 'my-config-id',
-          version: '1',
-          value: {
-            foo: 'from-remote',
-          },
+          version: '1.0',
+          properties: [
+            {
+              name: 'foo',
+              value: 'from-remote',
+              values: ['from-remote'],
+              type: RemoteConfigPropertyTypesEnum.ENUM,
+            },
+          ],
         };
         // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -269,7 +326,10 @@ describe('AutoblocksConfig', () => {
         await config.activateFromRemote({
           config: {
             id: 'my-config-id',
-            latest: true,
+            version: {
+              major: 1,
+              latest: true,
+            },
           },
           apiKey: 'mock-api-key',
           // set high so test is deterministic
@@ -284,7 +344,7 @@ describe('AutoblocksConfig', () => {
         });
         expectNumRequests(1);
         expectApiUrl(
-          'https://api.autoblocks.ai/configs/my-config-id/versions/latest',
+          'https://api.autoblocks.ai/configs/my-config-id/major/1/minor/latest',
         );
         expect(config.value).toEqual({ foo: 'from-remote' });
         config.close();
@@ -292,12 +352,17 @@ describe('AutoblocksConfig', () => {
 
       it('maps dangerouslyUseUndeployed revisionId', async () => {
         const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-        const mockConfig = {
+        const mockConfig: RemoteConfigResponse = {
           id: 'my-config-id',
-          version: '1',
-          value: {
-            foo: 'from-remote',
-          },
+          version: 'revision:123',
+          properties: [
+            {
+              name: 'foo',
+              value: 'from-remote',
+              values: ['from-remote'],
+              type: RemoteConfigPropertyTypesEnum.ENUM,
+            },
+          ],
         };
         // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -310,7 +375,7 @@ describe('AutoblocksConfig', () => {
           config: {
             id: 'my-config-id',
             dangerouslyUseUndeployed: {
-              revisionId: 'my-revision-id',
+              revisionId: '123',
             },
           },
           apiKey: 'mock-api-key',
@@ -324,19 +389,24 @@ describe('AutoblocksConfig', () => {
         });
         expectNumRequests(1);
         expectApiUrl(
-          'https://api.autoblocks.ai/configs/my-config-id/revisions/my-revision-id',
+          'https://api.autoblocks.ai/configs/my-config-id/revisions/123',
         );
         expect(config.value).toEqual({ foo: 'from-remote' });
       });
 
       it('maps dangerouslyUseUndeployed latest', async () => {
         const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-        const mockConfig = {
+        const mockConfig: RemoteConfigResponse = {
           id: 'my-config-id',
-          version: '1',
-          value: {
-            foo: 'from-remote',
-          },
+          version: 'revision:123',
+          properties: [
+            {
+              name: 'foo',
+              value: 'from-remote',
+              values: ['from-remote'],
+              type: RemoteConfigPropertyTypesEnum.ENUM,
+            },
+          ],
         };
         // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -374,15 +444,20 @@ describe('AutoblocksConfig', () => {
           'http://localhost:3000';
         process.env[AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS] =
           JSON.stringify({
-            'my-config-id': 'my-revision-id',
+            'my-config-id': '123',
           });
         const config = new AutoblocksConfig<{ foo: string }>({ foo: 'bar' });
-        const mockConfig = {
+        const mockConfig: RemoteConfigResponse = {
           id: 'my-config-id',
-          version: '1',
-          value: {
-            foo: 'from-remote',
-          },
+          version: 'revision:123',
+          properties: [
+            {
+              name: 'foo',
+              value: 'from-remote',
+              values: ['from-remote'],
+              type: RemoteConfigPropertyTypesEnum.ENUM,
+            },
+          ],
         };
         // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
@@ -394,7 +469,10 @@ describe('AutoblocksConfig', () => {
         await config.activateFromRemote({
           config: {
             id: 'my-config-id',
-            version: '1',
+            version: {
+              major: 1,
+              minor: 0,
+            },
           },
           apiKey: 'mock-api-key',
           refreshInterval: { seconds: 1 },
@@ -408,7 +486,7 @@ describe('AutoblocksConfig', () => {
         });
         expectNumRequests(1);
         expectApiUrl(
-          'https://api.autoblocks.ai/configs/my-config-id/revisions/my-revision-id',
+          'https://api.autoblocks.ai/configs/my-config-id/revisions/123',
         );
         expect(config.value).toEqual({ foo: 'from-remote' });
       });
