@@ -118,7 +118,7 @@ export class AutoblocksConfig<T> {
     try {
       const obj: Record<string, unknown> = {};
       remoteConfig.properties.forEach((prop) => {
-        obj[prop.name] = prop.value;
+        obj[prop.id] = prop.value;
       });
       const parsed = args.parser(obj);
       if (parsed !== undefined) {

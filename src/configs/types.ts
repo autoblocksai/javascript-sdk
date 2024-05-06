@@ -6,17 +6,17 @@ export enum RemoteConfigPropertyTypesEnum {
   ENUM = 'enum',
 }
 
-const zName = z
+const zId = z
   .string()
   .min(1, {
-    message: 'Name is required',
+    message: 'Property ID is required',
   })
   .refine((name) => !name.includes(' '), {
-    message: 'Property name cannot contain spaces',
+    message: 'Property ID cannot contain spaces',
   });
 
 const zEnumProperty = z.object({
-  name: zName,
+  id: zId,
   value: z.string().min(1, {
     message: 'Value is required',
   }),
@@ -25,7 +25,7 @@ const zEnumProperty = z.object({
 });
 
 const zNumberProperty = z.object({
-  name: zName,
+  id: zId,
   value: z.number({
     required_error: 'Value is required',
     // invalid type error is the error when the field is empty
@@ -35,7 +35,7 @@ const zNumberProperty = z.object({
 });
 
 const zBooleanProperty = z.object({
-  name: zName,
+  id: zId,
   value: z.boolean(),
   type: z.literal(RemoteConfigPropertyTypesEnum.BOOLEAN),
 });

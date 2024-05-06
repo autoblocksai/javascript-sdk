@@ -31,7 +31,7 @@ describe('AutoblocksConfig', () => {
         version: '1.0',
         properties: [
           {
-            name: 'not-foo',
+            id: 'not-foo',
             value: 'bar',
             values: ['bar'],
             type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -73,7 +73,7 @@ describe('AutoblocksConfig', () => {
         version: '1.0',
         properties: [
           {
-            name: 'foo',
+            id: 'foo',
             value: 'foo',
             values: ['foo'],
             type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -113,7 +113,7 @@ describe('AutoblocksConfig', () => {
         version: '1.1',
         properties: [
           {
-            name: 'foo',
+            id: 'foo',
             value: 'foo-2',
             values: ['foo-2'],
             type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -142,7 +142,7 @@ describe('AutoblocksConfig', () => {
         version: 'revision:123',
         properties: [
           {
-            name: 'foo',
+            id: 'foo',
             value: 'foo',
             values: ['foo'],
             type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -181,7 +181,7 @@ describe('AutoblocksConfig', () => {
         version: 'revision:456',
         properties: [
           {
-            name: 'foo',
+            id: 'foo',
             value: 'foo-2',
             values: ['foo-2'],
             type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -212,7 +212,7 @@ describe('AutoblocksConfig', () => {
         version: '1.0',
         properties: [
           {
-            name: 'foo',
+            id: 'foo',
             value: 'foo',
             values: ['foo'],
             type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -263,7 +263,7 @@ describe('AutoblocksConfig', () => {
           version: '1.0',
           properties: [
             {
-              name: 'foo',
+              id: 'foo',
               value: 'from-remote',
               values: ['from-remote'],
               type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -308,7 +308,7 @@ describe('AutoblocksConfig', () => {
           version: '1.0',
           properties: [
             {
-              name: 'foo',
+              id: 'foo',
               value: 'from-remote',
               values: ['from-remote'],
               type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -356,7 +356,7 @@ describe('AutoblocksConfig', () => {
           version: 'revision:123',
           properties: [
             {
-              name: 'foo',
+              id: 'foo',
               value: 'from-remote',
               values: ['from-remote'],
               type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -400,7 +400,7 @@ describe('AutoblocksConfig', () => {
           version: 'revision:123',
           properties: [
             {
-              name: 'foo',
+              id: 'foo',
               value: 'from-remote',
               values: ['from-remote'],
               type: RemoteConfigPropertyTypesEnum.ENUM,
@@ -451,7 +451,7 @@ describe('AutoblocksConfig', () => {
           version: 'revision:123',
           properties: [
             {
-              name: 'foo',
+              id: 'foo',
               value: 'from-remote',
               values: ['from-remote'],
               type: RemoteConfigPropertyTypesEnum.ENUM,
