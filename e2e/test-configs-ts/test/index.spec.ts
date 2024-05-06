@@ -75,7 +75,7 @@ describe('AutoblocksConfig', () => {
       config: {
         id: 'used-by-ci-dont-delete',
         dangerouslyUseUndeployed: {
-          revisionId: 'clvlcgpiq0003qtvsbz5vt7e0',
+          revisionId: 'clvv48mlc0003ximd4htzat8w',
         },
       },
       parser: zRemoteConfigSchema.parse,
