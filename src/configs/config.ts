@@ -7,7 +7,11 @@ import {
   convertTimeDeltaToMilliSeconds,
   RevisionSpecialVersionsEnum,
 } from '../util';
-import { ConfigResponse, RemoteConfig, zConfigResponseSchema } from './types';
+import {
+  RemoteConfigResponse,
+  RemoteConfig,
+  zRemoteConfigResponseSchema,
+} from './types';
 
 /**
  * Note that we check for the presence of the CLI environment
@@ -50,7 +54,7 @@ export class AutoblocksConfig<T> {
 
   private isRemoteConfigRefreshable(args: { config: RemoteConfig }) {
     return (
-      'latest' in args.config ||
+      ('version' in args.config && 'latest' in args.config.version) ||
       ('dangerouslyUseUndeployed' in args.config &&
         'latest' in args.config.dangerouslyUseUndeployed)
     );
@@ -65,10 +69,11 @@ export class AutoblocksConfig<T> {
     if (revisionId && isTestingContext()) {
       return `${base}/revisions/${revisionId}`;
     }
-    if ('latest' in args.config) {
-      return `${base}/versions/${RevisionSpecialVersionsEnum.LATEST}`;
-    } else if ('version' in args.config) {
-      return `${base}/versions/${args.config.version}`;
+    if ('version' in args.config) {
+      if ('latest' in args.config.version) {
+        return `${base}/major/${args.config.version.major}/minor/${RevisionSpecialVersionsEnum.LATEST}`;
+      }
+      return `${base}/major/${args.config.version.major}/minor/${args.config.version.minor}`;
     }
 
     // Otherwise we are in the case of dangerouslyUseUndeployed
@@ -81,7 +86,7 @@ export class AutoblocksConfig<T> {
     config: RemoteConfig;
     timeoutMs: number;
     apiKey: string;
-  }): Promise<ConfigResponse> {
+  }): Promise<RemoteConfigResponse> {
     const url = this.makeRequestUrl({ config: args.config });
 
     const resp = await fetch(url, {
@@ -93,7 +98,7 @@ export class AutoblocksConfig<T> {
       signal: AbortSignal.timeout(args.timeoutMs),
     });
     const data = await resp.json();
-    return zConfigResponseSchema.parse(data);
+    return zRemoteConfigResponseSchema.parse(data);
   }
 
   private async loadAndSetRemoteConfig(args: {
@@ -111,7 +116,11 @@ export class AutoblocksConfig<T> {
     });
 
     try {
-      const parsed = args.parser(remoteConfig.value);
+      const obj: Record<string, unknown> = {};
+      remoteConfig.properties.forEach((prop) => {
+        obj[prop.id] = prop.value;
+      });
+      const parsed = args.parser(obj);
       if (parsed !== undefined) {
         this._value = parsed;
       }

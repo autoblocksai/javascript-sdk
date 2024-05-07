@@ -15,7 +15,10 @@ describe('AutoblocksConfig', () => {
     await config.activateFromRemote({
       config: {
         id: 'used-by-ci-dont-delete',
-        latest: true,
+        version: {
+          major: 1,
+          latest: true,
+        },
       },
       parser: zRemoteConfigSchema.parse,
     });
@@ -32,7 +35,10 @@ describe('AutoblocksConfig', () => {
     await config.activateFromRemote({
       config: {
         id: 'used-by-ci-dont-delete',
-        version: '1',
+        version: {
+          major: 1,
+          minor: 0,
+        },
       },
       parser: zRemoteConfigSchema.parse,
     });
@@ -69,7 +75,7 @@ describe('AutoblocksConfig', () => {
       config: {
         id: 'used-by-ci-dont-delete',
         dangerouslyUseUndeployed: {
-          revisionId: 'clvlcgpiq0003qtvsbz5vt7e0',
+          revisionId: 'clvv48mlc0003ximd4htzat8w',
         },
       },
       parser: zRemoteConfigSchema.parse,
