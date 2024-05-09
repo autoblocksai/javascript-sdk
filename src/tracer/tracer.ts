@@ -297,10 +297,10 @@ export async function flush(timeout?: TimeDelta): Promise<void> {
     return;
   }
 
-  const startTime = Date.now();
+  const startTime = performance.now();
   while (
     backgroundTasks.size > 0 &&
-    Date.now() - startTime < timeoutMilliseconds
+    performance.now() - startTime < timeoutMilliseconds
   ) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }

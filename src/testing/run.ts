@@ -166,9 +166,9 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     },
     async () => {
       return await semaphore.run(async () => {
-        const startTime = Date.now();
+        const startTime = performance.now();
         const output = await args.fn({ testCase: args.testCase });
-        const durationMs = Date.now() - startTime;
+        const durationMs = performance.now() - startTime;
         return { output, durationMs };
       });
     },

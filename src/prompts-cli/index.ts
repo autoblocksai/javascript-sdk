@@ -330,7 +330,7 @@ async function handleConfig(args: {
 }
 
 export async function run(): Promise<void> {
-  const startTime = Date.now();
+  const startTime = performance.now();
 
   const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
   if (!apiKey) {
@@ -355,6 +355,6 @@ export async function run(): Promise<void> {
     });
   }
 
-  const duration = Date.now() - startTime;
+  const duration = performance.now() - startTime;
   console.log(`✓ Compiled in ${duration}ms (${prompts.length} prompts)`);
 }
