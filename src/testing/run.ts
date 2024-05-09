@@ -159,14 +159,17 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     throw new Error(`[${args.testId}] Test case semaphore not found.`);
   }
 
-  const output = await testCaseRunAsyncLocalStorage.run(
+  const { output, durationMs } = await testCaseRunAsyncLocalStorage.run(
     {
       testCaseHash: args.testCaseHash,
       testId: args.testId,
     },
     async () => {
       return await semaphore.run(async () => {
-        return await args.fn({ testCase: args.testCase });
+        const startTime = Date.now();
+        const output = await args.fn({ testCase: args.testCase });
+        const durationMs = Date.now() - startTime;
+        return { output, durationMs };
       });
     },
   );
@@ -183,6 +186,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
       testCaseHash: args.testCaseHash,
       testCaseBody: args.testCase,
       testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
+      testCaseDurationMs: durationMs,
     },
   });
 
