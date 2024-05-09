@@ -99,6 +99,19 @@ jobs:
           # User-scoped API key
           AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
 
+      - name: Test Configs
+        working-directory: e2e/test-configs-ts
+        run: |
+          npx yalc add @autoblocks/client && \
+          npm install && \
+          tsc --noEmit && \
+          npm run test
+        env:
+          # Org-scoped API key
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          # User-scoped API key
+          AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
+
   notify:
     needs:
       - ci

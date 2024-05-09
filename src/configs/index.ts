@@ -1,0 +1,1 @@
+export { AutoblocksConfig } from './config';
