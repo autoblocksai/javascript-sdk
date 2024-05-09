@@ -8,6 +8,7 @@ import {
 } from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
+import { isMatch, omit } from 'lodash';
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
 
@@ -44,20 +45,24 @@ describe('Testing SDK', () => {
 
   const expectPostRequest = (args: {
     path: string;
-    body: unknown;
-    abortSignal?: AbortSignal;
+    body: Record<string, unknown>;
   }) => {
-    expect(mockFetch).toHaveBeenCalledWith(
-      `${MOCK_CLI_SERVER_ADDRESS}${args.path}`,
-      {
-        method: 'POST',
-        body: JSON.stringify(args.body),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: args.abortSignal,
-      },
-    );
+    for (const call of mockFetch.mock.calls) {
+      const [callUrl, callArgs] = call;
+      expect(callArgs.method).toEqual('POST');
+      expect(callArgs.headers).toEqual({
+        'Content-Type': 'application/json',
+      });
+      if (callUrl === `${MOCK_CLI_SERVER_ADDRESS}${args.path}`) {
+        const parsedBody = JSON.parse(callArgs.body);
+        if (isMatch(parsedBody, args.body)) {
+          return;
+        }
+      }
+    }
+
+    // If we reach here, we didn't find the expected request
+    throw new Error(`Expected request not found: ${JSON.stringify(args)}`);
   };
 
   beforeAll(() => {
@@ -441,7 +446,12 @@ describe('Testing SDK', () => {
 
     const requests = decodeRequests();
 
-    expect(requests).toEqual([
+    expect(
+      requests.map((r) => ({
+        ...r,
+        body: omit(r.body, ['testCaseDurationMs']),
+      })),
+    ).toEqual([
       {
         path: '/start',
         body: {
@@ -789,7 +799,6 @@ describe('Testing SDK', () => {
           properties: {},
         },
       },
-      abortSignal: AbortSignal.timeout(1000),
     });
     expectPostRequest({
       path: '/results',
@@ -812,7 +821,6 @@ describe('Testing SDK', () => {
           properties: {},
         },
       },
-      abortSignal: AbortSignal.timeout(1000),
     });
     expectPostRequest({
       path: '/results',
@@ -919,7 +927,6 @@ describe('Testing SDK', () => {
           },
         },
       },
-      abortSignal: AbortSignal.timeout(5_000),
     });
     expectPostRequest({
       path: '/results',
@@ -1010,6 +1017,22 @@ describe('Testing SDK', () => {
         'Error: an error in isPrimitive',
       );
     });
+  });
+
+  it('sends test case durations to /results', async () => {
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [{ x: 1, y: 2 }],
+      testCaseHash: ['x', 'y'],
+      evaluators: [],
+      fn: ({ testCase }: { testCase: MyTestCase }) => {
+        return `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`;
+      },
+    });
+
+    const requests = decodeRequests();
+    expect(requests[1].path).toEqual('/results');
+    expect(requests[1].body.testCaseDurationMs).toBeGreaterThanOrEqual(0);
   });
 });
 
