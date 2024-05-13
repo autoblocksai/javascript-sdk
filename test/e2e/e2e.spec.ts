@@ -2,12 +2,12 @@ import crypto from 'crypto';
 import { execSync, spawn } from 'child_process';
 import { AutoblocksAPIClient } from '../../src';
 
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 async function waitForTraceToExist(traceId: string): Promise<void> {
   const apiClient = new AutoblocksAPIClient();
 
-  let numTries = 30;
+  let numTries = 60;
   while (numTries) {
     try {
       await apiClient.getTrace({ traceId });
