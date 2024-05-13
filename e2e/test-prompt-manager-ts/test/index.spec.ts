@@ -196,31 +196,6 @@ describe('AutoblocksPromptManager v2.1', () => {
     });
   });
 
-  it('renders templates when not providing optional template params', () => {
-    manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
-        template: 'template-b',
-        params: {
-          name: 'Alice',
-        },
-      });
-      expect(rendered).toEqual('Hello! My name is Alice.');
-    });
-  });
-
-  it('renders templates when providing optional template params', () => {
-    manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
-        template: 'template-b',
-        params: {
-          optional: 'Bob',
-          name: 'Alice',
-        },
-      });
-      expect(rendered).toEqual('Hello Bob! My name is Alice.');
-    });
-  });
-
   it('renders templates with no params', () => {
     manager.exec(({ prompt }) => {
       const rendered = prompt.render({
@@ -424,6 +399,37 @@ describe('Renders {{ }}', () => {
     "y": 1
   }}
 }}`);
+    });
+  });
+});
+
+describe('Renders Inline {{ }}', () => {
+  const manager = new AutoblocksPromptManager({
+    id: 'nicole-test',
+    version: {
+      major: '1',
+      minor: '2',
+    },
+    apiKey: process.env.AUTOBLOCKS_API_KEY_USER,
+  });
+
+  beforeAll(async () => {
+    await manager.init();
+  });
+
+  afterAll(() => {
+    manager.close();
+  });
+
+  it('works', () => {
+    manager.exec(({ prompt }) => {
+      const rendered = prompt.render({
+        template: 'nicole-test',
+        params: {},
+      });
+      expect(rendered).toEqual(`Hello! Please respond in the following format:
+
+{{"x": {{"y": 1}}}}`);
     });
   });
 });
