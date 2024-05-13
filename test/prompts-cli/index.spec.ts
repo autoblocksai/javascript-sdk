@@ -28,12 +28,10 @@ describe('Prompts CLI', () => {
               id: 'template-a',
               template:
                 'Hello, {{ name }}! The weather is {{ weather }} today.',
-              version: '1.0',
             },
             {
               id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{ name }}.',
-              version: '1.0',
+              template: 'Hello, {{"x":{{"y":1}}}}! My name is {{ name }}.',
             },
           ],
           version: '1.0',
@@ -45,17 +43,10 @@ describe('Prompts CLI', () => {
               id: 'template-a',
               template:
                 'Hello, {{ name }}! The weather is {{ weather }} today.',
-              version: '1.0',
-            },
-            {
-              id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{ name }}.',
-              version: '1.0',
             },
             {
               id: 'template-c',
               template: 'I am template c and I have no params',
-              version: '1.0',
             },
           ],
           version: '2.0',
@@ -79,12 +70,6 @@ describe('Prompts CLI', () => {
               id: 'template-a',
               template:
                 'Hello, {{ name }}! The weather is {{ weather }} today.',
-              version: '1.0',
-            },
-            {
-              id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{ name }}.',
-              version: '1.0',
             },
           ],
           version: '1.1',
@@ -108,12 +93,6 @@ describe('Prompts CLI', () => {
               id: 'template-a',
               template:
                 'Hello, {{ name }}! The weather is {{ weather }} today.',
-              version: '1.0',
-            },
-            {
-              id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{ name }}.',
-              version: '1.0',
             },
           ],
           version: '1.0',
@@ -148,7 +127,6 @@ describe('Prompts CLI', () => {
         };
         'template-b': {
           'name': string;
-          'optional'?: string;
         };
       };
       params: {
@@ -174,10 +152,6 @@ describe('Prompts CLI', () => {
           'name': string;
           'weather': string;
         };
-        'template-b': {
-          'name': string;
-          'optional'?: string;
-        };
       };
       params: {
         'frequencyPenalty': number;
@@ -194,10 +168,6 @@ describe('Prompts CLI', () => {
         'template-a': {
           'name': string;
           'weather': string;
-        };
-        'template-b': {
-          'name': string;
-          'optional'?: string;
         };
         'template-c': Record<PropertyKey, never>;
       };
