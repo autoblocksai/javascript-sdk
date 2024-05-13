@@ -101,7 +101,6 @@ export class AutoblocksPromptManager<
     this.majorVersion = args.version.major;
     this.minorVersion = args.version.minor;
     this.minorVersionsToRequest = makeMinorVersionsToRequest({
-      majorVersion: this.majorVersion,
       minorVersion: this.minorVersion,
     });
 
@@ -379,12 +378,8 @@ export class AutoblocksPromptManager<
     if (isTestingContext() && this.promptRevisionOverride) {
       // Always use the prompt revision override if it is set
       return this.promptRevisionOverride;
-    } else if (
-      this.majorVersion ===
-      RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
-    ) {
-      return this.prompts[REVISION_UNDEPLOYED_VERSION];
-    } else if (Array.isArray(this.minorVersion)) {
+    }
+    if (Array.isArray(this.minorVersion)) {
       const weightTotal = this.minorVersion.reduce(
         (acc, cur) => acc + cur.weight,
         0,
@@ -474,15 +469,10 @@ class PromptExecutionContext<
 }
 
 function makeMinorVersionsToRequest(args: {
-  majorVersion: string;
   minorVersion: string | { version: string }[];
 }): string[] {
   const versions: Set<string> = new Set();
-  if (
-    args.majorVersion === RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
-  ) {
-    versions.add(REVISION_UNDEPLOYED_VERSION);
-  } else if (Array.isArray(args.minorVersion)) {
+  if (Array.isArray(args.minorVersion)) {
     args.minorVersion.forEach((minor) => {
       versions.add(minor.version);
     });

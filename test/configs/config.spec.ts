@@ -38,12 +38,11 @@ describe('AutoblocksConfig', () => {
           },
         ],
       };
-      // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockConfig),
-      });
+      } as Response);
 
       await config.activateFromRemote({
         config: {
@@ -80,12 +79,11 @@ describe('AutoblocksConfig', () => {
           },
         ],
       };
-      // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockConfig),
-      });
+      } as Response);
 
       await config.activateFromRemote({
         config: {
@@ -120,12 +118,11 @@ describe('AutoblocksConfig', () => {
           },
         ],
       };
-      // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockConfig2),
-      });
+      } as Response);
       const sleep = (ms: number) =>
         new Promise((resolve) => setTimeout(resolve, ms));
       await sleep(1_001);
@@ -149,12 +146,11 @@ describe('AutoblocksConfig', () => {
           },
         ],
       };
-      // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockConfig),
-      });
+      } as Response);
 
       await config.activateFromRemote({
         config: {
@@ -188,12 +184,11 @@ describe('AutoblocksConfig', () => {
           },
         ],
       };
-      // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockConfig2),
-      });
+      } as Response);
       const sleep = (ms: number) =>
         new Promise((resolve) => setTimeout(resolve, ms));
       await sleep(1_001);
@@ -219,12 +214,11 @@ describe('AutoblocksConfig', () => {
           },
         ],
       };
-      // @ts-expect-error we don't need to mock everything here...
       mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockConfig),
-      });
+      } as Response);
 
       await config.activateFromRemote({
         config: {
@@ -270,12 +264,11 @@ describe('AutoblocksConfig', () => {
             },
           ],
         };
-        // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
           status: 200,
           ok: true,
           json: () => Promise.resolve(mockConfig),
-        });
+        } as Response);
 
         await config.activateFromRemote({
           config: {
@@ -315,12 +308,11 @@ describe('AutoblocksConfig', () => {
             },
           ],
         };
-        // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
           status: 200,
           ok: true,
           json: () => Promise.resolve(mockConfig),
-        });
+        } as Response);
 
         await config.activateFromRemote({
           config: {
@@ -363,12 +355,11 @@ describe('AutoblocksConfig', () => {
             },
           ],
         };
-        // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
           status: 200,
           ok: true,
           json: () => Promise.resolve(mockConfig),
-        });
+        } as Response);
 
         await config.activateFromRemote({
           config: {
@@ -407,12 +398,11 @@ describe('AutoblocksConfig', () => {
             },
           ],
         };
-        // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
           status: 200,
           ok: true,
           json: () => Promise.resolve(mockConfig),
-        });
+        } as Response);
 
         await config.activateFromRemote({
           config: {
@@ -458,12 +448,11 @@ describe('AutoblocksConfig', () => {
             },
           ],
         };
-        // @ts-expect-error we don't need to mock everything here...
         mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
           status: 200,
           ok: true,
           json: () => Promise.resolve(mockConfig),
-        });
+        } as Response);
 
         await config.activateFromRemote({
           config: {
