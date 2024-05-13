@@ -301,5 +301,61 @@ describe('Prompt Manager', () => {
         },
       );
     });
+
+    it('requests the given minor version when major version is dangerously-use-undeployed', async () => {
+      const mockPrompt = {
+        id: 'my-prompt-id',
+        version: 'revision:mock-revision-id',
+        revisionId: 'mock-revision-id',
+        templates: [
+          {
+            id: 'my-template-id',
+            template: 'Hello, {{ name }}!',
+          },
+        ],
+      };
+
+      mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve(mockPrompt),
+      });
+
+      const mgr = new AutoblocksPromptManager({
+        id: 'my-prompt-id',
+        version: {
+          major: 'dangerously-use-undeployed',
+          minor: 'mock-revision-id',
+        },
+        apiKey: 'mock-api-key',
+      });
+
+      await mgr.init();
+
+      mgr.exec(({ prompt }) => {
+        expect(
+          prompt.render({
+            template: 'my-template-id',
+            params: {
+              name: 'world',
+            },
+          }),
+        ).toEqual('Hello, world!');
+      });
+
+      expectNumRequests(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/prompts/my-prompt-id/major/undeployed/minor/mock-revision-id`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-api-key',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+          },
+          signal: AbortSignal.timeout(5_000),
+        },
+      );
+    });
   });
 });
