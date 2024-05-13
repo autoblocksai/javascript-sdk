@@ -241,7 +241,7 @@ function parseTemplate(args: { id: string; content: string }): ParsedTemplate {
   // Find all placeholder names in the template. They look like: {{ placeholder }}
   // They can have arbitrary whitespace between the leading {{ and trailing }},
   // so e.g. {{placeholder}} is also valid.
-  const placeholders = args.content.match(/\{\{\s*\S+\s*\}\}/g);
+  const placeholders = args.content.match(/\{\{\s*[\w-]+\s*\}\}/g);
 
   // Get the placeholder names, e.g. `placeholder` from `{{ placeholder }}`
   // by removing the `{{` and `}}` on each side and trimming off the whitespace.
@@ -356,5 +356,7 @@ export async function run(): Promise<void> {
   }
 
   const duration = performance.now() - startTime;
-  console.log(`✓ Compiled in ${duration}ms (${prompts.length} prompts)`);
+  console.log(
+    `✓ Compiled in ${duration.toFixed(2)}ms (${prompts.length} prompts)`,
+  );
 }
