@@ -356,5 +356,7 @@ export async function run(): Promise<void> {
   }
 
   const duration = performance.now() - startTime;
-  console.log(`✓ Compiled in ${duration}ms (${prompts.length} prompts)`);
+  console.log(
+    `✓ Compiled in ${duration.toFixed(2)}ms (${prompts.length} prompts)`,
+  );
 }

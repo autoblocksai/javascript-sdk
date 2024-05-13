@@ -1,4 +1,7 @@
-import { replaceOptionalPlaceholders } from '../../src/prompts/util';
+import {
+  replaceOptionalPlaceholders,
+  renderTemplate,
+} from '../../src/prompts/util';
 
 const testCases = [
   {
@@ -131,5 +134,28 @@ describe('replaceOptionalPlaceholders', () => {
     it(`replaces optional placeholders in "${input}"`, () => {
       expect(replaceOptionalPlaceholders(input)).toEqual(expected);
     });
+  });
+});
+
+describe('renderTemplate', () => {
+  it('json blob', () => {
+    expect(
+      renderTemplate({
+        template: `Please respond in the format:
+
+{{
+  "x": {{
+    "y": 1
+  }}
+}}`,
+        params: {},
+      }),
+    ).toEqual(`Please respond in the format:
+
+{{
+  "x": {{
+    "y": 1
+  }}
+}}`);
   });
 });

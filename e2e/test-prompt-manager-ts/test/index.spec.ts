@@ -392,3 +392,38 @@ describe('Pinned Undeployed', () => {
     });
   });
 });
+
+describe('Renders {{ }}', () => {
+  const manager = new AutoblocksPromptManager({
+    id: 'nicole-test',
+    version: {
+      major: '1',
+      minor: '1',
+    },
+    apiKey: process.env.AUTOBLOCKS_API_KEY_USER,
+  });
+
+  beforeAll(async () => {
+    await manager.init();
+  });
+
+  afterAll(() => {
+    manager.close();
+  });
+
+  it('works', () => {
+    manager.exec(({ prompt }) => {
+      const rendered = prompt.render({
+        template: 'nicole-test',
+        params: {},
+      });
+      expect(rendered).toEqual(`Hello! Please respond in the following format:
+
+{{
+  "x": {{
+    "y": 1
+  }}
+}}`);
+    });
+  });
+});
