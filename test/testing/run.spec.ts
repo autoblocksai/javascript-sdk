@@ -267,7 +267,6 @@ describe('Testing SDK', () => {
         { x: 3, y: 4 },
       ],
       testCaseHash: ['x', 'y'],
-      evaluators: [],
       fn: ({ testCase }: { testCase: MyTestCase }) =>
         `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
     });
