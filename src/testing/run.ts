@@ -257,7 +257,7 @@ export async function runTestSuite<
   | [keyof TestCaseType & string, ...(keyof TestCaseType & string)[]]
     // Or, the user can define their own function to compute the hash
     | ((testCase: TestCaseType) => string);
-  evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
+  evaluators?: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
   // How many test cases to run concurrently
   maxTestCaseConcurrency?: number;
@@ -268,7 +268,7 @@ export async function runTestSuite<
     if (!args.testCases.length) {
       throw new Error(`[${args.id}] No test cases provided.`);
     }
-    args.evaluators.forEach((evaluator) => {
+    args.evaluators?.forEach((evaluator) => {
       if (evaluator instanceof BaseEvaluator) {
         return;
       }
@@ -289,20 +289,11 @@ export async function runTestSuite<
     return;
   }
 
-  if (args.maxEvaluatorConcurrency !== undefined) {
-    console.warn(
-      '`maxEvaluatorConcurrency` is deprecated and will be removed in a future release.\n' +
-        'Its value is being ignored.\n' +
-        'Set the `maxConcurrency` attribute on the evaluator class instead.\n' +
-        'See https://docs.autoblocks.ai/testing/sdks for more information.',
-    );
-  }
-
   testCaseSemaphoreRegistry[args.id] = new Semaphore(
     args.maxTestCaseConcurrency ?? DEFAULT_MAX_TEST_CASE_CONCURRENCY,
   );
   evaluatorSemaphoreRegistry[args.id] = Object.fromEntries(
-    args.evaluators.map((evaluator) => [
+    (args.evaluators || []).map((evaluator) => [
       evaluator.id,
       new Semaphore(evaluator.maxConcurrency),
     ]),
@@ -327,7 +318,7 @@ export async function runTestSuite<
           testId: args.id,
           testCase,
           testCaseHash: makeTestCaseHash(testCase, args.testCaseHash),
-          evaluators: args.evaluators,
+          evaluators: args.evaluators || [],
           fn: args.fn,
         }),
       ),

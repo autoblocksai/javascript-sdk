@@ -78,13 +78,6 @@ jobs:
         env:
           AUTOBLOCKS_INGESTION_KEY: test
 
-      - name: Test ESM imports & API client
-        working-directory: e2e/test-api-client-esm
-        run: npx yalc add @autoblocks/client && npm install && npm run start
-        env:
-          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
-          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
-
       - name: Test Prompt Manager
         working-directory: e2e/test-prompt-manager-ts
         run: |

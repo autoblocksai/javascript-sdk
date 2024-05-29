@@ -140,10 +140,6 @@ export class AutoblocksAPIClient {
     return this.get('/views');
   }
 
-  public async getTrace(args: { traceId: string }): Promise<Trace> {
-    return this.get(`/traces/${args.traceId}`);
-  }
-
   public async getTracesFromView(args: {
     viewId: string;
     pageSize: number;

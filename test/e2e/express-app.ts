@@ -3,6 +3,7 @@ import express from 'express';
 import { AutoblocksTracer, flush } from '../../src';
 import { BaseEventEvaluator, TracerEvent } from '../../src/testing';
 import { createTerminus } from '@godaddy/terminus';
+import { E2E_TESTS_MESSAGE_NAME } from './util';
 
 class SlowEvaluator1 extends BaseEventEvaluator {
   id = 'e2e-slow-evaluator-1';
@@ -51,7 +52,7 @@ app.post('/', (req, res) => {
   const traceId = req.body.traceId;
   const tracer = new AutoblocksTracer();
   console.log('Sending event at ', new Date().toISOString());
-  tracer.sendEvent('e2e-test-event-plain-script', {
+  tracer.sendEvent(E2E_TESTS_MESSAGE_NAME, {
     traceId,
     evaluators: [new SlowEvaluator1(), new SlowEvaluator2()],
   });
