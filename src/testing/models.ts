@@ -78,3 +78,8 @@ export abstract class BaseEvaluator<TestCaseType, OutputType>
     event: TracerEvent;
   }): Evaluation | Promise<Evaluation>;
 }
+
+export interface HumanRevewField {
+  name: string;
+  value: string;
+}

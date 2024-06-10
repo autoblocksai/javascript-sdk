@@ -448,7 +448,11 @@ describe('Testing SDK', () => {
     expect(
       requests.map((r) => ({
         ...r,
-        body: omit(r.body, ['testCaseDurationMs']),
+        body: omit(r.body, [
+          'testCaseDurationMs',
+          'testCaseHumanReviewInputFields',
+          'testCaseHumanReviewOutputFields',
+        ]),
       })),
     ).toEqual([
       {
@@ -1032,6 +1036,71 @@ describe('Testing SDK', () => {
     const requests = decodeRequests();
     expect(requests[1].path).toEqual('/results');
     expect(requests[1].body.testCaseDurationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('serializes test cases and outputs for human review', async () => {
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [{ x: 1, y: 2 }],
+      testCaseHash: ['x', 'y'],
+      fn: ({ testCase }: { testCase: MyTestCase }) => {
+        return `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`;
+      },
+      serializeTestCaseForHumanReview: (testCase) => {
+        return [
+          {
+            name: 'x',
+            value: `${testCase.x}`,
+          },
+          {
+            name: 'y',
+            value: `${testCase.x}`,
+          },
+          {
+            name: 'sum',
+            value: `${testCase.x + testCase.y}`,
+          },
+        ];
+      },
+      serializeOutputForHumanReview: (output) => {
+        return [
+          {
+            name: 'output',
+            value: output,
+          },
+        ];
+      },
+    });
+
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(`12`),
+        testCaseBody: { x: 1, y: 2 },
+        testCaseOutput: '1 + 2 = 3',
+        testCaseHumanReviewInputFields: [
+          {
+            name: 'x',
+            value: '1',
+          },
+          {
+            name: 'y',
+            value: '1',
+          },
+          {
+            name: 'sum',
+            value: '3',
+          },
+        ],
+        testCaseHumanReviewOutputFields: [
+          {
+            name: 'output',
+            value: '1 + 2 = 3',
+          },
+        ],
+      },
+    });
   });
 });
 
