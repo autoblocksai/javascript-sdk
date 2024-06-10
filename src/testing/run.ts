@@ -1,6 +1,10 @@
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
-import { BaseTestEvaluator, BaseEvaluator } from './models';
+import {
+  BaseTestEvaluator,
+  BaseEvaluator,
+  type HumanRevewField,
+} from './models';
 import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
 import { flush } from '../tracer';
 
@@ -153,6 +157,10 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   testCase: TestCaseType;
   testCaseHash: string;
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  serializeTestCaseForHumanReview?: (
+    testCase: TestCaseType,
+  ) => HumanRevewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanRevewField[];
 }): Promise<OutputType> {
   const semaphore = testCaseSemaphoreRegistry[args.testId];
   if (!semaphore) {
@@ -187,6 +195,12 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
       testCaseBody: args.testCase,
       testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
       testCaseDurationMs: durationMs,
+      testCaseHumanReviewInputFields: args.serializeTestCaseForHumanReview
+        ? args.serializeTestCaseForHumanReview(args.testCase)
+        : null,
+      testCaseHumanReviewOutputFields: args.serializeOutputForHumanReview
+        ? args.serializeOutputForHumanReview(output)
+        : null,
     },
   });
 
@@ -199,6 +213,10 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   testCaseHash: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  serializeTestCaseForHumanReview?: (
+    testCase: TestCaseType,
+  ) => HumanRevewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanRevewField[];
 }): Promise<void> {
   let output: OutputType | undefined = undefined;
 
@@ -208,6 +226,8 @@ async function runTestCase<TestCaseType, OutputType>(args: {
       testCase: args.testCase,
       testCaseHash: args.testCaseHash,
       fn: args.fn,
+      serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
+      serializeOutputForHumanReview: args.serializeOutputForHumanReview,
     });
   } catch (err) {
     await sendError({
@@ -257,12 +277,14 @@ export async function runTestSuite<
   | [keyof TestCaseType & string, ...(keyof TestCaseType & string)[]]
     // Or, the user can define their own function to compute the hash
     | ((testCase: TestCaseType) => string);
-  evaluators?: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  evaluators?: BaseTestEvaluator<TestCaseType, OutputType>[];
   // How many test cases to run concurrently
   maxTestCaseConcurrency?: number;
-  // Deprecated arguments, but left for backwards compatibility
-  maxEvaluatorConcurrency?: number;
+  serializeTestCaseForHumanReview?: (
+    testCase: TestCaseType,
+  ) => HumanRevewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanRevewField[];
 }): Promise<void> {
   try {
     if (!args.testCases.length) {
@@ -320,6 +342,8 @@ export async function runTestSuite<
           testCaseHash: makeTestCaseHash(testCase, args.testCaseHash),
           evaluators: args.evaluators || [],
           fn: args.fn,
+          serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
+          serializeOutputForHumanReview: args.serializeOutputForHumanReview,
         }),
       ),
     );
