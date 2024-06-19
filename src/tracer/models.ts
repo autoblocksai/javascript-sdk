@@ -1,5 +1,5 @@
 import { Evaluation } from '../testing';
-import { BaseEventEvaluator } from '../testing/models';
+import { BaseEventEvaluator, HumanReviewField } from '../testing/models';
 import { ArbitraryProperties, PromptTracking } from '../types';
 
 export interface SendEventArgs {
@@ -10,6 +10,7 @@ export interface SendEventArgs {
   properties?: ArbitraryProperties;
   promptTracking?: PromptTracking;
   evaluators?: BaseEventEvaluator[];
+  humanReviewFields?: HumanReviewField[];
 }
 
 export interface EvaluationWithIds extends Evaluation {
