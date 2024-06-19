@@ -72,7 +72,7 @@ describe('Testing SDK', () => {
       ],
       testCaseHash: (testCase) => md5(testCase.input),
       evaluators: [
-        new HasAllSubstrings<MyTestCase, string>({
+        new HasAllSubstrings({
           outputMapper: (output) => output,
           testCaseMapper: (testCase) => testCase.expectedSubstrings,
         }),
