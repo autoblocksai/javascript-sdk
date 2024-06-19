@@ -7,3 +7,4 @@ export {
   type Evaluation,
   type TracerEvent,
 } from './models';
+export { HasAllSubstrings } from './evaluators/has-all-substrings';
