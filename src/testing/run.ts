@@ -3,7 +3,7 @@ import { AutoblocksEnvVar, readEnv } from '../util';
 import {
   BaseTestEvaluator,
   BaseEvaluator,
-  type HumanRevewField,
+  type HumanReviewField,
 } from './models';
 import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
 import { flush } from '../tracer';
@@ -159,8 +159,8 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
-  ) => HumanRevewField[];
-  serializeOutputForHumanReview?: (output: OutputType) => HumanRevewField[];
+  ) => HumanReviewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<OutputType> {
   const semaphore = testCaseSemaphoreRegistry[args.testId];
   if (!semaphore) {
@@ -215,8 +215,8 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
-  ) => HumanRevewField[];
-  serializeOutputForHumanReview?: (output: OutputType) => HumanRevewField[];
+  ) => HumanReviewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<void> {
   let output: OutputType | undefined = undefined;
 
@@ -283,8 +283,8 @@ export async function runTestSuite<
   maxTestCaseConcurrency?: number;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
-  ) => HumanRevewField[];
-  serializeOutputForHumanReview?: (output: OutputType) => HumanRevewField[];
+  ) => HumanReviewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<void> {
   try {
     if (!args.testCases.length) {
