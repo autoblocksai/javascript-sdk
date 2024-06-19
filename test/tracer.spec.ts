@@ -213,7 +213,7 @@ describe('Autoblocks Tracer', () => {
       });
     });
 
-    it('sends a message with human review fields', async () => {
+    it('sends an event with human review fields', async () => {
       const tracer = new AutoblocksTracer('mock-ingestion-key');
 
       tracer.sendEvent('mock-message', {
