@@ -154,6 +154,9 @@ export class AutoblocksTracer {
       traceId,
       timestamp,
       properties: mergedProperties,
+      systemProperties: {
+        humanReviewFields: args?.humanReviewFields,
+      },
     };
   }
 
@@ -161,7 +164,8 @@ export class AutoblocksTracer {
     message: string,
     args?: SendEventArgs,
   ): Promise<void> {
-    const { properties, traceId, timestamp } = this.makeRequestPayload(args);
+    const { properties, traceId, timestamp, systemProperties } =
+      this.makeRequestPayload(args);
 
     if (args?.evaluators) {
       try {
@@ -193,6 +197,7 @@ export class AutoblocksTracer {
         traceId,
         timestamp,
         properties,
+        systemProperties,
       }),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
@@ -213,7 +218,8 @@ export class AutoblocksTracer {
     if (!store) {
       throw new Error('Tried to send test event outside of test run.');
     }
-    const { properties, traceId, timestamp } = this.makeRequestPayload(args);
+    const { properties, traceId, timestamp, systemProperties } =
+      this.makeRequestPayload(args);
 
     await fetch(`${cliServerAddress}/events`, {
       method: 'POST',
@@ -228,6 +234,7 @@ export class AutoblocksTracer {
           traceId,
           timestamp,
           properties,
+          systemProperties,
         },
       }),
       signal: AbortSignal.timeout(this.timeoutMs),

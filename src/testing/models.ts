@@ -79,7 +79,7 @@ export abstract class BaseEvaluator<TestCaseType, OutputType>
   }): Evaluation | Promise<Evaluation>;
 }
 
-export interface HumanRevewField {
+export interface HumanReviewField {
   name: string;
   value: string;
 }

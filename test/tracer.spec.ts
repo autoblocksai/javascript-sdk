@@ -52,6 +52,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -67,6 +68,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -83,6 +85,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
 
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_INGESTION_KEY];
@@ -112,6 +115,7 @@ describe('Autoblocks Tracer', () => {
             traceId: undefined,
             timestamp,
             properties: {},
+            systemProperties: {},
           },
           expected,
         );
@@ -138,6 +142,7 @@ describe('Autoblocks Tracer', () => {
           traceId: undefined,
           timestamp,
           properties: {},
+          systemProperties: {},
         },
         expected,
       );
@@ -155,6 +160,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -170,6 +176,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
 
       expectPostRequest({
@@ -177,6 +184,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
 
       expectPostRequest({
@@ -184,6 +192,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -200,6 +209,37 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: { x: 1 },
+        systemProperties: {},
+      });
+    });
+
+    it('sends an event with human review fields', async () => {
+      const tracer = new AutoblocksTracer('mock-ingestion-key');
+
+      tracer.sendEvent('mock-message', {
+        properties: { x: 1 },
+        humanReviewFields: [
+          {
+            name: 'my-field',
+            value: 'my-value',
+          },
+        ],
+      });
+      await flush();
+
+      expectPostRequest({
+        message: 'mock-message',
+        traceId: undefined,
+        timestamp,
+        properties: { x: 1 },
+        systemProperties: {
+          humanReviewFields: [
+            {
+              name: 'my-field',
+              value: 'my-value',
+            },
+          ],
+        },
       });
     });
 
@@ -219,6 +259,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp: myTimestamp,
         properties: { x: 1 },
+        systemProperties: {},
       });
     });
 
@@ -235,6 +276,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: { x: 1 },
+        systemProperties: {},
       });
     });
 
@@ -250,6 +292,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: { x: 1 },
+        systemProperties: {},
       });
     });
 
@@ -265,6 +308,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: { x: 1 },
+        systemProperties: {},
       });
     });
 
@@ -284,6 +328,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: { x: 10, y: 20, z: 3 },
+        systemProperties: {},
       });
     });
 
@@ -302,6 +347,7 @@ describe('Autoblocks Tracer', () => {
         traceId: undefined,
         timestamp,
         properties: { x: 100 },
+        systemProperties: {},
       });
     });
 
@@ -318,6 +364,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'mock-trace-id',
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -333,6 +380,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'mock-trace-id',
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -350,6 +398,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'trace-id-in-set-trace-id',
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -368,6 +417,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'trace-id-in-send-event',
         timestamp,
         properties: {},
+        systemProperties: {},
       });
     });
 
@@ -385,6 +435,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'my-trace-id',
         timestamp,
         properties: { spanId: 'my-span-id' },
+        systemProperties: {},
       });
     });
 
@@ -402,6 +453,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'my-trace-id',
         timestamp,
         properties: { spanId: 'my-span-id' },
+        systemProperties: {},
       });
     });
 
@@ -421,6 +473,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'my-trace-id',
         timestamp,
         properties: { spanId: 'my-span-id' },
+        systemProperties: {},
       });
     });
 
@@ -438,6 +491,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'my-trace-id',
         timestamp,
         properties: { parentSpanId: 'my-parent-span-id' },
+        systemProperties: {},
       });
     });
 
@@ -457,6 +511,7 @@ describe('Autoblocks Tracer', () => {
         traceId: 'my-trace-id',
         timestamp,
         properties: { parentSpanId: 'my-parent-span-id' },
+        systemProperties: {},
       });
     });
 
@@ -478,6 +533,7 @@ describe('Autoblocks Tracer', () => {
           spanId: 'my-span-id',
           parentSpanId: 'my-parent-span-id',
         },
+        systemProperties: {},
       });
     });
 
@@ -530,6 +586,7 @@ describe('Autoblocks Tracer', () => {
             },
           },
         },
+        systemProperties: {},
       });
     });
 
@@ -559,6 +616,7 @@ describe('Autoblocks Tracer', () => {
             templates: [],
           },
         },
+        systemProperties: {},
       });
     });
   });
@@ -647,6 +705,7 @@ describe('Autoblocks Tracer', () => {
             },
           ],
         },
+        systemProperties: {},
       });
     });
 
@@ -682,6 +741,7 @@ describe('Autoblocks Tracer', () => {
             },
           ],
         },
+        systemProperties: {},
       });
     });
 
@@ -707,6 +767,7 @@ describe('Autoblocks Tracer', () => {
             },
           ],
         },
+        systemProperties: {},
       });
     });
 
@@ -768,6 +829,7 @@ describe('Autoblocks Tracer', () => {
             },
           ],
         },
+        systemProperties: {},
       });
     });
 
@@ -820,6 +882,7 @@ describe('Autoblocks Tracer', () => {
             },
           ],
         },
+        systemProperties: {},
       });
     });
 
@@ -846,6 +909,7 @@ describe('Autoblocks Tracer', () => {
           traceId: undefined,
           timestamp,
           properties: {},
+          systemProperties: {},
         });
       });
 
@@ -884,6 +948,7 @@ describe('Autoblocks Tracer', () => {
             traceId: undefined,
             timestamp,
             properties: {},
+            systemProperties: {},
           });
         });
       });
