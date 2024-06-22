@@ -229,6 +229,10 @@ describe('Testing SDK', () => {
         evaluatorExternalId: 'battle',
         score: 1,
         threshold: { gte: 0.5 },
+        metadata: {
+          reason:
+            'No baseline found, saving the challenger as the new baseline.',
+        },
       },
     });
     expectPostRequest({

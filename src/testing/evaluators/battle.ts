@@ -227,6 +227,10 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
       return {
         score: 1,
         threshold: { gte: 0.5 },
+        metadata: {
+          reason:
+            'No baseline found, saving the challenger as the new baseline.',
+        },
       };
     }
 
