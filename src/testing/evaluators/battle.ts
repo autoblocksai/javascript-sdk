@@ -217,7 +217,6 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
     });
 
     if (!baseline) {
-      console.log('saving....');
       await this.saveBaseline({
         testId: store.testId,
         baseline: mappedOutput,
