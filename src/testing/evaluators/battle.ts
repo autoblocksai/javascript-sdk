@@ -124,6 +124,7 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
     }
     return apiKey;
   }
+
   private async getBaseline(args: {
     testId: string;
     testCase: TestCaseType;
