@@ -1,7 +1,7 @@
 import { BaseTestEvaluator, Evaluation } from '../models';
 
 /**
- * An evaluator that checks if the output contains all of the expected substrings.
+ * The HasAllSubstrings evaluator checks if the output contains all the expected substrings.
  * Scores 1 if all substrings are present, 0 otherwise.
  * The comparison is case-sensitive.
  */

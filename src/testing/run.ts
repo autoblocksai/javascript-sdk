@@ -167,20 +167,12 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     throw new Error(`[${args.testId}] Test case semaphore not found.`);
   }
 
-  const { output, durationMs } = await testCaseRunAsyncLocalStorage.run(
-    {
-      testCaseHash: args.testCaseHash,
-      testId: args.testId,
-    },
-    async () => {
-      return await semaphore.run(async () => {
-        const startTime = performance.now();
-        const output = await args.fn({ testCase: args.testCase });
-        const durationMs = performance.now() - startTime;
-        return { output, durationMs };
-      });
-    },
-  );
+  const { output, durationMs } = await semaphore.run(async () => {
+    const startTime = performance.now();
+    const output = await args.fn({ testCase: args.testCase });
+    const durationMs = performance.now() - startTime;
+    return { output, durationMs };
+  });
 
   // Flush the logs before we send the result, since the CLI
   // accumulates the events and sends them as a batch along
@@ -335,17 +327,27 @@ export async function runTestSuite<
 
   try {
     await Promise.allSettled(
-      args.testCases.map((testCase) =>
-        runTestCase({
-          testId: args.id,
-          testCase,
-          testCaseHash: makeTestCaseHash(testCase, args.testCaseHash),
-          evaluators: args.evaluators || [],
-          fn: args.fn,
-          serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
-          serializeOutputForHumanReview: args.serializeOutputForHumanReview,
-        }),
-      ),
+      args.testCases.map(async (testCase) => {
+        const testCaseHash = makeTestCaseHash(testCase, args.testCaseHash);
+        return testCaseRunAsyncLocalStorage.run(
+          {
+            testCaseHash,
+            testId: args.id,
+          },
+          async () => {
+            return runTestCase({
+              testId: args.id,
+              testCase,
+              testCaseHash,
+              evaluators: args.evaluators || [],
+              fn: args.fn,
+              serializeTestCaseForHumanReview:
+                args.serializeTestCaseForHumanReview,
+              serializeOutputForHumanReview: args.serializeOutputForHumanReview,
+            });
+          },
+        );
+      }),
     );
   } catch (err) {
     await sendError({

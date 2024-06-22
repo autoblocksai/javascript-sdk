@@ -13,6 +13,10 @@ export enum AutoblocksEnvVar {
   AUTOBLOCKS_CONFIG_REVISIONS = 'AUTOBLOCKS_CONFIG_REVISIONS',
 }
 
+export enum ThirdPartyEnvVar {
+  OPENAI_API_KEY = 'OPENAI_API_KEY',
+}
+
 export const readEnv = (key: string): string | undefined => {
   return process.env[key];
 };
