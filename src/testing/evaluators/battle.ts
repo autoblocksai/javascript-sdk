@@ -109,7 +109,7 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
     const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
     if (!apiKey) {
       throw new Error(
-        `You must set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable to use the Battle evaluator.`,
+        `You must set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable to use the ${this.id} evaluator.`,
       );
     }
     return apiKey;
@@ -119,7 +119,7 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
     const apiKey = readEnv(ThirdPartyEnvVar.OPENAI_API_KEY);
     if (!apiKey) {
       throw new Error(
-        `You must set the '${ThirdPartyEnvVar.OPENAI_API_KEY}' environment variable to use the Battle evaluator.`,
+        `You must set the '${ThirdPartyEnvVar.OPENAI_API_KEY}' environment variable to use the ${this.id} evaluator.`,
       );
     }
     return apiKey;
