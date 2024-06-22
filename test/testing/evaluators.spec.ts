@@ -1,7 +1,6 @@
-import { runTestSuite, HasAllSubstrings } from '../../src/testing';
+import { runTestSuite, HasAllSubstrings, Battle } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
-import { Battle } from '../../src/testing/evaluators/battle';
 import { API_ENDPOINT } from '../../src/util';
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
