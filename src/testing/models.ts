@@ -24,7 +24,7 @@ interface TestEvaluator<TestCaseType, OutputType> {
   evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;
-  }): Evaluation | Promise<Evaluation>;
+  }): Evaluation | undefined | Promise<Evaluation | undefined>;
 }
 
 interface EventEvaluator {
@@ -47,7 +47,7 @@ export abstract class BaseTestEvaluator<TestCaseType, OutputType>
   abstract evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;
-  }): Evaluation | Promise<Evaluation>;
+  }): Evaluation | undefined | Promise<Evaluation | undefined>;
 }
 
 /**
@@ -72,7 +72,7 @@ export abstract class BaseEvaluator<TestCaseType, OutputType>
   abstract evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;
-  }): Evaluation | Promise<Evaluation>;
+  }): Evaluation | undefined | Promise<Evaluation | undefined>;
 
   abstract evaluateEvent(args: {
     event: TracerEvent;

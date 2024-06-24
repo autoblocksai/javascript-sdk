@@ -110,6 +110,10 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
     });
   });
 
+  if (!evaluation) {
+    return;
+  }
+
   await client.post({
     path: '/evals',
     body: {

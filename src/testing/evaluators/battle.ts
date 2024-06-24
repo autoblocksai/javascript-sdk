@@ -216,7 +216,7 @@ export abstract class AutomaticBattle<
   async evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;
-  }): Promise<Evaluation> {
+  }): Promise<Evaluation | undefined> {
     const store = testCaseRunAsyncLocalStorage.getStore();
     if (!store) {
       throw new Error('Tried to evaluate test case outside of test run');
@@ -237,13 +237,7 @@ export abstract class AutomaticBattle<
         testCaseHash: store.testCaseHash,
       });
       // Nothing to compare so we return
-      return {
-        score: 1,
-        threshold: { gte: 0.5 },
-        metadata: {
-          reason: 'No baseline found, saving the output as the baseline.',
-        },
-      };
+      return undefined;
     }
 
     const battleResult = await battle({
