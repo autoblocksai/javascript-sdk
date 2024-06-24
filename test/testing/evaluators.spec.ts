@@ -230,7 +230,7 @@ describe('OOB Evaluators', () => {
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
-    expectNumRequests(6);
+    expectNumRequests(5);
 
     expectPostRequest({
       path: '/start',
@@ -259,19 +259,6 @@ describe('OOB Evaluators', () => {
       method: 'POST',
       body: {
         baseline: 'hello world',
-      },
-    });
-    expectPostRequest({
-      path: '/evals',
-      body: {
-        testExternalId: 'my-test-id',
-        testCaseHash: md5('hello world'),
-        evaluatorExternalId: 'battle',
-        score: 1,
-        threshold: { gte: 0.5 },
-        metadata: {
-          reason: 'No baseline found, saving the output as the baseline.',
-        },
       },
     });
     expectPostRequest({
