@@ -1,14 +1,9 @@
 import OpenAI from 'openai';
 import { testCaseRunAsyncLocalStorage } from '../../asyncLocalStorage';
-import {
-  API_ENDPOINT,
-  AUTOBLOCKS_HEADERS,
-  AutoblocksEnvVar,
-  ThirdPartyEnvVar,
-  readEnv,
-} from '../../util';
+import { API_ENDPOINT, AUTOBLOCKS_HEADERS } from '../../util';
 import { BaseTestEvaluator, Evaluation } from '../models';
 import { z } from 'zod';
+import { getAutoblocksApiKey, getOpenAIApiKey } from './util';
 
 const zBaselineResponseSchema = z.object({
   baseline: z.string().optional(),
@@ -35,13 +30,6 @@ const zOpenAiResponseSchema = z
       result: z.enum(['0', '1', '2']),
     }),
   );
-
-interface BattleResponse {
-  result: string;
-  reason: string;
-}
-
-const API_TIMEOUT = 10_000;
 
 const systemPrompt = `You are an expert in comparing responses to given criteria.
 Pick which response is the best while taking the criteria into consideration.
@@ -70,78 +58,134 @@ ${args.baseline}
 ${args.challenger}`;
 };
 
-/**
- * The Battle evaluator compares two responses based on a given criteria.
- * If the challenger wins, the challenger becomes the new baseline automatically.
- * You can override this behavior by passing in a baselineMapper and handling the baseline yourself.
- */
-export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
-  TestCaseType,
-  OutputType
-> {
-  id = 'battle';
+const battle = async (args: {
+  baseline: string;
+  challenger: string;
   criteria: string;
-  outputMapper: (output: OutputType) => string;
-  baselineMapper?: (testCase: TestCaseType) => string;
+  evaluatorId: string;
+}): Promise<Evaluation> => {
+  const openai = new OpenAI({
+    apiKey: getOpenAIApiKey({
+      evaluatorId: args.evaluatorId,
+    }),
+  });
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4-turbo',
+    temperature: 0.0,
+    response_format: { type: 'json_object' },
+    messages: [
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
+      {
+        role: 'user',
+        content: makeUserPrompt({
+          criteria: args.criteria,
+          baseline: args.baseline,
+          challenger: args.challenger,
+        }),
+      },
+    ],
+  });
 
-  constructor(args: {
-    /**
-     * Criteria to be used in the battle
-     */
-    criteria: string;
-    /**
-     * Maps your output to the format the evaluator expects.
-     */
-    outputMapper: (output: OutputType) => string;
-    /**
-     * Optional baselineMapper allows you to store a baseline on your test case
-     * Instead of having Autoblocks automatically track it from the output
-     */
-    baselineMapper?: (testCase: TestCaseType) => string;
-  }) {
-    super();
-    this.criteria = args.criteria;
-    this.outputMapper = args.outputMapper;
-    this.baselineMapper = args.baselineMapper;
+  const parsedResponse = zOpenAiResponseSchema.parse(
+    response.choices[0]?.message.content,
+  );
+  let score = 0;
+  if (parsedResponse.result === '2') {
+    score = 1;
+  } else if (parsedResponse.result === '0') {
+    // tie
+    score = 0.5;
   }
 
-  private getApiKey(): string {
-    const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
-    if (!apiKey) {
-      throw new Error(
-        `You must set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable to use the ${this.id} evaluator.`,
-      );
-    }
-    return apiKey;
-  }
+  return {
+    score,
+    threshold: { gte: 0.5 },
+    metadata: {
+      reason: parsedResponse.reason,
+      baseline: args.baseline,
+      challenger: args.challenger,
+      criteria: args.criteria,
+    },
+  };
+};
 
-  private getOpenAIApiKey(): string {
-    const apiKey = readEnv(ThirdPartyEnvVar.OPENAI_API_KEY);
-    if (!apiKey) {
-      throw new Error(
-        `You must set the '${ThirdPartyEnvVar.OPENAI_API_KEY}' environment variable to use the ${this.id} evaluator.`,
-      );
-    }
-    return apiKey;
+/**
+ * The ManualBattle evaluator compares two responses based on a given criteria.
+ * If you would like to Autoblocks to automatically manage the baseline, use the AutomaticBattle evaluator.
+ */
+export abstract class ManualBattle<
+  TestCaseType,
+  OutputType,
+> extends BaseTestEvaluator<TestCaseType, OutputType> {
+  /**
+   * Criteria to be used in the battle
+   */
+  abstract get criteria(): string;
+
+  /**
+   * Map your output to a string for comparison to the baseline.
+   */
+  abstract outputMapper(args: { output: OutputType }): string;
+
+  /**
+   * Map the baseline ground truth from your test case for comparison.
+   */
+  abstract baselineMapper(args: { testCase: TestCaseType }): string;
+
+  async evaluateTestCase(args: {
+    testCase: TestCaseType;
+    output: OutputType;
+  }): Promise<Evaluation> {
+    return battle({
+      baseline: this.baselineMapper({
+        testCase: args.testCase,
+      }),
+      challenger: this.outputMapper({
+        output: args.output,
+      }),
+      criteria: this.criteria,
+      evaluatorId: this.id,
+    });
   }
+}
+
+/**
+ * The AutomaticBattle evaluator compares two responses based on a given criteria.
+ * If the challenger wins, the challenger becomes the new baseline automatically.
+ * If you would like to provide your own baseline, use the ManualBattle evaluator.
+ */
+export abstract class AutomaticBattle<
+  TestCaseType,
+  OutputType,
+> extends BaseTestEvaluator<TestCaseType, OutputType> {
+  /**
+   * Criteria to be used in the battle
+   */
+  abstract get criteria(): string;
+
+  /**
+   * Map your output to a string for comparison to the baseline.
+   */
+  abstract outputMapper(args: { output: OutputType }): string;
 
   private async getBaseline(args: {
     testId: string;
     testCase: TestCaseType;
     testCaseHash: string;
   }): Promise<string | undefined> {
-    if (this.baselineMapper) {
-      return this.baselineMapper(args.testCase);
-    }
     const resp = await fetch(
       `${API_ENDPOINT}/test-suites/${args.testId}/test-cases/${args.testCaseHash}/baseline`,
       {
         method: 'GET',
         headers: {
           ...AUTOBLOCKS_HEADERS,
-          Authorization: `Bearer ${this.getApiKey()}`,
+          Authorization: `Bearer ${getAutoblocksApiKey({
+            evaluatorId: this.id,
+          })}`,
         },
-        signal: AbortSignal.timeout(API_TIMEOUT),
       },
     );
 
@@ -160,45 +204,13 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
         method: 'POST',
         headers: {
           ...AUTOBLOCKS_HEADERS,
-          Authorization: `Bearer ${this.getApiKey()}`,
+          Authorization: `Bearer ${getAutoblocksApiKey({
+            evaluatorId: this.id,
+          })}`,
         },
-        signal: AbortSignal.timeout(API_TIMEOUT),
         body: JSON.stringify({ baseline: args.baseline }),
       },
     );
-  }
-
-  private async battle(
-    baseline: string,
-    challenger: string,
-  ): Promise<BattleResponse> {
-    const openai = new OpenAI({
-      apiKey: this.getOpenAIApiKey(),
-    });
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo',
-      temperature: 0.0,
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        {
-          role: 'user',
-          content: makeUserPrompt({
-            criteria: this.criteria,
-            baseline,
-            challenger,
-          }),
-        },
-      ],
-    });
-
-    const parsedResponse = zOpenAiResponseSchema.parse(
-      response.choices[0]?.message.content,
-    );
-    return parsedResponse;
   }
 
   async evaluateTestCase(args: {
@@ -209,7 +221,9 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
     if (!store) {
       throw new Error('Tried to evaluate test case outside of test run');
     }
-    const mappedOutput = this.outputMapper(args.output);
+    const mappedOutput = this.outputMapper({
+      output: args.output,
+    });
     const baseline = await this.getBaseline({
       testId: store.testId,
       testCase: args.testCase,
@@ -232,29 +246,22 @@ export class Battle<TestCaseType, OutputType> extends BaseTestEvaluator<
       };
     }
 
-    const battleResult = await this.battle(baseline, mappedOutput);
-    let score = 0;
-    if (battleResult.result === '2') {
+    const battleResult = await battle({
+      baseline,
+      challenger: mappedOutput,
+      criteria: this.criteria,
+      evaluatorId: this.id,
+    });
+
+    if (battleResult.score === 1) {
       // Challenger wins so save new baseline
       await this.saveBaseline({
         testId: store.testId,
         baseline: mappedOutput,
         testCaseHash: store.testCaseHash,
       });
-      score = 1;
-    } else if (battleResult.result === '0') {
-      // tie
-      score = 0.5;
     }
 
-    return {
-      score,
-      threshold: { gte: 0.5 },
-      metadata: {
-        reason: battleResult.reason,
-        baseline,
-        challenger: mappedOutput,
-      },
-    };
+    return battleResult;
   }
 }

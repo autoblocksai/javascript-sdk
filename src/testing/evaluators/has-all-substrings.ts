@@ -5,36 +5,26 @@ import { BaseTestEvaluator, Evaluation } from '../models';
  * Scores 1 if all substrings are present, 0 otherwise.
  * The comparison is case-sensitive.
  */
-export class HasAllSubstrings<
+export abstract class HasAllSubstrings<
   TestCaseType,
   OutputType,
 > extends BaseTestEvaluator<TestCaseType, OutputType> {
-  id = 'has-all-substrings';
+  /**
+   * Maps your output to the format the evaluator expects.
+   */
+  abstract outputMapper(args: { output: OutputType }): string;
 
-  testCaseMapper: (testCase: TestCaseType) => string[];
-  outputMapper: (output: OutputType) => string;
-
-  constructor(args: {
-    /**
-     * Maps your output to the format the evaluator expects.
-     */
-    outputMapper: (output: OutputType) => string;
-    /**
-     * Maps your test case to the format the evaluator expects.
-     */
-    testCaseMapper: (testCase: TestCaseType) => string[];
-  }) {
-    super();
-    this.outputMapper = args.outputMapper;
-    this.testCaseMapper = args.testCaseMapper;
-  }
+  /**
+   * Maps your test case to the format the evaluator expects.
+   */
+  abstract testCaseMapper(args: { testCase: TestCaseType }): string[];
 
   evaluateTestCase(args: {
     testCase: TestCaseType;
     output: OutputType;
   }): Evaluation {
-    const expectedSubstrings = this.testCaseMapper(args.testCase);
-    const mappedOutput = this.outputMapper(args.output);
+    const expectedSubstrings = this.testCaseMapper(args);
+    const mappedOutput = this.outputMapper(args);
     const missingSubstrings = expectedSubstrings.filter(
       (s) => !mappedOutput.includes(s),
     );
