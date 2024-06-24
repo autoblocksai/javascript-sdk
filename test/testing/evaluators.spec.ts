@@ -1,7 +1,39 @@
-import { runTestSuite, HasAllSubstrings, Battle } from '../../src/testing';
+import {
+  runTestSuite,
+  HasAllSubstrings,
+  AutomaticBattle,
+  ManualBattle,
+} from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
 import { API_ENDPOINT } from '../../src/util';
+
+// This needs to be outside of the it block to be hoisted correctly
+jest.mock('openai', () => ({
+  __esModule: true,
+  default: function () {
+    // Using a function to simulate the constructor behavior
+    return {
+      chat: {
+        completions: {
+          create: jest.fn().mockResolvedValue({
+            choices: [
+              {
+                message: {
+                  role: 'assistant',
+                  content: JSON.stringify({
+                    result: '2',
+                    reason: 'this is the reason',
+                  }),
+                },
+              },
+            ],
+          }),
+        },
+      },
+    };
+  },
+}));
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
 
@@ -14,7 +46,7 @@ const md5 = (str: string) => {
   return crypto.createHash('md5').update(str).digest('hex');
 };
 
-describe('Testing SDK', () => {
+describe('OOB Evaluators', () => {
   let mockFetch: jest.SpyInstance;
 
   beforeEach(() => {
@@ -87,7 +119,18 @@ describe('Testing SDK', () => {
     delete process.env.OPENAI_API_KEY;
   });
 
-  it('has-all-substrings', async () => {
+  it('HasAllSubstrings', async () => {
+    class MyHasAllSubstrings extends HasAllSubstrings<MyTestCase, string> {
+      id = 'has-all-substrings';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+
+      testCaseMapper({ testCase }: { testCase: MyTestCase }) {
+        return testCase.expectedSubstrings;
+      }
+    }
     await runTestSuite<MyTestCase, string>({
       id: 'my-test-id',
       testCases: [
@@ -101,12 +144,7 @@ describe('Testing SDK', () => {
         },
       ],
       testCaseHash: (testCase) => md5(testCase.input),
-      evaluators: [
-        new HasAllSubstrings({
-          outputMapper: (output) => output,
-          testCaseMapper: (testCase) => testCase.expectedSubstrings,
-        }),
-      ],
+      evaluators: [new MyHasAllSubstrings()],
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
@@ -170,7 +208,15 @@ describe('Testing SDK', () => {
     });
   });
 
-  it('battle', async () => {
+  it('AutomaticBattle', async () => {
+    class MyBattle extends AutomaticBattle<MyTestCase, string> {
+      id = 'battle';
+      criteria = 'The best greeting';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+    }
     await runTestSuite<MyTestCase, string>({
       id: 'my-test-id',
       testCases: [
@@ -180,16 +226,11 @@ describe('Testing SDK', () => {
         },
       ],
       testCaseHash: (testCase) => md5(testCase.input),
-      evaluators: [
-        new Battle({
-          criteria: 'The best greeting',
-          outputMapper: (output) => output,
-        }),
-      ],
+      evaluators: [new MyBattle()],
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
-    expectNumRequests(6);
+    expectNumRequests(5);
 
     expectPostRequest({
       path: '/start',
@@ -221,6 +262,61 @@ describe('Testing SDK', () => {
       },
     });
     expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+  });
+
+  it('ManualBattle', async () => {
+    class MyBattle extends ManualBattle<MyTestCase, string> {
+      id = 'battle';
+      criteria = 'The best greeting';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+
+      baselineMapper(args: { testCase: MyTestCase }): string {
+        return args.testCase.input;
+      }
+    }
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'hello world',
+          expectedSubstrings: ['hello', 'world'],
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new MyBattle()],
+      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
+    });
+
+    expectNumRequests(4);
+
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('hello world'),
+        testCaseBody: {
+          input: 'hello world',
+          expectedSubstrings: ['hello', 'world'],
+        },
+        testCaseOutput: 'hello world',
+      },
+    });
+    // Depends on the mocked openai implementation at the top of this file
+    expectPostRequest({
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
@@ -229,7 +325,10 @@ describe('Testing SDK', () => {
         score: 1,
         threshold: { gte: 0.5 },
         metadata: {
-          reason: 'No baseline found, saving the output as the baseline.',
+          reason: 'this is the reason',
+          baseline: 'hello world',
+          challenger: 'hello world',
+          criteria: 'The best greeting',
         },
       },
     });

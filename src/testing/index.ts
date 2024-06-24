@@ -8,4 +8,4 @@ export {
   type TracerEvent,
 } from './models';
 export { HasAllSubstrings } from './evaluators/has-all-substrings';
-export { Battle } from './evaluators/battle';
+export { AutomaticBattle, ManualBattle } from './evaluators/battle';
