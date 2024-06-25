@@ -1,5 +1,4 @@
 import fs from 'fs/promises';
-import { z } from 'zod';
 import {
   readEnv,
   AutoblocksEnvVar,
@@ -7,7 +6,6 @@ import {
   AUTOBLOCKS_HEADERS,
   API_ENDPOINT,
 } from '../util';
-import { zPromptSchema, type Prompt } from '../types';
 
 interface ParsedTemplate {
   id: string;
@@ -19,10 +17,12 @@ interface ParsedTemplate {
 
 interface ParsedPrompt {
   id: string;
-  majorVersion: string;
-  minorVersion: string;
-  templates: ParsedTemplate[];
-  params?: Record<string, unknown>;
+  majorVersions: {
+    majorVersion: string;
+    minorVersions: string[];
+    templates: ParsedTemplate[];
+    params?: Record<string, unknown>;
+  }[];
 }
 
 type SymbolType = 'interface' | 'variable';
@@ -47,85 +47,69 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
       // Make map of prompt ID -> major version -> { templates, params, minorVersions }
       let generated = `interface ${args.symbolName} {`;
 
-      Object.entries(groupBy(args.prompts, (prompt) => prompt.id)).forEach(
-        ([promptId, promptsById]) => {
-          generated += `\n  '${promptId}': {`;
+      args.prompts.forEach((prompt) => {
+        generated += `\n  '${prompt.id}': {`;
 
-          // Use `any` for everything when version is set to `undeployed`.
-          // Allows the user to use any template or model params while
-          // working with an undeployed prompt in the UI
-          generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': {`;
-          generated += `\n      templates: any;`;
-          generated += `\n      params: any;`;
-          generated += `\n      minorVersions: any;`;
-          generated += `\n    };`;
+        // Use `any` for everything when version is set to `undeployed`.
+        // Allows the user to use any template or model params while
+        // working with an undeployed prompt in the UI
+        generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': {`;
+        generated += `\n      templates: any;`;
+        generated += `\n      params: any;`;
+        generated += `\n      minorVersions: any;`;
+        generated += `\n    };`;
 
-          Object.entries(
-            groupBy(promptsById, (prompt) => prompt.majorVersion),
-          ).forEach(([majorVersion, promptsByMajorVersion]) => {
-            generated += `\n    '${majorVersion}': {`;
+        prompt.majorVersions.forEach((version) => {
+          generated += `\n    '${version.majorVersion}': {`;
 
-            // The templates and params should all be the same within a major version,
-            // so just pick one to generate those types.
-            const prompt = promptsByMajorVersion[0];
-
-            if (!prompt) {
-              return;
-            }
-
-            generated += `\n      templates: {`;
-            prompt.templates.forEach((template) => {
-              if (template.placeholders.length > 0) {
-                generated += `\n        '${template.id}': {`;
-                template.placeholders.forEach((placeholder) => {
-                  if (placeholder.endsWith('?')) {
-                    generated += `\n          '${placeholder.slice(
-                      0,
-                      -1,
-                    )}'?: string;`;
-                  } else {
-                    generated += `\n          '${placeholder}': string;`;
-                  }
-                });
-                generated += '\n        };';
-              } else {
-                generated += `\n        '${template.id}': Record<PropertyKey, never>;`;
-              }
-            });
-
-            generated += '\n      };';
-
-            if (prompt.params) {
-              generated += `\n      params: {`;
-              sortBy(Object.keys(prompt.params), (k) => k).forEach((key) => {
-                const val = prompt.params ? prompt.params[key] : undefined;
-                const valType = makeTypeScriptTypeFromValue(val);
-                if (!valType) {
-                  return;
+          generated += `\n      templates: {`;
+          version.templates.forEach((template) => {
+            if (template.placeholders.length > 0) {
+              generated += `\n        '${template.id}': {`;
+              template.placeholders.forEach((placeholder) => {
+                if (placeholder.endsWith('?')) {
+                  generated += `\n          '${placeholder.slice(
+                    0,
+                    -1,
+                  )}'?: string;`;
+                } else {
+                  generated += `\n          '${placeholder}': string;`;
                 }
-                generated += `\n        '${key}': ${valType};`;
               });
-              generated += '\n      };';
+              generated += '\n        };';
             } else {
-              generated += '\n      params: never;';
+              generated += `\n        '${template.id}': Record<PropertyKey, never>;`;
             }
-
-            // Add type for minor versions
-            const minorVersions = promptsByMajorVersion.map(
-              (prompt) => prompt.minorVersion,
-            );
-            minorVersions.push(RevisionSpecialVersionsEnum.LATEST);
-
-            generated += `\n      minorVersions: '${minorVersions
-              .sort()
-              .join(`' | '`)}';`;
-
-            generated += '\n    };';
           });
 
-          generated += '\n  };';
-        },
-      );
+          generated += '\n      };';
+
+          if (version.params) {
+            generated += `\n      params: {`;
+            sortBy(Object.keys(version.params), (k) => k).forEach((key) => {
+              const val = version.params ? version.params[key] : undefined;
+              const valType = makeTypeScriptTypeFromValue(val);
+              if (!valType) {
+                return;
+              }
+              generated += `\n        '${key}': ${valType};`;
+            });
+            generated += '\n      };';
+          } else {
+            generated += '\n      params: never;';
+          }
+
+          // Add type for minor versions
+          generated += `\n      minorVersions: '${[
+            ...version.minorVersions,
+            RevisionSpecialVersionsEnum.LATEST,
+          ].join(`' | '`)}';`;
+
+          generated += '\n    };';
+        });
+
+        generated += '\n  };';
+      });
 
       return generated + `\n}`;
     },
@@ -149,23 +133,6 @@ function makeTypeScriptTypeFromValue(val: unknown): string | undefined {
   }
 
   return undefined;
-}
-
-function groupBy<T, V extends string | number | symbol>(
-  array: T[],
-  getVal: (item: T) => V,
-): Record<V, T[]> {
-  return array.reduce(
-    (accumulator, currentValue) => {
-      const key = getVal(currentValue);
-      if (!accumulator[key]) {
-        accumulator[key] = [];
-      }
-      accumulator[key].push(currentValue);
-      return accumulator;
-    },
-    {} as Record<V, T[]>,
-  );
 }
 
 function sortBy<T, V extends string | number>(
@@ -260,7 +227,7 @@ function parseTemplate(args: { id: string; content: string }): ParsedTemplate {
 async function getAllPromptsFromAPI(args: {
   apiKey: string;
 }): Promise<ParsedPrompt[]> {
-  const resp = await fetch(`${API_ENDPOINT}/prompts`, {
+  const resp = await fetch(`${API_ENDPOINT}/prompts/types`, {
     method: 'GET',
     headers: {
       ...AUTOBLOCKS_HEADERS,
@@ -268,31 +235,46 @@ async function getAllPromptsFromAPI(args: {
     },
   });
   const data = await resp.json();
-  const prompts = z.array(zPromptSchema).parse(data);
-  return parseAndSortPrompts(prompts);
+  return parseAndSortPrompts(data);
 }
 
 /**
  * Sorts and parses the placeholders out of the prompts retrieved from the API.
  */
-export function parseAndSortPrompts(prompts: Prompt[]): ParsedPrompt[] {
+export function parseAndSortPrompts(
+  promptTypes: {
+    id: string;
+    majorVersions: {
+      majorVersion: string;
+      minorVersions: string[];
+      templates: {
+        id: string;
+        template: string;
+      }[];
+      params?: { params: Record<string, unknown> };
+    }[];
+  }[],
+): ParsedPrompt[] {
   return sortBy(
-    prompts.map((prompt) => {
-      const [majorVersion, minorVersion] = prompt.version.split('.');
+    promptTypes.map((prompt) => {
       return {
         id: prompt.id,
-        majorVersion,
-        minorVersion,
-        params: prompt.params?.params,
-        templates: sortBy(
-          prompt.templates.map((template) => {
-            return parseTemplate({
-              id: template.id,
-              content: template.template,
-            });
-          }),
-          (t) => t.id,
-        ),
+        majorVersions: prompt.majorVersions.map((version) => {
+          return {
+            majorVersion: version.majorVersion,
+            minorVersions: version.minorVersions,
+            templates: sortBy(
+              version.templates.map((template) => {
+                return parseTemplate({
+                  id: template.id,
+                  content: template.template,
+                });
+              }),
+              (t) => t.id,
+            ),
+            params: version.params?.params,
+          };
+        }),
       };
     }),
     (p) => p.id,
