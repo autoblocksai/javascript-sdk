@@ -7,5 +7,15 @@ export {
   type Evaluation,
   type TracerEvent,
 } from './models';
-export { HasAllSubstrings } from './evaluators/has-all-substrings';
-export { AutomaticBattle, ManualBattle } from './evaluators/battle';
+export {
+  BaseHasAllSubstrings,
+  // deprecated
+  BaseHasAllSubstrings as HasAllSubstrings,
+} from './evaluators/has-all-substrings';
+export {
+  BaseAutomaticBattle,
+  BaseManualBattle,
+  // deprecated
+  BaseAutomaticBattle as AutomaticBattle,
+  BaseManualBattle as ManualBattle,
+} from './evaluators/battle';

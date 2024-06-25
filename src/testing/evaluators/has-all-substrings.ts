@@ -5,7 +5,7 @@ import { BaseTestEvaluator, Evaluation } from '../models';
  * Scores 1 if all substrings are present, 0 otherwise.
  * The comparison is case-sensitive.
  */
-export abstract class HasAllSubstrings<
+export abstract class BaseHasAllSubstrings<
   TestCaseType,
   OutputType,
 > extends BaseTestEvaluator<TestCaseType, OutputType> {

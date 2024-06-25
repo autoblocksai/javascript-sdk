@@ -1,8 +1,8 @@
 import {
   runTestSuite,
-  HasAllSubstrings,
-  AutomaticBattle,
-  ManualBattle,
+  BaseAutomaticBattle,
+  BaseManualBattle,
+  BaseHasAllSubstrings,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
@@ -119,8 +119,8 @@ describe('OOB Evaluators', () => {
     delete process.env.OPENAI_API_KEY;
   });
 
-  it('HasAllSubstrings', async () => {
-    class MyHasAllSubstrings extends HasAllSubstrings<MyTestCase, string> {
+  it('BaseHasAllSubstrings', async () => {
+    class HasAllSubstrings extends BaseHasAllSubstrings<MyTestCase, string> {
       id = 'has-all-substrings';
 
       outputMapper({ output }: { output: string }) {
@@ -144,7 +144,7 @@ describe('OOB Evaluators', () => {
         },
       ],
       testCaseHash: (testCase) => md5(testCase.input),
-      evaluators: [new MyHasAllSubstrings()],
+      evaluators: [new HasAllSubstrings()],
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
@@ -208,8 +208,8 @@ describe('OOB Evaluators', () => {
     });
   });
 
-  it('AutomaticBattle', async () => {
-    class MyBattle extends AutomaticBattle<MyTestCase, string> {
+  it('BaseAutomaticBattle', async () => {
+    class MyBattle extends BaseAutomaticBattle<MyTestCase, string> {
       id = 'battle';
       criteria = 'The best greeting';
 
@@ -269,8 +269,8 @@ describe('OOB Evaluators', () => {
     });
   });
 
-  it('ManualBattle', async () => {
-    class MyBattle extends ManualBattle<MyTestCase, string> {
+  it('BaseManualBattle', async () => {
+    class MyBattle extends BaseManualBattle<MyTestCase, string> {
       id = 'battle';
       criteria = 'The best greeting';
 
