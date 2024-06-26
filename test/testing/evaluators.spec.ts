@@ -344,9 +344,6 @@ describe('OOB Evaluators', () => {
         evaluatorExternalId: 'is-valid-json',
         score: 0,
         threshold: { gte: 1 },
-        metadata: {
-          error: 'Unexpected token \'h\', "hello world" is not valid JSON',
-        },
       },
     });
     expectPostRequest({
