@@ -121,7 +121,7 @@ export abstract class BaseManualBattle<
   OutputType,
 > extends BaseTestEvaluator<TestCaseType, OutputType> {
   /**
-   * Criteria to be used in the battle
+   * Criteria to be used in the battle.
    */
   abstract get criteria(): string;
 

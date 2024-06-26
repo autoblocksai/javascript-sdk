@@ -10,12 +10,12 @@ export abstract class BaseHasAllSubstrings<
   OutputType,
 > extends BaseTestEvaluator<TestCaseType, OutputType> {
   /**
-   * Maps your output to the format the evaluator expects.
+   * Map your output to a string for comparison.
    */
   abstract outputMapper(args: { output: OutputType }): string;
 
   /**
-   * Maps your test case to the format the evaluator expects.
+   * Map your test case to a list of strings to check for in the output.
    */
   abstract testCaseMapper(args: { testCase: TestCaseType }): string[];
 
