@@ -291,10 +291,6 @@ describe('OOB Evaluators', () => {
         evaluatorExternalId: 'is-equals',
         score: 1,
         threshold: { gte: 1 },
-        metadata: {
-          expectedOutput: 'hello world',
-          actualOutput: 'hello world',
-        },
       },
     });
     expectPostRequest({
@@ -305,6 +301,10 @@ describe('OOB Evaluators', () => {
         evaluatorExternalId: 'is-equals',
         score: 0,
         threshold: { gte: 1 },
+        metadata: {
+          expectedOutput: 'bar',
+          actualOutput: 'foo',
+        },
       },
     });
   });
