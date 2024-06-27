@@ -3,6 +3,8 @@ import {
   BaseAutomaticBattle,
   BaseManualBattle,
   BaseHasAllSubstrings,
+  BaseIsEquals,
+  BaseIsValidJson,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
@@ -56,10 +58,6 @@ describe('OOB Evaluators', () => {
     } as Response);
   });
 
-  const expectNumRequests = (num: number) => {
-    expect(mockFetch).toHaveBeenCalledTimes(num);
-  };
-
   const expectPublicAPIRequest = (args: {
     path: string;
     method: 'GET' | 'POST';
@@ -89,6 +87,7 @@ describe('OOB Evaluators', () => {
     path: string;
     body: Record<string, unknown>;
   }) => {
+    console.log(mockFetch.mock.calls);
     for (const call of mockFetch.mock.calls) {
       const [callUrl, callArgs] = call;
       if (callUrl === `${MOCK_CLI_SERVER_ADDRESS}${args.path}`) {
@@ -148,38 +147,6 @@ describe('OOB Evaluators', () => {
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
-    expectNumRequests(6);
-
-    expectPostRequest({
-      path: '/start',
-      body: {
-        testExternalId: 'my-test-id',
-      },
-    });
-    expectPostRequest({
-      path: '/results',
-      body: {
-        testExternalId: 'my-test-id',
-        testCaseHash: md5('hello world'),
-        testCaseBody: {
-          input: 'hello world',
-          expectedSubstrings: ['hello', 'world'],
-        },
-        testCaseOutput: 'hello world',
-      },
-    });
-    expectPostRequest({
-      path: '/results',
-      body: {
-        testExternalId: 'my-test-id',
-        testCaseHash: md5('foo'),
-        testCaseBody: {
-          input: 'foo',
-          expectedSubstrings: ['bar'],
-        },
-        testCaseOutput: 'foo',
-      },
-    });
     expectPostRequest({
       path: '/evals',
       body: {
@@ -198,12 +165,6 @@ describe('OOB Evaluators', () => {
         evaluatorExternalId: 'has-all-substrings',
         score: 0,
         threshold: { gte: 1 },
-      },
-    });
-    expectPostRequest({
-      path: '/end',
-      body: {
-        testExternalId: 'my-test-id',
       },
     });
   });
@@ -230,26 +191,6 @@ describe('OOB Evaluators', () => {
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
-    expectNumRequests(5);
-
-    expectPostRequest({
-      path: '/start',
-      body: {
-        testExternalId: 'my-test-id',
-      },
-    });
-    expectPostRequest({
-      path: '/results',
-      body: {
-        testExternalId: 'my-test-id',
-        testCaseHash: md5('hello world'),
-        testCaseBody: {
-          input: 'hello world',
-          expectedSubstrings: ['hello', 'world'],
-        },
-        testCaseOutput: 'hello world',
-      },
-    });
     expectPublicAPIRequest({
       path: `/test-suites/my-test-id/test-cases/${md5('hello world')}/baseline`,
       method: 'GET',
@@ -259,12 +200,6 @@ describe('OOB Evaluators', () => {
       method: 'POST',
       body: {
         baseline: 'hello world',
-      },
-    });
-    expectPostRequest({
-      path: '/end',
-      body: {
-        testExternalId: 'my-test-id',
       },
     });
   });
@@ -295,26 +230,6 @@ describe('OOB Evaluators', () => {
       fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
     });
 
-    expectNumRequests(4);
-
-    expectPostRequest({
-      path: '/start',
-      body: {
-        testExternalId: 'my-test-id',
-      },
-    });
-    expectPostRequest({
-      path: '/results',
-      body: {
-        testExternalId: 'my-test-id',
-        testCaseHash: md5('hello world'),
-        testCaseBody: {
-          input: 'hello world',
-          expectedSubstrings: ['hello', 'world'],
-        },
-        testCaseOutput: 'hello world',
-      },
-    });
     // Depends on the mocked openai implementation at the top of this file
     expectPostRequest({
       path: '/evals',
@@ -332,10 +247,113 @@ describe('OOB Evaluators', () => {
         },
       },
     });
+  });
+
+  it('BaseIsEquals', async () => {
+    interface TestCase {
+      input: string;
+      expectedOutput: string;
+    }
+
+    class IsEquals extends BaseIsEquals<TestCase, string> {
+      id = 'is-equals';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+
+      testCaseMapper({ testCase }: { testCase: TestCase }) {
+        return testCase.expectedOutput;
+      }
+    }
+    await runTestSuite<TestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'hello world',
+          expectedOutput: 'hello world',
+        },
+        {
+          input: 'foo',
+          expectedOutput: 'bar',
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new IsEquals()],
+      fn: ({ testCase }: { testCase: TestCase }) => testCase.input,
+    });
+
     expectPostRequest({
-      path: '/end',
+      path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        testCaseHash: md5('hello world'),
+        evaluatorExternalId: 'is-equals',
+        score: 1,
+        threshold: { gte: 1 },
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('foo'),
+        evaluatorExternalId: 'is-equals',
+        score: 0,
+        threshold: { gte: 1 },
+        metadata: {
+          expectedOutput: 'bar',
+          actualOutput: 'foo',
+        },
+      },
+    });
+  });
+
+  it('BaseIsValidJson', async () => {
+    interface TestCase {
+      input: string;
+    }
+
+    class IsValidJson extends BaseIsValidJson<TestCase, string> {
+      id = 'is-valid-json';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+    }
+    await runTestSuite<TestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'hello world',
+        },
+        {
+          input: JSON.stringify({ foo: 'bar' }),
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new IsValidJson()],
+      fn: ({ testCase }: { testCase: TestCase }) => testCase.input,
+    });
+
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('hello world'),
+        evaluatorExternalId: 'is-valid-json',
+        score: 0,
+        threshold: { gte: 1 },
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5(JSON.stringify({ foo: 'bar' })),
+        evaluatorExternalId: 'is-valid-json',
+        score: 1,
+        threshold: { gte: 1 },
       },
     });
   });

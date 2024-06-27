@@ -19,3 +19,5 @@ export {
   BaseAutomaticBattle as AutomaticBattle,
   BaseManualBattle as ManualBattle,
 } from './evaluators/battle';
+export { BaseIsEquals } from './evaluators/is-equals';
+export { BaseIsValidJson } from './evaluators/is-valid-json';
