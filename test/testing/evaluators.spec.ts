@@ -4,7 +4,7 @@ import {
   BaseManualBattle,
   BaseHasAllSubstrings,
   BaseIsEquals,
-  BaseIsValidJson,
+  BaseIsValidJSON,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
@@ -314,7 +314,7 @@ describe('OOB Evaluators', () => {
       input: string;
     }
 
-    class IsValidJson extends BaseIsValidJson<TestCase, string> {
+    class IsValidJSON extends BaseIsValidJSON<TestCase, string> {
       id = 'is-valid-json';
 
       outputMapper({ output }: { output: string }) {
@@ -332,7 +332,7 @@ describe('OOB Evaluators', () => {
         },
       ],
       testCaseHash: (testCase) => md5(testCase.input),
-      evaluators: [new IsValidJson()],
+      evaluators: [new IsValidJSON()],
       fn: ({ testCase }: { testCase: TestCase }) => testCase.input,
     });
 

@@ -20,4 +20,4 @@ export {
   BaseManualBattle as ManualBattle,
 } from './evaluators/battle';
 export { BaseIsEquals } from './evaluators/is-equals';
-export { BaseIsValidJson } from './evaluators/is-valid-json';
+export { BaseIsValidJSON } from './evaluators/is-valid-json';
