@@ -1,10 +1,10 @@
 import { BaseTestEvaluator, Evaluation } from '../models';
 
 /**
- * The IsValidJson evaluator checks if the output is valid JSON.
+ * The IsValidJSON evaluator checks if the output is valid JSON.
  * Scores 1 if it is valid, 0 otherwise.
  */
-export abstract class BaseIsValidJson<
+export abstract class BaseIsValidJSON<
   TestCaseType,
   OutputType,
 > extends BaseTestEvaluator<TestCaseType, OutputType> {
