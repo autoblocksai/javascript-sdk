@@ -14,7 +14,7 @@ export abstract class BaseIsEquals<
   abstract outputMapper(args: { output: OutputType }): string;
 
   /**
-   * Map your output to a string for comparison.
+   * Map your test case to a string for comparison.
    */
   abstract testCaseMapper(args: { testCase: TestCaseType }): string;
 
@@ -22,21 +22,25 @@ export abstract class BaseIsEquals<
     testCase: TestCaseType;
     output: OutputType;
   }): Evaluation {
-    const mappedOutput = this.outputMapper({
+    const actualOutput = this.outputMapper({
       output: args.output,
     });
     const expectedOutput = this.testCaseMapper({
       testCase: args.testCase,
     });
+    const score = actualOutput === expectedOutput ? 1 : 0;
     return {
-      score: mappedOutput === expectedOutput ? 1 : 0,
+      score,
       threshold: {
         gte: 1,
       },
-      metadata: {
-        expectedOutput,
-        actualOutput: mappedOutput,
-      },
+      metadata:
+        score === 1
+          ? undefined
+          : {
+              expectedOutput,
+              actualOutput,
+            },
     };
   }
 }

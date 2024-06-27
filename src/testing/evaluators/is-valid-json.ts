@@ -9,7 +9,7 @@ export abstract class BaseIsValidJson<
   OutputType,
 > extends BaseTestEvaluator<TestCaseType, OutputType> {
   /**
-   * Map your output to a string for comparison.
+   * Map your output to the string that you want to check is valid JSON.
    */
   abstract outputMapper(args: { output: OutputType }): string;
 
