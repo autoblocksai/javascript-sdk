@@ -87,7 +87,6 @@ describe('OOB Evaluators', () => {
     path: string;
     body: Record<string, unknown>;
   }) => {
-    console.log(mockFetch.mock.calls);
     for (const call of mockFetch.mock.calls) {
       const [callUrl, callArgs] = call;
       if (callUrl === `${MOCK_CLI_SERVER_ADDRESS}${args.path}`) {

@@ -83,3 +83,31 @@ export interface HumanReviewField {
   name: string;
   value: string;
 }
+
+/**
+ * A choice used in an LLM judge evaluator.
+ */
+export interface ScoreChoice {
+  value: number;
+  name: string;
+}
+
+export interface EvaluationOverrideField {
+  id: string;
+  name: string;
+  value: string;
+}
+
+export interface EvaluationOverrideComment {
+  fieldId: string;
+  quotedText: string;
+  commentText: string;
+}
+
+export interface EvaluationOverride {
+  originalScore: ScoreChoice;
+  overrideScore: ScoreChoice;
+  inputFields: EvaluationOverrideField[];
+  outputFields: EvaluationOverrideField[];
+  comments: EvaluationOverrideComment[];
+}
