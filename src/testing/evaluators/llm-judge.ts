@@ -65,6 +65,7 @@ export abstract class BaseLLMJudge<
   model = 'gpt-4-turbo';
   /**
    * The number of recent evaluation overrides to fetch for the evaluator and pass to make_prompt.
+   *
    * @default 0
    */
   numOverrides = 0;
