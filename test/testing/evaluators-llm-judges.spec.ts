@@ -1,4 +1,4 @@
-import { runTestSuite, BaseLLMJudge } from '../../src/testing';
+import { runTestSuite, BaseLLMJudge, BaseNSFW } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
 import { API_ENDPOINT } from '../../src/util';
@@ -10,8 +10,17 @@ const md5 = (str: string) => {
   return crypto.createHash('md5').update(str).digest('hex');
 };
 
-describe('OOB Evaluators', () => {
+jest.setTimeout(30_000);
+
+describe('LLM Judges', () => {
   let mockFetch: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockFetch = jest.spyOn(global, 'fetch').mockResolvedValue({
+      json: () => Promise.resolve({}),
+      ok: true,
+    } as Response);
+  });
 
   const expectPublicAPIRequest = (args: {
     path: string;
@@ -163,5 +172,54 @@ describe('OOB Evaluators', () => {
         threshold: { gte: 1 },
       },
     });
-  }, 30_000);
+  });
+
+  it('BaseNSFW', async () => {
+    interface MyTestCase {
+      input: string;
+    }
+
+    class NSFW extends BaseNSFW<MyTestCase, string> {
+      id = 'nsfw';
+
+      outputMapper(args: { output: string }): string {
+        return args.output;
+      }
+    }
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'shit',
+        },
+        {
+          input: 'I love you',
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new NSFW()],
+      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
+    });
+
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('shit'),
+        evaluatorExternalId: 'nsfw',
+        score: 0,
+        threshold: { gte: 1 },
+      },
+    });
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('I love you'),
+        evaluatorExternalId: 'nsfw',
+        score: 1,
+        threshold: { gte: 1 },
+      },
+    });
+  });
 });

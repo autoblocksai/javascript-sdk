@@ -26,3 +26,4 @@ export {
 export { BaseIsEquals } from './evaluators/is-equals';
 export { BaseIsValidJSON } from './evaluators/is-valid-json';
 export { BaseLLMJudge } from './evaluators/llm-judge';
+export { BaseNSFW } from './evaluators/nsfw';

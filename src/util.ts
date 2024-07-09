@@ -41,3 +41,10 @@ export const AUTOBLOCKS_HEADERS = {
   'Content-Type': 'application/json',
   'X-Autoblocks-SDK': `javascript-${packageJson.version}`,
 };
+
+/**
+ * Removes leading whitespace from each line in a string.
+ */
+export const dedent = (text: string) => {
+  return text.replace(/^\s+/gm, '');
+};
