@@ -81,7 +81,7 @@ export abstract class BaseLLMJudge<
   abstract get scoreChoices(): ScoreChoice[];
 
   /**
-   *  The prompt passed to the LLM judge. Should be poised as a question.
+   * The prompt passed to the LLM judge. Should be poised as a question.
    */
   abstract makePrompt(args: {
     testCase: TestCaseType;
