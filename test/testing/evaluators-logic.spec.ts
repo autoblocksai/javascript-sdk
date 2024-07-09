@@ -1,41 +1,11 @@
 import {
   runTestSuite,
-  BaseAutomaticBattle,
-  BaseManualBattle,
   BaseHasAllSubstrings,
   BaseIsEquals,
   BaseIsValidJSON,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
-import { API_ENDPOINT } from '../../src/util';
-
-// This needs to be outside of the it block to be hoisted correctly
-jest.mock('openai', () => ({
-  __esModule: true,
-  default: function () {
-    // Using a function to simulate the constructor behavior
-    return {
-      chat: {
-        completions: {
-          create: jest.fn().mockResolvedValue({
-            choices: [
-              {
-                message: {
-                  role: 'assistant',
-                  content: JSON.stringify({
-                    result: '2',
-                    reason: 'this is the reason',
-                  }),
-                },
-              },
-            ],
-          }),
-        },
-      },
-    };
-  },
-}));
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
 
@@ -57,31 +27,6 @@ describe('OOB Evaluators', () => {
       ok: true,
     } as Response);
   });
-
-  const expectPublicAPIRequest = (args: {
-    path: string;
-    method: 'GET' | 'POST';
-    body?: Record<string, unknown>;
-  }) => {
-    for (const call of mockFetch.mock.calls) {
-      const [callUrl, callArgs] = call;
-      if (
-        callUrl === `${API_ENDPOINT}${args.path}` &&
-        callArgs.method === args.method
-      ) {
-        if (!args.body) {
-          return;
-        }
-        const parsedBody = JSON.parse(callArgs.body);
-        if (isMatch(parsedBody, args.body)) {
-          return;
-        }
-      }
-    }
-
-    // If we reach here, we didn't find the expected request
-    throw new Error(`Expected request not found: ${JSON.stringify(args)}`);
-  };
 
   const expectPostRequest = (args: {
     path: string;
@@ -164,86 +109,6 @@ describe('OOB Evaluators', () => {
         evaluatorExternalId: 'has-all-substrings',
         score: 0,
         threshold: { gte: 1 },
-      },
-    });
-  });
-
-  it('BaseAutomaticBattle', async () => {
-    class MyBattle extends BaseAutomaticBattle<MyTestCase, string> {
-      id = 'battle';
-      criteria = 'The best greeting';
-
-      outputMapper({ output }: { output: string }) {
-        return output;
-      }
-    }
-    await runTestSuite<MyTestCase, string>({
-      id: 'my-test-id',
-      testCases: [
-        {
-          input: 'hello world',
-          expectedSubstrings: ['hello', 'world'],
-        },
-      ],
-      testCaseHash: (testCase) => md5(testCase.input),
-      evaluators: [new MyBattle()],
-      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
-    });
-
-    expectPublicAPIRequest({
-      path: `/test-suites/my-test-id/test-cases/${md5('hello world')}/baseline`,
-      method: 'GET',
-    });
-    expectPublicAPIRequest({
-      path: `/test-suites/my-test-id/test-cases/${md5('hello world')}/baseline`,
-      method: 'POST',
-      body: {
-        baseline: 'hello world',
-      },
-    });
-  });
-
-  it('BaseManualBattle', async () => {
-    class MyBattle extends BaseManualBattle<MyTestCase, string> {
-      id = 'battle';
-      criteria = 'The best greeting';
-
-      outputMapper({ output }: { output: string }) {
-        return output;
-      }
-
-      baselineMapper(args: { testCase: MyTestCase }): string {
-        return args.testCase.input;
-      }
-    }
-    await runTestSuite<MyTestCase, string>({
-      id: 'my-test-id',
-      testCases: [
-        {
-          input: 'hello world',
-          expectedSubstrings: ['hello', 'world'],
-        },
-      ],
-      testCaseHash: (testCase) => md5(testCase.input),
-      evaluators: [new MyBattle()],
-      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
-    });
-
-    // Depends on the mocked openai implementation at the top of this file
-    expectPostRequest({
-      path: '/evals',
-      body: {
-        testExternalId: 'my-test-id',
-        testCaseHash: md5('hello world'),
-        evaluatorExternalId: 'battle',
-        score: 1,
-        threshold: { gte: 0.5 },
-        metadata: {
-          reason: 'this is the reason',
-          baseline: 'hello world',
-          challenger: 'hello world',
-          criteria: 'The best greeting',
-        },
       },
     });
   });

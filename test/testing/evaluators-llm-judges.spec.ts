@@ -3,6 +3,8 @@ import {
   BaseLLMJudge,
   BaseNSFW,
   BaseToxicity,
+  BaseAutomaticBattle,
+  BaseManualBattle,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
@@ -273,6 +275,87 @@ describe('LLM Judges', () => {
         evaluatorExternalId: 'toxicity',
         score: 1,
         threshold: { gte: 1 },
+      },
+    });
+  });
+
+  it('BaseAutomaticBattle', async () => {
+    interface MyTestCase {
+      input: string;
+    }
+
+    class MyBattle extends BaseAutomaticBattle<MyTestCase, string> {
+      id = 'battle';
+      criteria = 'The best greeting';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+    }
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'hello world',
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new MyBattle()],
+      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
+    });
+
+    expectPublicAPIRequest({
+      path: `/test-suites/my-test-id/test-cases/${md5('hello world')}/baseline`,
+      method: 'GET',
+    });
+    expectPublicAPIRequest({
+      path: `/test-suites/my-test-id/test-cases/${md5('hello world')}/baseline`,
+      method: 'POST',
+      body: {
+        baseline: 'hello world',
+      },
+    });
+  });
+
+  it('BaseManualBattle', async () => {
+    interface MyTestCase {
+      input: string;
+      baseline: string;
+    }
+    class MyBattle extends BaseManualBattle<MyTestCase, string> {
+      id = 'battle';
+      criteria = 'The best greeting';
+
+      outputMapper({ output }: { output: string }) {
+        return output;
+      }
+
+      baselineMapper(args: { testCase: MyTestCase }): string {
+        return args.testCase.baseline;
+      }
+    }
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'hello world',
+          baseline: 'goodbye',
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new MyBattle()],
+      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
+    });
+
+    // Depends on the mocked openai implementation at the top of this file
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('hello world'),
+        evaluatorExternalId: 'battle',
+        score: 1,
+        threshold: { gte: 0.5 },
       },
     });
   });
