@@ -6,6 +6,10 @@ export {
   type Threshold,
   type Evaluation,
   type TracerEvent,
+  type EvaluationOverride,
+  type EvaluationOverrideComment,
+  type EvaluationOverrideField,
+  type ScoreChoice,
 } from './models';
 export {
   BaseHasAllSubstrings,
@@ -21,3 +25,6 @@ export {
 } from './evaluators/battle';
 export { BaseIsEquals } from './evaluators/is-equals';
 export { BaseIsValidJSON } from './evaluators/is-valid-json';
+export { BaseLLMJudge } from './evaluators/llm-judge';
+export { BaseNSFW } from './evaluators/nsfw';
+export { BaseToxicity } from './evaluators/toxicity';
