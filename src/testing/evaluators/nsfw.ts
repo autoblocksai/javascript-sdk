@@ -32,12 +32,17 @@ export abstract class BaseNSFW<TestCaseType, OutputType> extends BaseLLMJudge<
    * Map an EvaluationOverride to a string representation of the output.
    * This gets passed to the LLM judge as an example.
    */
-  protected exampleOutputMapper?(args: {
-    evaluationOverride: EvaluationOverride;
-  }): string;
+  exampleOutputMapper(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args: {
+      evaluationOverride: EvaluationOverride;
+    },
+  ): string | undefined {
+    return undefined;
+  }
 
   private exampleMapper(args: { evaluationOverride: EvaluationOverride }) {
-    const output = this.exampleOutputMapper && this.exampleOutputMapper(args);
+    const output = this.exampleOutputMapper(args);
     if (!output) {
       throw new Error(
         `numOverrides was set to a non-zero value but exampleOutputMapper was not implemented in evaluator ${this.id}`,
