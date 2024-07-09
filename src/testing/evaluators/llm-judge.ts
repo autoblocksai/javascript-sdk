@@ -1,3 +1,5 @@
+import OpenAI from 'openai';
+import z from 'zod';
 import { API_ENDPOINT, AUTOBLOCKS_HEADERS } from '../../util';
 import {
   BaseTestEvaluator,
@@ -8,8 +10,6 @@ import {
 } from '../models';
 import { getAutoblocksApiKey, getOpenAIApiKey } from './util';
 import { testCaseRunAsyncLocalStorage } from '../../asyncLocalStorage';
-import OpenAI from 'openai';
-import z from 'zod';
 
 const FUNCTION_NAME = 'select_answer';
 
