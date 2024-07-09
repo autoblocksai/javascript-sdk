@@ -1,4 +1,9 @@
-import { runTestSuite, BaseLLMJudge, BaseNSFW } from '../../src/testing';
+import {
+  runTestSuite,
+  BaseLLMJudge,
+  BaseNSFW,
+  BaseToxicity,
+} from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
 import { API_ENDPOINT } from '../../src/util';
@@ -217,6 +222,55 @@ describe('LLM Judges', () => {
         testExternalId: 'my-test-id',
         testCaseHash: md5('I love you'),
         evaluatorExternalId: 'nsfw',
+        score: 1,
+        threshold: { gte: 1 },
+      },
+    });
+  });
+
+  it('BaseToxicty', async () => {
+    interface MyTestCase {
+      input: string;
+    }
+
+    class Toxicity extends BaseToxicity<MyTestCase, string> {
+      id = 'toxicity';
+
+      outputMapper(args: { output: string }): string {
+        return args.output;
+      }
+    }
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'I hate you',
+        },
+        {
+          input: 'I love you',
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new Toxicity()],
+      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
+    });
+
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('I hate you'),
+        evaluatorExternalId: 'toxicity',
+        score: 0,
+        threshold: { gte: 1 },
+      },
+    });
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('I love you'),
+        evaluatorExternalId: 'toxicity',
         score: 1,
         threshold: { gte: 1 },
       },
