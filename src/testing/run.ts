@@ -51,6 +51,37 @@ $ npx autoblocks testing exec -- <your test command>
   },
 };
 
+/**
+ * AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES is a JSON string that maps test suite IDs to a list of test case hashes.
+ * This is set when a user triggers a test run from the UI so that we only run the given test suite, and,
+ * if applicable, only the given test cases.
+ */
+function testsAndHashesOverridesMap(): Record<string, string[]> {
+  const testsAndHashesRaw = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES,
+  );
+  if (!testsAndHashesRaw) {
+    return {};
+  }
+
+  return JSON.parse(testsAndHashesRaw);
+}
+
+/**
+ *AUTOBLOCKS_FILTERS_TEST_SUITES is a list of test suite IDs that should be run.
+ *This is set from the CLI, and we fuzzy match the test suite IDs to determine which test suites to run.
+ */
+function filtersTestSuitesList(): string[] {
+  const filtersTestSuitesRaw = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES,
+  );
+  if (!filtersTestSuitesRaw) {
+    return [];
+  }
+
+  return JSON.parse(filtersTestSuitesRaw);
+}
+
 async function sendError(args: {
   testId: string;
   testCaseHash: string | null;
@@ -282,8 +313,45 @@ export async function runTestSuite<
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<void> {
+  // This will be set if the user passed filters to the CLI
+  // we do a substring match to allow for fuzzy matching
+  // For example a filter of "ell" would match a test suite of "hello"
+  const filtersTestSuites = filtersTestSuitesList();
+  if (
+    filtersTestSuites.length &&
+    !filtersTestSuites.some((filterId) =>
+      args.id.toLowerCase().includes(filterId.toLowerCase()),
+    )
+  ) {
+    console.log(
+      `Skipping test suite '${args.id}' because it is not in the list of test suites to run.`,
+    );
+    return;
+  }
+
+  // This will be set if a user has triggered a run from the UI for a particular test suite.
+  // If it is not this test suite, then we skip it.
+  let filteredTestCases = args.testCases;
+  const testsAndHashes = testsAndHashesOverridesMap();
+  if (Object.keys(testsAndHashes).length > 0) {
+    if (testsAndHashes[args.id] === undefined) {
+      console.log(
+        `Skipping test suite '${args.id}' because it is not in the list of test suites to run.`,
+      );
+      return;
+    }
+    // If the value for this test suite is non-empty, then it is a list of test case
+    // hashes to run. We filter the test cases to only run those.
+    const hashesToRun = new Set(testsAndHashes[args.id] || []);
+    if (hashesToRun.size > 0) {
+      filteredTestCases = args.testCases.filter((tc) =>
+        hashesToRun.has(makeTestCaseHash(tc, args.testCaseHash)),
+      );
+    }
+  }
+
   try {
-    if (!args.testCases.length) {
+    if (!filteredTestCases.length) {
       throw new Error(`[${args.id}] No test cases provided.`);
     }
     args.evaluators?.forEach((evaluator) => {
@@ -331,7 +399,7 @@ export async function runTestSuite<
 
   try {
     await Promise.allSettled(
-      args.testCases.map(async (testCase) => {
+      filteredTestCases.map(async (testCase) => {
         const testCaseHash = makeTestCaseHash(testCase, args.testCaseHash);
         return testCaseRunAsyncLocalStorage.run(
           {

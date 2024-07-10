@@ -21,7 +21,9 @@ describe('AutoblocksConfig', () => {
 
     afterEach(() => {
       delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
-      delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS];
+      delete process.env[
+        AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS
+      ];
     });
 
     it('gracefully handles error in parser', async () => {
@@ -431,7 +433,7 @@ describe('AutoblocksConfig', () => {
       it('uses config revisions environment variable', async () => {
         process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
           'http://localhost:3000';
-        process.env[AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS] =
+        process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS] =
           JSON.stringify({
             'my-config-id': '123',
           });
