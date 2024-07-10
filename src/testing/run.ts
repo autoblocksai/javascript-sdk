@@ -56,12 +56,12 @@ $ npx autoblocks testing exec -- <your test command>
  * This is set when a user triggers a test run from the UI so that we only run the given test suite, and,
  * if applicable, only the given test cases.
  */
-function testsAndHashesOverridesMap(): Record<string, string[]> {
+function testsAndHashesOverridesMap(): Record<string, string[]> | undefined {
   const testsAndHashesRaw = readEnv(
     AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES,
   );
   if (!testsAndHashesRaw) {
-    return {};
+    return undefined;
   }
 
   return JSON.parse(testsAndHashesRaw);
@@ -333,7 +333,7 @@ export async function runTestSuite<
   // If it is not this test suite, then we skip it.
   let filteredTestCases = args.testCases;
   const testsAndHashes = testsAndHashesOverridesMap();
-  if (Object.keys(testsAndHashes).length > 0) {
+  if (testsAndHashes !== undefined) {
     if (testsAndHashes[args.id] === undefined) {
       console.log(
         `Skipping test suite '${args.id}' because it is not in the list of test suites to run.`,
