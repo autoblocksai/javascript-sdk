@@ -9,6 +9,7 @@ import {
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
 import { isMatch, omit } from 'lodash';
+import { AutoblocksEnvVar } from '../../src/util';
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
 
@@ -29,6 +30,11 @@ describe('Testing SDK', () => {
       json: () => Promise.resolve(),
       ok: true,
     } as Response);
+  });
+
+  afterEach(() => {
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES];
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES];
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1100,6 +1106,200 @@ describe('Testing SDK', () => {
           },
         ],
       },
+    });
+  });
+
+  describe('Test Suite Filters', () => {
+    it('filters test suites when none match', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES] =
+        JSON.stringify(['random']);
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(0);
+    });
+
+    it('filters test suites when when there is a match', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES] =
+        JSON.stringify(['test']);
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+      expectPostRequest({
+        path: '/results',
+        body: {
+          testExternalId: 'my-test-id',
+          testCaseHash: md5(`12`),
+          testCaseBody: { x: 1, y: 2 },
+          testCaseOutput: '1 + 2 = 3',
+        },
+      });
+      expectPostRequest({
+        path: '/end',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+    });
+
+    it('filters test suites when there is multiple filters', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES] =
+        JSON.stringify(['random', 'test']);
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+      expectPostRequest({
+        path: '/results',
+        body: {
+          testExternalId: 'my-test-id',
+          testCaseHash: md5(`12`),
+          testCaseBody: { x: 1, y: 2 },
+          testCaseOutput: '1 + 2 = 3',
+        },
+      });
+      expectPostRequest({
+        path: '/end',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+    });
+
+    it('filters test suites when when there is an exact match', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES] =
+        JSON.stringify(['my-test-id']);
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+      expectPostRequest({
+        path: '/results',
+        body: {
+          testExternalId: 'my-test-id',
+          testCaseHash: md5(`12`),
+          testCaseBody: { x: 1, y: 2 },
+          testCaseOutput: '1 + 2 = 3',
+        },
+      });
+      expectPostRequest({
+        path: '/end',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+    });
+  });
+
+  describe('Tests and Hashes Overrides', () => {
+    it('skips tests with no match on test id', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES] =
+        JSON.stringify({ random: [] });
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(0);
+    });
+
+    it('handles no test cases matching for a test id', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES] =
+        JSON.stringify({ 'my-test-id': ['random'] });
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(1);
+      const req = decodeRequests()[0];
+      expect(req.path).toEqual('/errors');
+      expect(req.body.testExternalId).toEqual('my-test-id');
+      expect(req.body.testCaseHash).toBeNull();
+      expect(req.body.evaluatorExternalId).toBeNull();
+    });
+
+    it('only runs test case hashes that are set', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES] =
+        JSON.stringify({ 'my-test-id': [md5(`12`)] });
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [
+          { x: 1, y: 2 },
+          { x: 3, y: 4 },
+        ],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+      expectPostRequest({
+        path: '/results',
+        body: {
+          testExternalId: 'my-test-id',
+          testCaseHash: md5(`12`),
+          testCaseBody: { x: 1, y: 2 },
+          testCaseOutput: '1 + 2 = 3',
+        },
+      });
+      expectPostRequest({
+        path: '/end',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
     });
   });
 });

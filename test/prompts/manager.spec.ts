@@ -23,7 +23,7 @@ describe('Prompt Manager', () => {
     it('overrides with the prompt revisions when the minor version is hardcoded', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'my-prompt-id': 'my-revision-id',
         });
@@ -88,7 +88,7 @@ describe('Prompt Manager', () => {
     it('overrides with the prompt revision when the minor version is latest', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'my-prompt-id': 'my-revision-id',
         });
@@ -153,7 +153,7 @@ describe('Prompt Manager', () => {
     it('uses the configured version if the revision is for a different prompt manager', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'some-other-prompt-id': 'my-revision-id',
         });
@@ -215,7 +215,7 @@ describe('Prompt Manager', () => {
     it('raises if the prompt is incompatible', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'my-prompt-id': 'my-revision-id',
         });
@@ -243,7 +243,7 @@ describe('Prompt Manager', () => {
     it('uses the configured version if not in a testing context', async () => {
       // CLI server address is not set, so we're not in a testing context
       // process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] = 'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS] =
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'my-prompt-id': 'my-revision-id',
         });

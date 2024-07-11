@@ -25,7 +25,7 @@ const isTestingContext = (): boolean => {
 };
 
 /**
- * The AUTOBLOCKS_CONFIG_REVISIONS environment variable is a JSON-stringified
+ * The AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS environment variable is a JSON-stringified
  * map of config IDs to revision IDs. This is set in CI test runs triggered
  * from the UI.
  */
@@ -35,7 +35,7 @@ const configRevisionsMap = (): Record<string, string> => {
   }
 
   const configRevisionsRaw = readEnv(
-    AutoblocksEnvVar.AUTOBLOCKS_CONFIG_REVISIONS,
+    AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS,
   );
   if (!configRevisionsRaw) {
     return {};

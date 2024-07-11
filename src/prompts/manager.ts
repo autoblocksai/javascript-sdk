@@ -35,7 +35,7 @@ const isTestingContext = (): boolean => {
 };
 
 /**
- * The AUTOBLOCKS_PROMPT_REVISIONS environment variable is a JSON-stringified
+ * The AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS environment variable is a JSON-stringified
  * map of prompt IDs to revision IDs. This is set in CI test runs triggered
  * from the UI.
  */
@@ -45,7 +45,7 @@ const promptRevisionsMap = (): Record<string, string> => {
   }
 
   const promptRevisionsRaw = readEnv(
-    AutoblocksEnvVar.AUTOBLOCKS_PROMPT_REVISIONS,
+    AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS,
   );
   if (!promptRevisionsRaw) {
     return {};
