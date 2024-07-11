@@ -52,7 +52,8 @@ $ npx autoblocks testing exec -- <your test command>
 };
 
 /**
- * AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES is a JSON string that maps test suite IDs to a list of test case hashes.
+ * AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES environment variable is a JSON string
+ * that maps test suite IDs to a list of test case hashes.
  * This is set when a user triggers a test run from the UI so that we only run the given test suite, and,
  * if applicable, only the given test cases.
  */
@@ -68,8 +69,8 @@ function testsAndHashesOverridesMap(): Record<string, string[]> | undefined {
 }
 
 /**
- *AUTOBLOCKS_FILTERS_TEST_SUITES is a list of test suite IDs that should be run.
- *This is set from the CLI, and we fuzzy match the test suite IDs to determine which test suites to run.
+ * AUTOBLOCKS_FILTERS_TEST_SUITES environment variable is a list of test suite IDs that should be run.
+ * This is set from the CLI, and we fuzzy match the test suite IDs to determine which test suites to run.
  */
 function filtersTestSuitesList(): string[] {
   const filtersTestSuitesRaw = readEnv(
