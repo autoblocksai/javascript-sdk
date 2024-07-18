@@ -15,6 +15,7 @@ export interface PromptTracking {
   params?: {
     params: Record<string, unknown>;
   };
+  tools?: Record<string, unknown>[];
 }
 
 export interface TimeDelta {

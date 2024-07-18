@@ -86,6 +86,7 @@ describe('AutoblocksPromptManager v1.0', () => {
             topP: 1,
           },
         },
+        tools: undefined,
       });
     });
   });
@@ -161,6 +162,7 @@ describe('AutoblocksPromptManager v1 latest', () => {
             topP: 1,
           },
         },
+        tools: undefined,
       });
     });
   });
@@ -250,6 +252,7 @@ describe('AutoblocksPromptManager v2.1', () => {
             topP: 1,
           },
         },
+        tools: undefined,
       });
     });
   });
@@ -363,6 +366,7 @@ describe('Pinned Undeployed', () => {
             stopSequences: [],
           },
         },
+        tools: undefined,
       });
     });
   });
@@ -490,6 +494,7 @@ describe('AutoblocksPromptManager with tools', () => {
             template: 'System Template',
           },
         ],
+        params: undefined,
         tools: [
           {
             type: 'function',

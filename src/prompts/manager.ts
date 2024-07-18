@@ -511,6 +511,7 @@ class PromptExecutionContext<
       version: this.prompt.version,
       templates: this.prompt.templates,
       params: this.prompt.params ?? undefined,
+      tools: this.prompt.tools ?? undefined,
     };
   }
 }
