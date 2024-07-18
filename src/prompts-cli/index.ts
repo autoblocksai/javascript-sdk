@@ -22,6 +22,7 @@ interface ParsedPrompt {
     minorVersions: string[];
     templates: ParsedTemplate[];
     params?: Record<string, unknown>;
+    tools: { name: string; placeholders: string[] }[];
   }[];
 }
 
@@ -44,7 +45,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
     symbolType: 'interface',
     filesToModify: ['../prompts/index.d.ts', '../prompts/index.d.mts'],
     generate: (args) => {
-      // Make map of prompt ID -> major version -> { templates, params, minorVersions }
+      // Make map of prompt ID -> major version -> { templates, params, tools, minorVersions }
       let generated = `interface ${args.symbolName} {`;
 
       args.prompts.forEach((prompt) => {
@@ -56,6 +57,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
         generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': {`;
         generated += `\n      templates: any;`;
         generated += `\n      params: any;`;
+        generated += `\n      tools: any;`;
         generated += `\n      minorVersions: any;`;
         generated += `\n    };`;
 
@@ -97,6 +99,31 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
             generated += '\n      };';
           } else {
             generated += '\n      params: never;';
+          }
+
+          if (version.tools.length > 0) {
+            generated += `\n      tools: {`;
+            version.tools.forEach((tool) => {
+              if (tool.placeholders.length > 0) {
+                generated += `\n        '${tool.name}': {`;
+                tool.placeholders.forEach((placeholder) => {
+                  if (placeholder.endsWith('?')) {
+                    generated += `\n          '${placeholder.slice(
+                      0,
+                      -1,
+                    )}'?: string;`;
+                  } else {
+                    generated += `\n          '${placeholder}': string;`;
+                  }
+                });
+                generated += '\n        };';
+              } else {
+                generated += `\n        '${tool.name}': Record<PropertyKey, never>;`;
+              }
+            });
+            generated += '\n      };';
+          } else {
+            generated += '\n      tools: never;';
           }
 
           // Add type for minor versions
@@ -252,6 +279,7 @@ export function parseAndSortPrompts(
         template: string;
       }[];
       params?: { params: Record<string, unknown> };
+      toolsParams: { name: string; params: string[] }[];
     }[];
   }[],
 ): ParsedPrompt[] {
@@ -273,6 +301,10 @@ export function parseAndSortPrompts(
               (t) => t.id,
             ),
             params: version.params?.params,
+            tools: version.toolsParams.map((tool) => ({
+              name: tool.name,
+              placeholders: tool.params,
+            })),
           };
         }),
       };
