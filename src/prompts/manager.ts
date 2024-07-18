@@ -491,7 +491,13 @@ class PromptExecutionContext<
         `[${this.prompt.id}@${this.prompt.version}] Tool '${args.tool}' not found. No tools defined.`,
       );
     }
-    const tool = this.prompt.tools.find((t) => t.name === args.tool);
+    const tool = this.prompt.tools.find((t) => {
+      if (t.type === 'function') {
+        // @ts-expect-error we know this type based on json schema
+        return t.function.name === args.tool;
+      }
+      return false;
+    });
     if (!tool) {
       throw new Error(
         `[${this.prompt.id}@${this.prompt.version}] Tool '${args.tool}' not found.`,
