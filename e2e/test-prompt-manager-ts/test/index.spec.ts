@@ -454,7 +454,7 @@ describe('AutoblocksPromptManager with tools', () => {
   it('renders tools', () => {
     manager.exec(({ prompt }) => {
       const rendered = prompt.renderTool({
-        template: 'myTool',
+        tool: 'myTool',
         params: {
           description: 'my description',
         },
