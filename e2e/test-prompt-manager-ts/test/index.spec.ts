@@ -19,7 +19,7 @@ describe('AutoblocksPromptManager v1.0', () => {
 
   it('renders prompts', () => {
     manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'template-a',
         params: {
           name: 'Alice',
@@ -32,7 +32,7 @@ describe('AutoblocksPromptManager v1.0', () => {
 
   it('handles async exec functions', async () => {
     const rendered = await manager.exec(async ({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'template-a',
         params: {
           name: 'Alice',
@@ -110,7 +110,7 @@ describe('AutoblocksPromptManager v1 latest', () => {
 
   it('renders prompts', () => {
     manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'template-a',
         params: {
           name: 'Alice',
@@ -185,7 +185,7 @@ describe('AutoblocksPromptManager v2.1', () => {
 
   it('renders prompts', () => {
     manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'template-a',
         params: {
           name: 'Alice',
@@ -198,7 +198,7 @@ describe('AutoblocksPromptManager v2.1', () => {
 
   it('renders templates with no params', () => {
     manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'template-c',
         params: {},
       });
@@ -388,7 +388,7 @@ describe('Renders {{ }}', () => {
 
   it('works', () => {
     manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'nicole-test',
         params: {},
       });
@@ -423,13 +423,93 @@ describe('Renders Inline {{ }}', () => {
 
   it('works', () => {
     manager.exec(({ prompt }) => {
-      const rendered = prompt.render({
+      const rendered = prompt.renderTemplate({
         template: 'nicole-test',
         params: {},
       });
       expect(rendered).toEqual(`Hello! Please respond in the following format:
 
 {{"x": {{"y": 1}}}}`);
+    });
+  });
+});
+
+describe('AutoblocksPromptManager with tools', () => {
+  const manager = new AutoblocksPromptManager({
+    id: 'used-by-ci-dont-delete-with-tools',
+    version: {
+      major: '1',
+      minor: '0',
+    },
+  });
+
+  beforeAll(async () => {
+    await manager.init();
+  });
+
+  afterAll(() => {
+    manager.close();
+  });
+
+  it('renders tools', () => {
+    manager.exec(({ prompt }) => {
+      const rendered = prompt.renderTool({
+        template: 'myTool',
+        params: {
+          description: 'my description',
+        },
+      });
+      expect(rendered).toEqual({
+        type: 'function',
+        function: {
+          name: 'MyTool',
+          description: 'This is the description',
+          parameters: {
+            type: 'object',
+            properties: {
+              myParam: {
+                type: 'string',
+                description: 'my description',
+              },
+            },
+            required: ['myParam'],
+          },
+        },
+      });
+    });
+  });
+
+  it('provides tracking info', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.track()).toEqual({
+        id: 'used-by-ci-dont-delete-with-tools',
+        version: '1.0',
+        templates: [
+          {
+            id: 'system',
+            template: 'System Template',
+          },
+        ],
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'MyTool',
+              description: 'This is the description',
+              parameters: {
+                type: 'object',
+                properties: {
+                  myParam: {
+                    type: 'string',
+                    description: '{{ description }}',
+                  },
+                },
+                required: ['myParam'],
+              },
+            },
+          },
+        ],
+      });
     });
   });
 });
