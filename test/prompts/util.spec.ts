@@ -1,6 +1,7 @@
 import {
   replaceOptionalPlaceholders,
-  renderTemplate,
+  renderTemplateWithParams,
+  renderToolWithParams,
 } from '../../src/prompts/util';
 
 const testCases = [
@@ -137,10 +138,10 @@ describe('replaceOptionalPlaceholders', () => {
   });
 });
 
-describe('renderTemplate', () => {
+describe('renderTemplateWithParams', () => {
   it('json blob', () => {
     expect(
-      renderTemplate({
+      renderTemplateWithParams({
         template: `Please respond in the format:
 
 {{
@@ -157,5 +158,16 @@ describe('renderTemplate', () => {
     "y": 1
   }}
 }}`);
+  });
+});
+
+describe('renderToolWithParams', () => {
+  it('renders', () => {
+    expect(
+      renderToolWithParams({
+        tool: { test: '{{ description }}' },
+        params: { description: 'hello' },
+      }),
+    ).toEqual({ test: 'hello' });
   });
 });
