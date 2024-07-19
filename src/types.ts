@@ -15,6 +15,7 @@ export interface PromptTracking {
   params?: {
     params: Record<string, unknown>;
   };
+  tools?: Record<string, unknown>[];
 }
 
 export interface TimeDelta {
@@ -37,6 +38,7 @@ export const zPromptSchema = z.object({
       params: z.record(z.string(), z.unknown()),
     })
     .nullish(),
+  tools: z.array(z.record(z.string(), z.unknown())).nullish(),
 });
 
 export type Prompt = z.infer<typeof zPromptSchema>;

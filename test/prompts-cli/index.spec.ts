@@ -24,6 +24,7 @@ describe('Prompts CLI', () => {
                   template: 'Hello, {{"x":{{"y":1}}}}! My name is {{ name }}.',
                 },
               ],
+              toolsParams: [],
               params: {
                 params: {
                   frequencyPenalty: 0,
@@ -51,6 +52,12 @@ describe('Prompts CLI', () => {
                     'Hello, {{ name }}! The weather is {{ weather }} today.',
                 },
               ],
+              toolsParams: [
+                {
+                  name: 'myFunc',
+                  params: ['description'],
+                },
+              ],
               params: {
                 params: {
                   frequencyPenalty: 0,
@@ -66,6 +73,7 @@ describe('Prompts CLI', () => {
             {
               majorVersion: '2',
               minorVersions: ['0'],
+              toolsParams: [],
               templates: [
                 {
                   id: 'template-a',
@@ -102,6 +110,7 @@ describe('Prompts CLI', () => {
     'dangerously-use-undeployed': {
       templates: any;
       params: any;
+      tools: any;
       minorVersions: any;
     };
     '1': {
@@ -122,6 +131,7 @@ describe('Prompts CLI', () => {
         'temperature': number;
         'topP': number;
       };
+      tools: never;
       minorVersions: '0' | 'latest';
     };
   };
@@ -129,6 +139,7 @@ describe('Prompts CLI', () => {
     'dangerously-use-undeployed': {
       templates: any;
       params: any;
+      tools: any;
       minorVersions: any;
     };
     '1': {
@@ -146,6 +157,11 @@ describe('Prompts CLI', () => {
         'temperature': number;
         'topP': number;
       };
+      tools: {
+        'myFunc': {
+          'description': string;
+        };
+      };
       minorVersions: '0' | '1' | 'latest';
     };
     '2': {
@@ -157,6 +173,7 @@ describe('Prompts CLI', () => {
         'template-c': Record<PropertyKey, never>;
       };
       params: never;
+      tools: never;
       minorVersions: '0' | 'latest';
     };
   };
@@ -164,6 +181,7 @@ describe('Prompts CLI', () => {
     'dangerously-use-undeployed': {
       templates: any;
       params: any;
+      tools: any;
       minorVersions: any;
     };
   };

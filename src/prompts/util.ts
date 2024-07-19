@@ -1,4 +1,18 @@
-export function renderTemplate(args: {
+export function renderToolWithParams(args: {
+  tool: Record<string, unknown>;
+  params: Record<string, unknown>;
+}): Record<string, unknown> {
+  const stringifiedTool = JSON.stringify(args.tool);
+  // We can reuse the renderTemplate logic
+  const renderedTool = renderTemplateWithParams({
+    template: stringifiedTool,
+    params: args.params,
+  });
+  // Parse back into an object
+  return JSON.parse(renderedTool);
+}
+
+export function renderTemplateWithParams(args: {
   template: string;
   params: Record<string, unknown>;
 }): string {

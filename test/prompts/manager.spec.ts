@@ -58,7 +58,7 @@ describe('Prompt Manager', () => {
 
       mgr.exec(({ prompt }) => {
         expect(
-          prompt.render({
+          prompt.renderTemplate({
             template: 'my-template-id',
             params: {
               name: 'world',
@@ -123,7 +123,7 @@ describe('Prompt Manager', () => {
 
       mgr.exec(({ prompt }) => {
         expect(
-          prompt.render({
+          prompt.renderTemplate({
             template: 'my-template-id',
             params: {
               name: 'world',
@@ -188,7 +188,7 @@ describe('Prompt Manager', () => {
 
       mgr.exec(({ prompt }) => {
         expect(
-          prompt.render({
+          prompt.renderTemplate({
             template: 'my-template-id',
             params: {
               name: 'world',
@@ -278,7 +278,7 @@ describe('Prompt Manager', () => {
 
       mgr.exec(({ prompt }) => {
         expect(
-          prompt.render({
+          prompt.renderTemplate({
             template: 'my-template-id',
             params: {
               name: 'world',
@@ -334,7 +334,7 @@ describe('Prompt Manager', () => {
 
       mgr.exec(({ prompt }) => {
         expect(
-          prompt.render({
+          prompt.renderTemplate({
             template: 'my-template-id',
             params: {
               name: 'world',
