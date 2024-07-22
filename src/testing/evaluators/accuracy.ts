@@ -33,7 +33,7 @@ export abstract class BaseAccuracy<
   abstract outputMapper(args: { output: OutputType }): string;
 
   /**
-   * Map the test_case to an expected string to pass to the LLM judge.
+   * Map the testCase to an expected string to pass to the LLM judge.
    */
   abstract expectedOutputMapper(args: { testCase: TestCaseType }): string;
 
