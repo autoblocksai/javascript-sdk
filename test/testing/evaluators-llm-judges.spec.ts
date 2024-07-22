@@ -5,6 +5,7 @@ import {
   BaseToxicity,
   BaseAutomaticBattle,
   BaseManualBattle,
+  BaseAccuracy,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
@@ -274,6 +275,62 @@ describe('LLM Judges', () => {
         testCaseHash: md5('I love you'),
         evaluatorExternalId: 'toxicity',
         score: 1,
+        threshold: { gte: 1 },
+      },
+    });
+  });
+
+  it('BaseAccuracy', async () => {
+    interface MyTestCase {
+      input: string;
+      expectedOutput: string;
+    }
+
+    class Accuracy extends BaseAccuracy<MyTestCase, string> {
+      id = 'accuracy';
+
+      outputMapper(args: { output: string }): string {
+        return args.output;
+      }
+
+      expectedOutputMapper(args: { testCase: MyTestCase }): string {
+        return args.testCase.expectedOutput;
+      }
+    }
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'Hello, how are you?',
+          expectedOutput: 'Hello, how are you?',
+        },
+        {
+          input: 'hi',
+          expectedOutput: 'bye',
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new Accuracy()],
+      fn: ({ testCase }: { testCase: MyTestCase }) => testCase.input,
+    });
+
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('Hello, how are you?'),
+        evaluatorExternalId: 'accuracy',
+        score: 1,
+        threshold: { gte: 1 },
+      },
+    });
+    expectCLIPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('hi'),
+        evaluatorExternalId: 'accuracy',
+        score: 0,
         threshold: { gte: 1 },
       },
     });

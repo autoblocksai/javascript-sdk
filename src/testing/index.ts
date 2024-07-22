@@ -28,3 +28,4 @@ export { BaseIsValidJSON } from './evaluators/is-valid-json';
 export { BaseLLMJudge } from './evaluators/llm-judge';
 export { BaseNSFW } from './evaluators/nsfw';
 export { BaseToxicity } from './evaluators/toxicity';
+export { BaseAccuracy } from './evaluators/accuracy';
