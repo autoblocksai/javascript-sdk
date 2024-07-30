@@ -526,7 +526,7 @@ export async function runTestSuite<
     },
   });
   if (!gridResp.ok || !gridResp.data) {
-    // Don't allow the run to continue if /grid failed, since all subsequent
+    // Don't allow the run to continue if /grids failed, since all subsequent
     // requests will fail if the CLI was not able to create the grid.
     // Also note we don't need to send_error here, since the CLI will
     // have reported the HTTP error itself.
