@@ -105,3 +105,50 @@ export function makeTestCaseHash<TestCaseType>(
 
   return testCaseHash(testCase);
 }
+
+/**
+ * Generates the Cartesian product of multiple arrays.
+ *
+ * @param arrays - An array of arrays, each containing elements of type T.
+ *                 It generates all possible combinations where each combination
+ *                 contains one element from each array.
+ *
+ * @returns An array of arrays, where each inner array is a combination of elements
+ *          from the input arrays.
+ *
+ * @example
+ * // returns [['1', '3', '4'], ['2', '3', '4']]
+ * cartesianProduct(['1', '2'], ['3'], ['4']);
+ */
+export function cartesianProduct<T>(
+  ...arrays: Array<Array<T>>
+): Array<Array<T>> {
+  return arrays.reduce<Array<Array<T>>>(
+    (acc, array) => {
+      return acc.flatMap((accItem) => {
+        return array.map((arrayItem) => {
+          return [...accItem, arrayItem];
+        });
+      });
+    },
+    [[]],
+  );
+}
+
+export function makeGridSearchParamCombos(
+  params: Record<string, string[]>,
+): Record<string, string>[] {
+  const keys = Object.keys(params);
+  const values = Object.values(params);
+  const combinations = cartesianProduct(...values);
+
+  return combinations.map((combination) => {
+    return keys.reduce(
+      (acc, key, index) => {
+        acc[key] = combination[index];
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+  });
+}

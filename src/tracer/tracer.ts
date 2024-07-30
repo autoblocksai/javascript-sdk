@@ -228,6 +228,7 @@ export class AutoblocksTracer {
       },
       body: JSON.stringify({
         testExternalId: store.testId,
+        runId: store.runId,
         testCaseHash: store.testCaseHash,
         event: {
           message,
