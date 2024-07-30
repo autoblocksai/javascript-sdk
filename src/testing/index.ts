@@ -11,6 +11,7 @@ export {
   type EvaluationOverrideField,
   type ScoreChoice,
 } from './models';
+export { gridSearchAsyncLocalStorage } from '../asyncLocalStorage';
 export {
   BaseHasAllSubstrings,
   // deprecated

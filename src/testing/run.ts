@@ -1,4 +1,7 @@
-import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
+import {
+  gridSearchAsyncLocalStorage,
+  testCaseRunAsyncLocalStorage,
+} from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import {
   BaseTestEvaluator,
@@ -341,9 +344,11 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   const runId = startRespBody.id;
 
   try {
+    // Run each test case and set async local storage appropriately
     await Promise.allSettled(
       args.testCases.map(async (testCase) => {
         const testCaseHash = makeTestCaseHash(testCase, args.testCaseHash);
+        // testCaseRunAsyncLocalStorage is only used internally in our SDK
         return testCaseRunAsyncLocalStorage.run(
           {
             testCaseHash,
@@ -351,17 +356,24 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
             runId,
           },
           async () => {
-            return runTestCase({
-              testId: args.testId,
-              runId,
-              testCase,
-              testCaseHash,
-              evaluators: args.evaluators || [],
-              fn: args.fn,
-              serializeTestCaseForHumanReview:
-                args.serializeTestCaseForHumanReview,
-              serializeOutputForHumanReview: args.serializeOutputForHumanReview,
-            });
+            // gridSearchAsyncLocalStorage is exported and used in the consuming app
+            return gridSearchAsyncLocalStorage.run(
+              args.gridSearchParamsCombo,
+              async () => {
+                return runTestCase({
+                  testId: args.testId,
+                  runId,
+                  testCase,
+                  testCaseHash,
+                  evaluators: args.evaluators || [],
+                  fn: args.fn,
+                  serializeTestCaseForHumanReview:
+                    args.serializeTestCaseForHumanReview,
+                  serializeOutputForHumanReview:
+                    args.serializeOutputForHumanReview,
+                });
+              },
+            );
           },
         );
       }),

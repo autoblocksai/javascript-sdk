@@ -5,3 +5,9 @@ export const testCaseRunAsyncLocalStorage = new AsyncLocalStorage<{
   testId: string;
   runId: string;
 }>();
+
+// This gets exported from the testing package since it is testing related.
+// See testing/index.ts
+export const gridSearchAsyncLocalStorage = new AsyncLocalStorage<
+  Record<string, string> | undefined
+>();
