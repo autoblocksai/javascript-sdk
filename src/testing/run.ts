@@ -25,7 +25,10 @@ const evaluatorSemaphoreRegistry: Record<
 > = {}; // testId -> evaluatorId -> Semaphore
 
 const client = {
-  post: async (args: { path: string; body: unknown }): Promise<Response> => {
+  post: async <T>(args: {
+    path: string;
+    body: unknown;
+  }): Promise<{ ok: boolean; data?: T }> => {
     const serverAddress = readEnv(
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
     );
@@ -40,18 +43,22 @@ $ npx autoblocks testing exec -- <your test command>
     }
 
     try {
-      return await fetch(serverAddress + args.path, {
+      const resp = await fetch(serverAddress + args.path, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(args.body),
       });
+      return {
+        ok: resp.ok,
+        data: await resp.json(),
+      };
     } catch {
       // Ignore, any errors for these requests are displayed by the CLI server
       return {
         ok: false,
-      } as Response;
+      };
     }
   },
 };
@@ -325,7 +332,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
 }): Promise<void> {
-  const startResp = await client.post({
+  const startResp = await client.post<{ id: string }>({
     path: '/start',
     body: {
       testExternalId: args.testId,
@@ -333,15 +340,14 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
       gridSearchParamsCombo: args.gridSearchParamsCombo,
     },
   });
-  if (!startResp.ok) {
+  if (!startResp.ok || !startResp.data) {
     // Don't allow the run to continue if /start failed, since all subsequent
     // requests will fail if the CLI was not able to start the run.
     // Also note we don't need to sendError here, since the CLI will
     // have reported the HTTP error itself.
     return;
   }
-  const startRespBody: { id: string } = await startResp.json();
-  const runId = startRespBody.id;
+  const runId = startResp.data.id;
 
   try {
     // Run each test case and set async local storage appropriately
@@ -512,21 +518,21 @@ export async function runTestSuite<
     return;
   }
 
-  const gridResp = await client.post({
+  const gridResp = await client.post<{ id: string }>({
     path: '/grids',
     body: {
       testExternalId: args.id,
       gridSearchParams: args.gridSearchParams,
     },
   });
-  if (!gridResp.ok) {
+  if (!gridResp.ok || !gridResp.data) {
     // Don't allow the run to continue if /grid failed, since all subsequent
     // requests will fail if the CLI was not able to create the grid.
     // Also note we don't need to send_error here, since the CLI will
     // have reported the HTTP error itself.
     return;
   }
-  const gridRespBody: { id: string } = await gridResp.json();
+  const gridSearchRunGroupId = gridResp.data.id;
 
   try {
     await Promise.all(
@@ -539,7 +545,7 @@ export async function runTestSuite<
           fn: args.fn,
           serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
           serializeOutputForHumanReview: args.serializeOutputForHumanReview,
-          gridSearchRunGroupId: gridRespBody.id,
+          gridSearchRunGroupId,
           gridSearchParamsCombo: gridParamsCombo,
         }),
       ),
