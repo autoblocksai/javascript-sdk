@@ -135,6 +135,13 @@ export function cartesianProduct<T>(
   );
 }
 
+/**
+ * Generates all combinations of parameters for a grid search.
+ *
+ * @example
+ * // returns [{ a: '1', b: '3' }, { a: '1', b: '4' }, { a: '2', b: '3' }, { a: '2', b: '4' }]
+ * makeGridSearchParamCombos({ a: ['1', '2'], b: ['3', '4'] });
+ */
 export function makeGridSearchParamCombos(
   params: Record<string, string[]>,
 ): Record<string, string>[] {
