@@ -330,7 +330,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     body: {
       testExternalId: args.testId,
       gridSearchRunGroupId: args.gridSearchRunGroupId,
-      girdSearchParamsCombo: args.gridSearchParamsCombo,
+      gridSearchParamsCombo: args.gridSearchParamsCombo,
     },
   });
   if (!startResp.ok) {
