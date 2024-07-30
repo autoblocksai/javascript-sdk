@@ -1,4 +1,8 @@
-import { Semaphore } from '../../src/testing/util';
+import {
+  Semaphore,
+  cartesianProduct,
+  makeGridSearchParamCombos,
+} from '../../src/testing/util';
 
 describe('Semaphore', () => {
   it('initializes with the correct available count', () => {
@@ -84,6 +88,33 @@ describe('Semaphore', () => {
       semaphore.run(firstTask),
       semaphore.run(secondTask),
       semaphore.run(thirdTask),
+    ]);
+  });
+});
+
+describe('cartesianProduct', () => {
+  it('returns the correct cartesian product', () => {
+    const result = cartesianProduct([1, 2], [3, 4]);
+    expect(result).toEqual([
+      [1, 3],
+      [1, 4],
+      [2, 3],
+      [2, 4],
+    ]);
+  });
+});
+
+describe('makeGridSearchParamCombos', () => {
+  it('Returns the correct grid search combinations', () => {
+    const result = makeGridSearchParamCombos({
+      a: ['1', '2'],
+      b: ['3', '4'],
+    });
+    expect(result).toEqual([
+      { a: '1', b: '3' },
+      { a: '1', b: '4' },
+      { a: '2', b: '3' },
+      { a: '2', b: '4' },
     ]);
   });
 });

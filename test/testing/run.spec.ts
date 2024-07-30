@@ -5,6 +5,7 @@ import {
   Evaluation,
   TracerEvent,
   BaseEvaluator,
+  gridSearchAsyncLocalStorage,
 } from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
@@ -24,12 +25,19 @@ const md5 = (str: string) => {
 
 describe('Testing SDK', () => {
   let mockFetch: jest.SpyInstance;
+  const mockRunId = 'mock-run-id';
 
   beforeEach(() => {
-    mockFetch = jest.spyOn(global, 'fetch').mockResolvedValue({
-      json: () => Promise.resolve(),
-      ok: true,
-    } as Response);
+    mockFetch = jest.spyOn(global, 'fetch').mockImplementation((url) => {
+      const response = {
+        json: () =>
+          Promise.resolve(
+            url.toString().endsWith('/start') ? { id: mockRunId } : {},
+          ),
+        ok: true,
+      } as Response;
+      return Promise.resolve(response);
+    });
   });
 
   afterEach(() => {
@@ -164,6 +172,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -173,6 +182,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
 
@@ -223,6 +233,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -232,6 +243,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -241,6 +253,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator',
         score: 0.5,
@@ -250,6 +263,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
 
@@ -288,6 +302,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -297,6 +312,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -306,6 +322,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -351,6 +368,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -360,6 +378,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -369,6 +388,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         evaluatorExternalId: 'my-evaluator-1',
         score: 0.5,
@@ -378,6 +398,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         evaluatorExternalId: 'my-evaluator-2',
         score: 0.7,
@@ -388,6 +409,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator-1',
         score: 0.5,
@@ -397,6 +419,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator-2',
         score: 0.7,
@@ -407,6 +430,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -471,6 +495,7 @@ describe('Testing SDK', () => {
         path: '/results',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           testCaseBody: { x: 1, y: 2 },
           testCaseOutput: '1 + 2 = 3',
@@ -480,6 +505,7 @@ describe('Testing SDK', () => {
         path: '/results',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`34`),
           testCaseBody: { x: 3, y: 4 },
           testCaseOutput: '3 + 4 = 7',
@@ -489,6 +515,7 @@ describe('Testing SDK', () => {
         path: '/evals',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           evaluatorExternalId: 'my-evaluator-1',
           score: 0.5,
@@ -498,6 +525,7 @@ describe('Testing SDK', () => {
         path: '/evals',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           evaluatorExternalId: 'my-evaluator-2',
           score: 0.7,
@@ -508,6 +536,7 @@ describe('Testing SDK', () => {
         path: '/evals',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`34`),
           evaluatorExternalId: 'my-evaluator-1',
           score: 0.5,
@@ -517,6 +546,7 @@ describe('Testing SDK', () => {
         path: '/evals',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`34`),
           evaluatorExternalId: 'my-evaluator-2',
           score: 0.7,
@@ -527,6 +557,7 @@ describe('Testing SDK', () => {
         path: '/end',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
         },
       },
     ]);
@@ -563,6 +594,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -572,6 +604,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -581,6 +614,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -621,6 +655,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -630,6 +665,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -639,6 +675,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         evaluatorExternalId: 'my-evaluator',
         score: 0.5,
@@ -648,6 +685,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator',
         score: 0.5,
@@ -657,6 +695,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -685,6 +724,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: '1-2',
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -694,6 +734,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: '3-4',
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -703,6 +744,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -729,6 +771,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '{"result":"1 + 2 = 3"}',
@@ -738,6 +781,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -800,6 +844,7 @@ describe('Testing SDK', () => {
       path: '/events',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         event: {
           message: '1 + 2 = 3',
@@ -813,6 +858,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -822,6 +868,7 @@ describe('Testing SDK', () => {
       path: '/events',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         event: {
           message: '3 + 4 = 7',
@@ -835,6 +882,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         testCaseBody: { x: 3, y: 4 },
         testCaseOutput: '3 + 4 = 7',
@@ -844,6 +892,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         evaluatorExternalId: 'my-evaluator-1',
         score: 0.5,
@@ -853,6 +902,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`34`),
         evaluatorExternalId: 'my-evaluator-1',
         score: 0.5,
@@ -862,6 +912,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -925,6 +976,7 @@ describe('Testing SDK', () => {
       path: '/events',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`0.5`),
         event: {
           message: 'this is a test',
@@ -941,6 +993,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`0.5`),
         testCaseBody: { x: 0.5 },
         testCaseOutput: 'whatever',
@@ -950,6 +1003,7 @@ describe('Testing SDK', () => {
       path: '/evals',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`0.5`),
         evaluatorExternalId: 'my-evaluator',
         score: 0.5,
@@ -959,6 +1013,7 @@ describe('Testing SDK', () => {
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
       },
     });
   });
@@ -1082,6 +1137,7 @@ describe('Testing SDK', () => {
       path: '/results',
       body: {
         testExternalId: 'my-test-id',
+        runId: mockRunId,
         testCaseHash: md5(`12`),
         testCaseBody: { x: 1, y: 2 },
         testCaseOutput: '1 + 2 = 3',
@@ -1146,6 +1202,7 @@ describe('Testing SDK', () => {
         path: '/results',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           testCaseBody: { x: 1, y: 2 },
           testCaseOutput: '1 + 2 = 3',
@@ -1155,6 +1212,7 @@ describe('Testing SDK', () => {
         path: '/end',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
         },
       });
     });
@@ -1181,6 +1239,7 @@ describe('Testing SDK', () => {
         path: '/results',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           testCaseBody: { x: 1, y: 2 },
           testCaseOutput: '1 + 2 = 3',
@@ -1190,6 +1249,7 @@ describe('Testing SDK', () => {
         path: '/end',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
         },
       });
     });
@@ -1216,6 +1276,7 @@ describe('Testing SDK', () => {
         path: '/results',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           testCaseBody: { x: 1, y: 2 },
           testCaseOutput: '1 + 2 = 3',
@@ -1225,6 +1286,7 @@ describe('Testing SDK', () => {
         path: '/end',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
         },
       });
     });
@@ -1289,6 +1351,7 @@ describe('Testing SDK', () => {
         path: '/results',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
           testCaseHash: md5(`12`),
           testCaseBody: { x: 1, y: 2 },
           testCaseOutput: '1 + 2 = 3',
@@ -1298,6 +1361,7 @@ describe('Testing SDK', () => {
         path: '/end',
         body: {
           testExternalId: 'my-test-id',
+          runId: mockRunId,
         },
       });
     });
@@ -1341,6 +1405,213 @@ describe('Testing SDK with HTTP Errors', () => {
       headers: {
         'Content-Type': 'application/json',
       },
+    });
+  });
+});
+
+/**
+ * This is a separate describe() because the main one mocks
+ * all fetch requests to be successful. This one handles multiple start
+ * requests for grid search
+ */
+describe('Testing Grid Search', () => {
+  beforeAll(() => {
+    process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS = MOCK_CLI_SERVER_ADDRESS;
+  });
+
+  afterAll(() => {
+    delete process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS;
+  });
+
+  const expectPostRequest = (args: {
+    path: string;
+    body: Record<string, unknown>;
+    mockFetch: jest.SpyInstance;
+  }) => {
+    for (const call of args.mockFetch.mock.calls) {
+      const [callUrl, callArgs] = call;
+      expect(callArgs.method).toEqual('POST');
+      expect(callArgs.headers).toEqual({
+        'Content-Type': 'application/json',
+      });
+      if (callUrl === `${MOCK_CLI_SERVER_ADDRESS}${args.path}`) {
+        const parsedBody = JSON.parse(callArgs.body);
+        if (isMatch(parsedBody, args.body)) {
+          return;
+        }
+      }
+    }
+
+    // If we reach here, we didn't find the expected request
+    throw new Error(`Expected request not found: ${JSON.stringify(args)}`);
+  };
+
+  it('runs grid search', async () => {
+    const runIds = ['run-1', 'run-2', 'run-3', 'run-4'];
+    const mockFetch = jest.spyOn(global, 'fetch').mockImplementation((url) => {
+      const response = {
+        json: () =>
+          Promise.resolve(
+            url.toString().endsWith('/start') ? { id: runIds.shift() } : {},
+          ),
+        ok: true,
+      } as Response;
+      return Promise.resolve(response);
+    });
+
+    await runTestSuite<string, string>({
+      id: 'my-test-id',
+      testCases: ['my-test-case'],
+      testCaseHash: (testCase) => testCase,
+      fn: async () => {
+        const store = gridSearchAsyncLocalStorage.getStore();
+        if (!store) {
+          throw new Error('store is undefined');
+        }
+        return `${store['x']} + ${store['y']} = ${parseInt(store['x']) + parseInt(store['y'])}`;
+      },
+      gridSearchParams: {
+        x: ['1', '2'],
+        y: ['3', '4'],
+      },
+    });
+
+    // we have 1 test case and 4 grid search combinations
+    // 1 call to /grids
+    // 4 calls to /start
+    // 4 calls to /results
+    // 4 calls to /end
+    expect(mockFetch).toHaveBeenCalledTimes(13);
+    expectPostRequest({
+      path: '/grids',
+      body: {
+        testExternalId: 'my-test-id',
+        gridSearchParams: {
+          x: ['1', '2'],
+          y: ['3', '4'],
+        },
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+        gridSearchParamsCombo: {
+          x: '1',
+          y: '3',
+        },
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+        gridSearchParamsCombo: {
+          x: '1',
+          y: '4',
+        },
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+        gridSearchParamsCombo: {
+          x: '2',
+          y: '3',
+        },
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+        gridSearchParamsCombo: {
+          x: '2',
+          y: '4',
+        },
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-1',
+        testCaseHash: 'my-test-case',
+        testCaseBody: 'my-test-case',
+        testCaseOutput: '1 + 3 = 4',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-2',
+        testCaseHash: 'my-test-case',
+        testCaseBody: 'my-test-case',
+        testCaseOutput: '1 + 4 = 5',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-3',
+        testCaseHash: 'my-test-case',
+        testCaseBody: 'my-test-case',
+        testCaseOutput: '2 + 3 = 5',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-4',
+        testCaseHash: 'my-test-case',
+        testCaseBody: 'my-test-case',
+        testCaseOutput: '2 + 4 = 6',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-1',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-2',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-3',
+      },
+      mockFetch,
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: 'run-4',
+      },
+      mockFetch,
     });
   });
 });

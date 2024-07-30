@@ -9,8 +9,8 @@
       "groupName": "all non-major dev dependencies",
       "groupSlug": "all-minor-patch-dev",
       "matchDepTypes": ["devDependencies"],
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchPackageNames": ["*"]
     }
   ]
 }

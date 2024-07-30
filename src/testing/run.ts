@@ -1,11 +1,19 @@
-import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
+import {
+  gridSearchAsyncLocalStorage,
+  testCaseRunAsyncLocalStorage,
+} from '../asyncLocalStorage';
 import { AutoblocksEnvVar, readEnv } from '../util';
 import {
   BaseTestEvaluator,
   BaseEvaluator,
   type HumanReviewField,
 } from './models';
-import { Semaphore, makeTestCaseHash, isPrimitive } from './util';
+import {
+  Semaphore,
+  makeTestCaseHash,
+  isPrimitive,
+  makeGridSearchParamCombos,
+} from './util';
 import { flush } from '../tracer';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
@@ -17,10 +25,10 @@ const evaluatorSemaphoreRegistry: Record<
 > = {}; // testId -> evaluatorId -> Semaphore
 
 const client = {
-  post: async (args: {
+  post: async <T>(args: {
     path: string;
     body: unknown;
-  }): Promise<Pick<Response, 'ok'>> => {
+  }): Promise<{ ok: boolean; data?: T }> => {
     const serverAddress = readEnv(
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
     );
@@ -35,13 +43,17 @@ $ npx autoblocks testing exec -- <your test command>
     }
 
     try {
-      return await fetch(serverAddress + args.path, {
+      const resp = await fetch(serverAddress + args.path, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(args.body),
       });
+      return {
+        ok: resp.ok,
+        data: await resp.json(),
+      };
     } catch {
       // Ignore, any errors for these requests are displayed by the CLI server
       return {
@@ -85,6 +97,7 @@ function filtersTestSuitesList(): string[] {
 
 async function sendError(args: {
   testId: string;
+  runId?: string;
   testCaseHash: string | null;
   evaluatorId: string | null;
   error: unknown;
@@ -106,6 +119,7 @@ async function sendError(args: {
     path: '/errors',
     body: {
       testExternalId: args.testId,
+      runId: args.runId,
       testCaseHash: args.testCaseHash,
       evaluatorExternalId: args.evaluatorId,
       error: {
@@ -123,6 +137,7 @@ async function sendError(args: {
  */
 async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
   testId: string;
+  runId: string;
   testCase: TestCaseType;
   testCaseHash: string;
   output: OutputType;
@@ -150,6 +165,7 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
     path: '/evals',
     body: {
       testExternalId: args.testId,
+      runId: args.runId,
       testCaseHash: args.testCaseHash,
       evaluatorExternalId: args.evaluator.id,
       score: evaluation.score,
@@ -161,6 +177,7 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
 
 async function runEvaluator<TestCaseType, OutputType>(args: {
   testId: string;
+  runId: string;
   testCase: TestCaseType;
   testCaseHash: string;
   output: OutputType;
@@ -169,6 +186,7 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
   try {
     await runEvaluatorUnsafe({
       testId: args.testId,
+      runId: args.runId,
       testCase: args.testCase,
       testCaseHash: args.testCaseHash,
       output: args.output,
@@ -177,6 +195,7 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
   } catch (err) {
     await sendError({
       testId: args.testId,
+      runId: args.runId,
       testCaseHash: args.testCaseHash,
       evaluatorId: args.evaluator.id,
       error: err,
@@ -190,6 +209,7 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
  */
 async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   testId: string;
+  runId: string;
   testCase: TestCaseType;
   testCaseHash: string;
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
@@ -219,6 +239,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     path: '/results',
     body: {
       testExternalId: args.testId,
+      runId: args.runId,
       testCaseHash: args.testCaseHash,
       testCaseBody: args.testCase,
       testCaseOutput: isPrimitive(output) ? output : JSON.stringify(output),
@@ -237,6 +258,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
 
 async function runTestCase<TestCaseType, OutputType>(args: {
   testId: string;
+  runId: string;
   testCase: TestCaseType;
   testCaseHash: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
@@ -251,6 +273,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   try {
     output = await runTestCaseUnsafe({
       testId: args.testId,
+      runId: args.runId,
       testCase: args.testCase,
       testCaseHash: args.testCaseHash,
       fn: args.fn,
@@ -260,6 +283,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   } catch (err) {
     await sendError({
       testId: args.testId,
+      runId: args.runId,
       testCaseHash: args.testCaseHash,
       evaluatorId: null,
       error: err,
@@ -274,6 +298,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
       args.evaluators.map((evaluator) =>
         runEvaluator({
           testId: args.testId,
+          runId: args.runId,
           testCase: args.testCase,
           testCaseHash: args.testCaseHash,
           output,
@@ -284,11 +309,95 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   } catch (err) {
     await sendError({
       testId: args.testId,
+      runId: args.runId,
       testCaseHash: args.testCaseHash,
       evaluatorId: null,
       error: err,
     });
   }
+}
+
+async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
+  testId: string;
+  testCases: TestCaseType[];
+  testCaseHash:
+    | [keyof TestCaseType & string, ...(keyof TestCaseType & string)[]]
+    | ((testCase: TestCaseType) => string);
+  evaluators?: BaseTestEvaluator<TestCaseType, OutputType>[];
+  fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  serializeTestCaseForHumanReview?: (
+    testCase: TestCaseType,
+  ) => HumanReviewField[];
+  serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
+  gridSearchRunGroupId?: string;
+  gridSearchParamsCombo?: Record<string, string>;
+}): Promise<void> {
+  const startResp = await client.post<{ id: string }>({
+    path: '/start',
+    body: {
+      testExternalId: args.testId,
+      gridSearchRunGroupId: args.gridSearchRunGroupId,
+      gridSearchParamsCombo: args.gridSearchParamsCombo,
+    },
+  });
+  if (!startResp.ok || !startResp.data) {
+    // Don't allow the run to continue if /start failed, since all subsequent
+    // requests will fail if the CLI was not able to start the run.
+    // Also note we don't need to sendError here, since the CLI will
+    // have reported the HTTP error itself.
+    return;
+  }
+  const runId = startResp.data.id;
+
+  try {
+    // Run each test case and set async local storage appropriately
+    await Promise.allSettled(
+      args.testCases.map(async (testCase) => {
+        const testCaseHash = makeTestCaseHash(testCase, args.testCaseHash);
+        // testCaseRunAsyncLocalStorage is only used internally in our SDK
+        return testCaseRunAsyncLocalStorage.run(
+          {
+            testCaseHash,
+            testId: args.testId,
+            runId,
+          },
+          async () => {
+            // gridSearchAsyncLocalStorage is exported and used in the consuming app
+            return gridSearchAsyncLocalStorage.run(
+              args.gridSearchParamsCombo,
+              async () => {
+                return runTestCase({
+                  testId: args.testId,
+                  runId,
+                  testCase,
+                  testCaseHash,
+                  evaluators: args.evaluators || [],
+                  fn: args.fn,
+                  serializeTestCaseForHumanReview:
+                    args.serializeTestCaseForHumanReview,
+                  serializeOutputForHumanReview:
+                    args.serializeOutputForHumanReview,
+                });
+              },
+            );
+          },
+        );
+      }),
+    );
+  } catch (err) {
+    await sendError({
+      testId: args.testId,
+      runId,
+      testCaseHash: null,
+      evaluatorId: null,
+      error: err,
+    });
+  }
+
+  await client.post({
+    path: '/end',
+    body: { testExternalId: args.testId, runId },
+  });
 }
 
 export async function runTestSuite<
@@ -313,6 +422,7 @@ export async function runTestSuite<
     testCase: TestCaseType,
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
+  gridSearchParams?: Record<string, string[]>;
 }): Promise<void> {
   // This will be set if the user passed filters to the CLI
   // we do a substring match to allow for fuzzy matching
@@ -386,41 +496,59 @@ export async function runTestSuite<
     ]),
   );
 
-  const startResp = await client.post({
-    path: '/start',
-    body: { testExternalId: args.id },
-  });
-  if (!startResp.ok) {
-    // Don't allow the run to continue if /start failed, since all subsequent
-    // requests will fail if the CLI was not able to start the run.
-    // Also note we don't need to sendError here, since the CLI will
-    // have reported the HTTP error itself.
+  if (args.gridSearchParams === undefined) {
+    try {
+      await runTestSuiteForGridCombo({
+        testId: args.id,
+        testCases: filteredTestCases,
+        testCaseHash: args.testCaseHash,
+        evaluators: args.evaluators,
+        fn: args.fn,
+        serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
+        serializeOutputForHumanReview: args.serializeOutputForHumanReview,
+      });
+    } catch (err) {
+      await sendError({
+        testId: args.id,
+        testCaseHash: null,
+        evaluatorId: null,
+        error: err,
+      });
+    }
     return;
   }
 
+  const gridResp = await client.post<{ id: string }>({
+    path: '/grids',
+    body: {
+      testExternalId: args.id,
+      gridSearchParams: args.gridSearchParams,
+    },
+  });
+  if (!gridResp.ok || !gridResp.data) {
+    // Don't allow the run to continue if /grids failed, since all subsequent
+    // requests will fail if the CLI was not able to create the grid.
+    // Also note we don't need to send_error here, since the CLI will
+    // have reported the HTTP error itself.
+    return;
+  }
+  const gridSearchRunGroupId = gridResp.data.id;
+
   try {
-    await Promise.allSettled(
-      filteredTestCases.map(async (testCase) => {
-        const testCaseHash = makeTestCaseHash(testCase, args.testCaseHash);
-        return testCaseRunAsyncLocalStorage.run(
-          {
-            testCaseHash,
-            testId: args.id,
-          },
-          async () => {
-            return runTestCase({
-              testId: args.id,
-              testCase,
-              testCaseHash,
-              evaluators: args.evaluators || [],
-              fn: args.fn,
-              serializeTestCaseForHumanReview:
-                args.serializeTestCaseForHumanReview,
-              serializeOutputForHumanReview: args.serializeOutputForHumanReview,
-            });
-          },
-        );
-      }),
+    await Promise.all(
+      makeGridSearchParamCombos(args.gridSearchParams).map((gridParamsCombo) =>
+        runTestSuiteForGridCombo({
+          testId: args.id,
+          testCases: filteredTestCases,
+          testCaseHash: args.testCaseHash,
+          evaluators: args.evaluators,
+          fn: args.fn,
+          serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
+          serializeOutputForHumanReview: args.serializeOutputForHumanReview,
+          gridSearchRunGroupId,
+          gridSearchParamsCombo: gridParamsCombo,
+        }),
+      ),
     );
   } catch (err) {
     await sendError({
@@ -430,6 +558,4 @@ export async function runTestSuite<
       error: err,
     });
   }
-
-  await client.post({ path: '/end', body: { testExternalId: args.id } });
 }
