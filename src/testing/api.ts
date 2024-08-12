@@ -255,7 +255,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
 
     return resultId;
   }
-  console.log('Sending test case result to API: ', args.testCaseHash);
+
   const resp = await client.postToAPI<{ id: string }>({
     path: `/runs/${args.runId}/results`,
     body: {
