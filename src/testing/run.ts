@@ -353,6 +353,12 @@ export async function runTestSuite<
 }): Promise<void> {
   if (!isCLIRunning()) {
     console.log(`Running test suite '${args.id}'`);
+    const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
+    if (!apiKey) {
+      throw new Error(
+        `You must set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable.`,
+      );
+    }
   }
   // This will be set if the user passed filters to the CLI
   // we do a substring match to allow for fuzzy matching
