@@ -1,5 +1,4 @@
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
-import { flush } from '../tracer';
 import {
   API_ENDPOINT,
   AutoblocksEnvVar,
@@ -212,11 +211,6 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<string> {
-  // Flush the logs before we send the result, since the CLI
-  // accumulates the events and sends them as a batch along
-  // with the result.
-  await flush();
-
   const serializedOutput = isPrimitive(args.testCaseOutput)
     ? args.testCaseOutput
     : JSON.stringify(args.testCaseOutput);
