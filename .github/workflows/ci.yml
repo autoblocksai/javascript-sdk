@@ -54,7 +54,7 @@ jobs:
       - name: Run tests
         run: npm run test
         env:
-          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_ADAM }}
           AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
