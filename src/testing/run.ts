@@ -286,6 +286,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
             testCaseHash,
             testId: args.testId,
             runId,
+            testEvents: [],
           },
           async () => {
             // gridSearchAsyncLocalStorage is exported and used in the consuming app

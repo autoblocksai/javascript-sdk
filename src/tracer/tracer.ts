@@ -209,38 +209,11 @@ export class AutoblocksTracer {
     // We do not run evaluators for test events
     args?: Omit<SendEventArgs, 'evaluators'>,
   ): Promise<void> {
-    const cliServerAddress = readEnv(
-      AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
-    );
-    if (!cliServerAddress) {
-      throw new Error('Tried to send test event without a CLI server address.');
-    }
     const store = testCaseRunAsyncLocalStorage.getStore();
     if (!store) {
       throw new Error('Tried to send test event outside of test run.');
     }
-    const { properties, traceId, timestamp, systemProperties } =
-      this.makeRequestPayload(args);
-
-    await fetch(`${cliServerAddress}/events`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        testExternalId: store.testId,
-        runId: store.runId,
-        testCaseHash: store.testCaseHash,
-        event: {
-          message,
-          traceId,
-          timestamp,
-          properties,
-          systemProperties,
-        },
-      }),
-      signal: AbortSignal.timeout(this.timeoutMs),
-    });
+    store.testEvents.push(this.makeRequestPayload(args));
   }
 
   private sendEventUnsafe(message: string, args?: SendEventArgs): void {

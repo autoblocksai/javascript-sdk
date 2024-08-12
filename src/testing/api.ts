@@ -1,3 +1,4 @@
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import { flush } from '../tracer';
 import {
   API_ENDPOINT,
@@ -175,6 +176,30 @@ export async function sendStartRun(args: {
   return startResp.data.id;
 }
 
+async function sendEvents(args: {
+  testExternalId: string;
+  runId: string;
+  testCaseHash: string;
+  testCaseResultId: string;
+}): Promise<void> {
+  const store = testCaseRunAsyncLocalStorage.getStore();
+  if (!store) {
+    throw new Error('No test case run store found');
+  }
+  if (
+    store.testId !== args.testExternalId ||
+    store.testCaseHash !== args.testCaseHash
+  ) {
+    throw new Error('Test case run store does not match the test case result');
+  }
+  await client.postToAPI({
+    path: `/runs/${args.runId}/results/${args.testCaseResultId}/events`,
+    body: {
+      testCaseEvents: store.testEvents,
+    },
+  });
+}
+
 export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   testExternalId: string;
   runId: string;
@@ -222,8 +247,16 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
         `Failed to send test case result: ${JSON.stringify(resp)}`,
       );
     }
+    const resultId = resp.data.id;
 
-    return resp.data.id;
+    await sendEvents({
+      testExternalId: args.testExternalId,
+      runId: args.runId,
+      testCaseHash: args.testCaseHash,
+      testCaseResultId: resultId,
+    });
+
+    return resultId;
   }
   const resp = await client.postToAPI<{ id: string }>({
     path: `/runs/${args.runId}/results`,
@@ -245,6 +278,12 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
       body: {
         testCaseOutput: serializedOutput,
       },
+    }),
+    sendEvents({
+      testExternalId: args.testExternalId,
+      runId: args.runId,
+      testCaseHash: args.testCaseHash,
+      testCaseResultId: resultId,
     }),
   ]);
   results.forEach((result) => {
