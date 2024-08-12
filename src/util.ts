@@ -50,3 +50,11 @@ export const AUTOBLOCKS_HEADERS = {
 export const dedent = (text: string) => {
   return text.replace(/^\s+/gm, '');
 };
+
+export function isCI(): boolean {
+  return readEnv('CI') === 'true';
+}
+
+export function isCLIRunning(): boolean {
+  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS) !== undefined;
+}

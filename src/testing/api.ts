@@ -1,10 +1,16 @@
 import { flush } from '../tracer';
-import { AutoblocksEnvVar, readEnv } from '../util';
+import {
+  API_ENDPOINT,
+  AutoblocksEnvVar,
+  readEnv,
+  isCLIRunning,
+  isCI,
+} from '../util';
 import { Evaluation, HumanReviewField } from './models';
-import { isPrimitive } from './util';
+import { determineIfEvaluationPassed, isPrimitive } from './util';
 
 const client = {
-  post: async <T>(args: {
+  postToCLI: async <T>(args: {
     path: string;
     body: unknown;
   }): Promise<{ ok: boolean; data?: T }> => {
@@ -12,13 +18,7 @@ const client = {
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
     );
     if (!serverAddress) {
-      throw new Error(
-        `\n
-Autoblocks tests must be run within the context of the testing CLI.
-Make sure you are running your test command with:
-$ npx autoblocks testing exec -- <your test command>
-`,
-      );
+      throw new Error('CLI server address is not set.');
     }
 
     try {
@@ -40,6 +40,35 @@ $ npx autoblocks testing exec -- <your test command>
       };
     }
   },
+  postToAPI: async <T>(args: {
+    path: string;
+    body: unknown;
+  }): Promise<{ data: T }> => {
+    const subPath = isCI() ? '/testing/ci' : '/testing/local';
+    const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
+    if (!apiKey) {
+      throw new Error(
+        `You must set the '${AutoblocksEnvVar.AUTOBLOCKS_API_KEY}' environment variable.`,
+      );
+    }
+    const url = `${API_ENDPOINT}${subPath}${args.path}`;
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(args.body),
+    });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: POST ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
+    return {
+      data: await resp.json(),
+    };
+  },
 };
 
 export async function sendError(args: {
@@ -49,54 +78,62 @@ export async function sendError(args: {
   evaluatorId: string | null;
   error: unknown;
 }): Promise<void> {
-  const { errorName, errorMessage, errorStack } =
-    args.error instanceof Error
-      ? {
-          errorName: args.error.name,
-          errorMessage: args.error.message,
-          errorStack: args.error.stack,
-        }
-      : {
-          errorName: 'UnknownError',
-          errorMessage: `${args.error}`,
-          errorStack: '',
-        };
-
-  await client.post({
-    path: '/errors',
-    body: {
-      testExternalId: args.testId,
-      runId: args.runId,
-      testCaseHash: args.testCaseHash,
-      evaluatorExternalId: args.evaluatorId,
-      error: {
-        name: errorName,
-        message: errorMessage,
-        stacktrace: errorStack,
+  if (isCLIRunning()) {
+    const { errorName, errorMessage, errorStack } =
+      args.error instanceof Error
+        ? {
+            errorName: args.error.name,
+            errorMessage: args.error.message,
+            errorStack: args.error.stack,
+          }
+        : {
+            errorName: 'UnknownError',
+            errorMessage: `${args.error}`,
+            errorStack: '',
+          };
+    await client.postToCLI({
+      path: '/errors',
+      body: {
+        testExternalId: args.testId,
+        runId: args.runId,
+        testCaseHash: args.testCaseHash,
+        evaluatorExternalId: args.evaluatorId,
+        error: {
+          name: errorName,
+          message: errorMessage,
+          stacktrace: errorStack,
+        },
       },
-    },
-  });
+    });
+  } else {
+    console.error(args.error);
+  }
 }
 
 export async function sendStartGridSearchRun(args: {
-  testExternalId: string;
   gridSearchParams: Record<string, string[]>;
 }): Promise<string> {
-  const gridResp = await client.post<{ id: string }>({
+  if (isCLIRunning()) {
+    const gridResp = await client.postToCLI<{ id: string }>({
+      path: '/grids',
+      body: {
+        gridSearchParams: args.gridSearchParams,
+      },
+    });
+    if (!gridResp.ok || !gridResp.data) {
+      throw new Error(
+        `Failed to start grid search run: ${JSON.stringify(gridResp)}`,
+      );
+    }
+
+    return gridResp.data.id;
+  }
+  const gridResp = await client.postToAPI<{ id: string }>({
     path: '/grids',
     body: {
-      testExternalId: args.testExternalId,
       gridSearchParams: args.gridSearchParams,
     },
   });
-  if (!gridResp.ok || !gridResp.data) {
-    throw new Error(
-      `Failed to start grid for test ${args.testExternalId}: ${JSON.stringify(
-        gridResp,
-      )}`,
-    );
-  }
-
   return gridResp.data.id;
 }
 
@@ -105,22 +142,36 @@ export async function sendStartRun(args: {
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
 }): Promise<string> {
-  const startResp = await client.post<{ id: string }>({
-    path: '/start',
+  if (isCLIRunning()) {
+    const startResp = await client.postToCLI<{ id: string }>({
+      path: '/start',
+      body: {
+        testExternalId: args.testExternalId,
+        gridSearchRunGroupId: args.gridSearchRunGroupId,
+        gridSearchParamsCombo: args.gridSearchParamsCombo,
+      },
+    });
+
+    if (!startResp.ok || !startResp.data) {
+      throw new Error(
+        `Failed to start run for test ${args.testExternalId}: ${JSON.stringify(
+          startResp,
+        )}`,
+      );
+    }
+    return startResp.data.id;
+  }
+  const startResp = await client.postToAPI<{ id: string }>({
+    path: '/runs',
     body: {
       testExternalId: args.testExternalId,
+      message: undefined,
+      // TODO: Handle CI runs when not using CLI
+      buildId: undefined,
       gridSearchRunGroupId: args.gridSearchRunGroupId,
       gridSearchParamsCombo: args.gridSearchParamsCombo,
     },
   });
-
-  if (!startResp.ok || !startResp.data) {
-    throw new Error(
-      `Failed to start run for test ${args.testExternalId}: ${JSON.stringify(
-        startResp,
-      )}`,
-    );
-  }
   return startResp.data.id;
 }
 
@@ -141,31 +192,95 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   // with the result.
   await flush();
 
-  const resp = await client.post<{ id: string }>({
-    path: '/results',
+  const serializedOutput = isPrimitive(args.testCaseOutput)
+    ? args.testCaseOutput
+    : JSON.stringify(args.testCaseOutput);
+  const serializedHumanReviewInputFields = args.serializeTestCaseForHumanReview
+    ? args.serializeTestCaseForHumanReview(args.testCase)
+    : null;
+  const serializedHumanReviewOutputFields = args.serializeOutputForHumanReview
+    ? args.serializeOutputForHumanReview(args.testCaseOutput)
+    : null;
+
+  if (isCLIRunning()) {
+    const resp = await client.postToCLI<{ id: string }>({
+      path: '/results',
+      body: {
+        testExternalId: args.testExternalId,
+        runId: args.runId,
+        testCaseHash: args.testCaseHash,
+        testCaseBody: args.testCase,
+        testCaseOutput: serializedOutput,
+        testCaseDurationMs: args.testCaseDurationMs,
+        testCaseHumanReviewInputFields: serializedHumanReviewInputFields,
+        testCaseHumanReviewOutputFields: serializedHumanReviewOutputFields,
+      },
+    });
+
+    if (!resp.ok || !resp.data) {
+      throw new Error(
+        `Failed to send test case result: ${JSON.stringify(resp)}`,
+      );
+    }
+
+    return resp.data.id;
+  }
+  const resp = await client.postToAPI<{ id: string }>({
+    path: `/runs/${args.runId}/results`,
     body: {
-      testExternalId: args.testExternalId,
-      runId: args.runId,
       testCaseHash: args.testCaseHash,
-      testCaseBody: args.testCase,
-      testCaseOutput: isPrimitive(args.testCaseOutput)
-        ? args.testCaseOutput
-        : JSON.stringify(args.testCaseOutput),
       testCaseDurationMs: args.testCaseDurationMs,
-      testCaseHumanReviewInputFields: args.serializeTestCaseForHumanReview
-        ? args.serializeTestCaseForHumanReview(args.testCase)
-        : null,
-      testCaseHumanReviewOutputFields: args.serializeOutputForHumanReview
-        ? args.serializeOutputForHumanReview(args.testCaseOutput)
-        : null,
     },
   });
+  const resultId = resp.data.id;
+  const results = await Promise.allSettled([
+    client.postToAPI({
+      path: `/runs/${args.runId}/results/${resultId}/body`,
+      body: {
+        testCaseBody: args.testCase,
+      },
+    }),
+    client.postToAPI({
+      path: `/runs/${args.runId}/results/${resultId}/output`,
+      body: {
+        testCaseOutput: serializedOutput,
+      },
+    }),
+  ]);
+  results.forEach((result) => {
+    if (result.status === 'rejected') {
+      console.warn(
+        `Failed to send part of the test case results to Autoblocks for test case hash ${args.testCaseHash}: ${result.reason}`,
+      );
+    }
+  });
 
-  if (!resp.ok || !resp.data) {
-    throw new Error(`Failed to send test case result: ${JSON.stringify(resp)}`);
+  try {
+    await client.postToAPI({
+      path: `/runs/${args.runId}/results/${resultId}/human-review-fields`,
+      body: {
+        testCaseHumanReviewInputFields: serializedHumanReviewInputFields,
+        testCaseHumanReviewOutputFields: serializedHumanReviewOutputFields,
+      },
+    });
+  } catch (e) {
+    console.warn(
+      `Failed to send human review fields to Autoblocks for test case hash ${args.testCaseHash}: ${e}`,
+    );
   }
 
-  return resp.data.id;
+  try {
+    await client.postToAPI({
+      path: `/runs/${args.runId}/results/${resultId}/ui-based-evaluations`,
+      body: {},
+    });
+  } catch (e) {
+    console.warn(
+      `Failed to send ui-based-evaluations to Autoblocks for test case hash ${args.testCaseHash}: ${e}`,
+    );
+  }
+
+  return resultId;
 }
 
 export async function sendEvaluation(args: {
@@ -176,14 +291,27 @@ export async function sendEvaluation(args: {
   evaluatorExternalId: string;
   evaluation: Evaluation;
 }): Promise<void> {
-  await client.post({
-    path: '/evals',
+  if (isCLIRunning()) {
+    await client.postToCLI({
+      path: '/evals',
+      body: {
+        testExternalId: args.testExternalId,
+        runId: args.runId,
+        testCaseHash: args.testCaseHash,
+        evaluatorExternalId: args.evaluatorExternalId,
+        score: args.evaluation.score,
+        threshold: args.evaluation.threshold,
+        metadata: args.evaluation.metadata,
+      },
+    });
+    return;
+  }
+  await client.postToAPI({
+    path: `/runs/${args.runId}/results/${args.testCaseResultId}/evaluations`,
     body: {
-      testExternalId: args.testExternalId,
-      runId: args.runId,
-      testCaseHash: args.testCaseHash,
       evaluatorExternalId: args.evaluatorExternalId,
       score: args.evaluation.score,
+      passed: determineIfEvaluationPassed({ evaluation: args.evaluation }),
       threshold: args.evaluation.threshold,
       metadata: args.evaluation.metadata,
     },
@@ -194,8 +322,15 @@ export async function sendEndRun(args: {
   testExternalId: string;
   runId: string;
 }): Promise<void> {
-  await client.post({
-    path: '/end',
-    body: { testExternalId: args.testExternalId, runId: args.runId },
+  if (isCLIRunning()) {
+    await client.postToCLI({
+      path: '/end',
+      body: { testExternalId: args.testExternalId, runId: args.runId },
+    });
+    return;
+  }
+  await client.postToAPI({
+    path: `/runs/${args.runId}/end`,
+    body: {},
   });
 }

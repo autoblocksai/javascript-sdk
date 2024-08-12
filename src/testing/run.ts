@@ -2,7 +2,7 @@ import {
   gridSearchAsyncLocalStorage,
   testCaseRunAsyncLocalStorage,
 } from '../asyncLocalStorage';
-import { AutoblocksEnvVar, readEnv } from '../util';
+import { AutoblocksEnvVar, isCLIRunning, readEnv } from '../util';
 import {
   BaseTestEvaluator,
   BaseEvaluator,
@@ -264,6 +264,14 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     // requests will fail if the CLI was not able to start the run.
     // Also note we don't need to sendError here, since the CLI will
     // have reported the HTTP error itself.
+    if (isCLIRunning()) {
+      await sendError({
+        testId: args.testId,
+        testCaseHash: null,
+        evaluatorId: null,
+        error: err,
+      });
+    }
     return;
   }
 
@@ -342,6 +350,9 @@ export async function runTestSuite<
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
   gridSearchParams?: Record<string, string[]>;
 }): Promise<void> {
+  if (!isCLIRunning()) {
+    console.log(`Running test suite '${args.id}'`);
+  }
   // This will be set if the user passed filters to the CLI
   // we do a substring match to allow for fuzzy matching
   // For example a filter of "ell" would match a test suite of "hello"
@@ -439,7 +450,6 @@ export async function runTestSuite<
   let gridSearchRunGroupId: string;
   try {
     gridSearchRunGroupId = await sendStartGridSearchRun({
-      testExternalId: args.id,
       gridSearchParams: args.gridSearchParams,
     });
   } catch (err) {
@@ -447,6 +457,14 @@ export async function runTestSuite<
     // requests will fail if the CLI was not able to create the grid.
     // Also note we don't need to send_error here, since the CLI will
     // have reported the HTTP error itself.
+    if (isCLIRunning()) {
+      await sendError({
+        testId: args.id,
+        testCaseHash: null,
+        evaluatorId: null,
+        error: err,
+      });
+    }
     return;
   }
 
@@ -473,5 +491,8 @@ export async function runTestSuite<
       evaluatorId: null,
       error: err,
     });
+  }
+  if (!isCLIRunning()) {
+    console.log(`Finished running test suite '${args.id}'`);
   }
 }
