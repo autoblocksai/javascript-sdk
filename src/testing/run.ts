@@ -494,6 +494,8 @@ export async function runTestSuite<
     });
   }
   if (!isCLIRunning()) {
-    console.log(`Finished running test suite '${args.id}'`);
+    console.log(
+      `Finished running test suite '${args.id}'. View the results at https://app.autoblocks.ai/testing/local/test/${args.id}`,
+    );
   }
 }
