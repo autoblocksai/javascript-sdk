@@ -78,7 +78,7 @@ export async function sendError(args: {
   });
 }
 
-export async function sendStartGrid(args: {
+export async function sendStartGridSearchRun(args: {
   testExternalId: string;
   gridSearchParams: Record<string, string[]>;
 }): Promise<string> {
@@ -135,13 +135,13 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
     testCase: TestCaseType,
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
-}): Promise<void> {
+}): Promise<string> {
   // Flush the logs before we send the result, since the CLI
   // accumulates the events and sends them as a batch along
   // with the result.
   await flush();
 
-  await client.post({
+  const resp = await client.post<{ id: string }>({
     path: '/results',
     body: {
       testExternalId: args.testExternalId,
@@ -160,12 +160,19 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
         : null,
     },
   });
+
+  if (!resp.ok || !resp.data) {
+    throw new Error(`Failed to send test case result: ${JSON.stringify(resp)}`);
+  }
+
+  return resp.data.id;
 }
 
 export async function sendEvaluation(args: {
   testExternalId: string;
   runId: string;
   testCaseHash: string;
+  testCaseResultId: string;
   evaluatorExternalId: string;
   evaluation: Evaluation;
 }): Promise<void> {

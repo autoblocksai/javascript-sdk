@@ -13,7 +13,7 @@ import {
   sendEndRun,
   sendError,
   sendEvaluation,
-  sendStartGrid,
+  sendStartGridSearchRun,
   sendStartRun,
   sendTestCaseResult,
 } from './api';
@@ -67,6 +67,7 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
   runId: string;
   testCase: TestCaseType;
   testCaseHash: string;
+  testCaseResultId: string;
   output: OutputType;
   evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
 }): Promise<void> {
@@ -92,6 +93,7 @@ async function runEvaluatorUnsafe<TestCaseType, OutputType>(args: {
     testExternalId: args.testId,
     runId: args.runId,
     testCaseHash: args.testCaseHash,
+    testCaseResultId: args.testCaseResultId,
     evaluatorExternalId: args.evaluator.id,
     evaluation,
   });
@@ -102,6 +104,7 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
   runId: string;
   testCase: TestCaseType;
   testCaseHash: string;
+  testCaseResultId: string;
   output: OutputType;
   evaluator: BaseTestEvaluator<TestCaseType, OutputType>;
 }): Promise<void> {
@@ -111,6 +114,7 @@ async function runEvaluator<TestCaseType, OutputType>(args: {
       runId: args.runId,
       testCase: args.testCase,
       testCaseHash: args.testCaseHash,
+      testCaseResultId: args.testCaseResultId,
       output: args.output,
       evaluator: args.evaluator,
     });
@@ -139,7 +143,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     testCase: TestCaseType,
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
-}): Promise<OutputType> {
+}): Promise<{ output: OutputType; testCaseResultId: string }> {
   const semaphore = testCaseSemaphoreRegistry[args.testId];
   if (!semaphore) {
     throw new Error(`[${args.testId}] Test case semaphore not found.`);
@@ -152,7 +156,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     return { output, durationMs };
   });
 
-  await sendTestCaseResult({
+  const testCaseResultId = await sendTestCaseResult({
     testExternalId: args.testId,
     runId: args.runId,
     testCase: args.testCase,
@@ -163,7 +167,10 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     serializeOutputForHumanReview: args.serializeOutputForHumanReview,
   });
 
-  return output;
+  return {
+    output,
+    testCaseResultId,
+  };
 }
 
 async function runTestCase<TestCaseType, OutputType>(args: {
@@ -179,9 +186,9 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<void> {
   let output: OutputType | undefined = undefined;
-
+  let testCaseResultId: string;
   try {
-    output = await runTestCaseUnsafe({
+    const res = await runTestCaseUnsafe({
       testId: args.testId,
       runId: args.runId,
       testCase: args.testCase,
@@ -190,6 +197,8 @@ async function runTestCase<TestCaseType, OutputType>(args: {
       serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
       serializeOutputForHumanReview: args.serializeOutputForHumanReview,
     });
+    output = res.output;
+    testCaseResultId = res.testCaseResultId;
   } catch (err) {
     await sendError({
       testId: args.testId,
@@ -211,6 +220,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
           runId: args.runId,
           testCase: args.testCase,
           testCaseHash: args.testCaseHash,
+          testCaseResultId,
           output,
           evaluator,
         }),
@@ -428,7 +438,7 @@ export async function runTestSuite<
 
   let gridSearchRunGroupId: string;
   try {
-    gridSearchRunGroupId = await sendStartGrid({
+    gridSearchRunGroupId = await sendStartGridSearchRun({
       testExternalId: args.id,
       gridSearchParams: args.gridSearchParams,
     });
