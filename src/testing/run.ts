@@ -264,7 +264,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     // requests will fail if the CLI was not able to start the run.
     // Also note we don't need to sendError here, since the CLI will
     // have reported the HTTP error itself.
-    if (isCLIRunning()) {
+    if (!isCLIRunning()) {
       await sendError({
         testId: args.testId,
         testCaseHash: null,
@@ -458,7 +458,7 @@ export async function runTestSuite<
     // requests will fail if the CLI was not able to create the grid.
     // Also note we don't need to send_error here, since the CLI will
     // have reported the HTTP error itself.
-    if (isCLIRunning()) {
+    if (!isCLIRunning()) {
       await sendError({
         testId: args.id,
         testCaseHash: null,

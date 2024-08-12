@@ -6,6 +6,7 @@ export const testCaseRunAsyncLocalStorage = new AsyncLocalStorage<{
   testId: string;
   runId: string;
   testEvents: {
+    message: string;
     traceId: string | undefined;
     timestamp: string;
     properties: object;

@@ -191,6 +191,9 @@ async function sendEvents(args: {
   ) {
     throw new Error('Test case run store does not match the test case result');
   }
+  if (store.testEvents.length === 0) {
+    return;
+  }
   await client.postToAPI({
     path: `/runs/${args.runId}/results/${args.testCaseResultId}/events`,
     body: {
@@ -252,6 +255,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
 
     return resultId;
   }
+  console.log('Sending test case result to API: ', args.testCaseHash);
   const resp = await client.postToAPI<{ id: string }>({
     path: `/runs/${args.runId}/results`,
     body: {
@@ -280,6 +284,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
       testCaseResultId: resultId,
     }),
   ]);
+
   results.forEach((result) => {
     if (result.status === 'rejected') {
       console.warn(

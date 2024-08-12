@@ -204,16 +204,24 @@ export class AutoblocksTracer {
     });
   }
 
-  private async sendTestEventUnsafe(
+  private sendTestEventUnsafe(
     message: string,
     // We do not run evaluators for test events
     args?: Omit<SendEventArgs, 'evaluators'>,
-  ): Promise<void> {
+  ) {
     const store = testCaseRunAsyncLocalStorage.getStore();
     if (!store) {
       throw new Error('Tried to send test event outside of test run.');
     }
-    store.testEvents.push(this.makeRequestPayload(args));
+    const { properties, traceId, timestamp, systemProperties } =
+      this.makeRequestPayload(args);
+    store.testEvents.push({
+      message,
+      traceId,
+      timestamp,
+      properties,
+      systemProperties,
+    });
   }
 
   private sendEventUnsafe(message: string, args?: SendEventArgs): void {
@@ -227,6 +235,13 @@ export class AutoblocksTracer {
       ...args,
     };
 
+    // This store should only be set in the context of a test run
+    const store = testCaseRunAsyncLocalStorage.getStore();
+    if (store) {
+      this.sendTestEventUnsafe(message, argsWithTimestamp);
+      return;
+    }
+
     // Use an object reference to keep track of whether or not this
     // event has been sent. We'll add it to the set now and then delete
     // it once it's finished.
@@ -235,13 +250,7 @@ export class AutoblocksTracer {
 
     setImmediate(async () => {
       try {
-        // This store should only be set in the context of a test run
-        const store = testCaseRunAsyncLocalStorage.getStore();
-        if (store) {
-          await this.sendTestEventUnsafe(message, argsWithTimestamp);
-        } else {
-          await this.sendRealEventUnsafe(message, argsWithTimestamp);
-        }
+        await this.sendRealEventUnsafe(message, argsWithTimestamp);
       } catch (err) {
         console.error(`Error sending event to Autoblocks: ${err}`);
         if (
