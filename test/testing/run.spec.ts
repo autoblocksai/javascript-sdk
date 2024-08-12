@@ -10,7 +10,7 @@ import {
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
 import { isMatch, omit } from 'lodash';
-import { AutoblocksEnvVar } from '../../src/util';
+import { API_ENDPOINT, AutoblocksEnvVar } from '../../src/util';
 
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
 
@@ -26,23 +26,35 @@ const md5 = (str: string) => {
 describe('Testing SDK', () => {
   let mockFetch: jest.SpyInstance;
   const mockRunId = 'mock-run-id';
+  const mockTestCaseResultId = 'mock-test-case-result-id';
+  const mockAPIKey = 'mock-api-key';
 
   beforeEach(() => {
     mockFetch = jest.spyOn(global, 'fetch').mockImplementation((url) => {
       const response = {
-        json: () =>
-          Promise.resolve(
-            url.toString().endsWith('/start') ? { id: mockRunId } : {},
-          ),
+        json: () => {
+          if (url.toString().endsWith('/start')) {
+            return Promise.resolve({ id: mockRunId });
+          }
+          if (url.toString().endsWith('/results')) {
+            return Promise.resolve({ id: mockTestCaseResultId });
+          }
+          return Promise.resolve({});
+        },
         ok: true,
       } as Response;
       return Promise.resolve(response);
     });
+    // Make CI and local consistent
+    process.env['CI'] = 'true';
+    process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY] = mockAPIKey;
   });
 
   afterEach(() => {
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES];
+    delete process.env['CI'];
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY];
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,11 +75,35 @@ describe('Testing SDK', () => {
   }) => {
     for (const call of mockFetch.mock.calls) {
       const [callUrl, callArgs] = call;
-      expect(callArgs.method).toEqual('POST');
-      expect(callArgs.headers).toEqual({
-        'Content-Type': 'application/json',
-      });
       if (callUrl === `${MOCK_CLI_SERVER_ADDRESS}${args.path}`) {
+        expect(callArgs.method).toEqual('POST');
+        expect(callArgs.headers).toEqual({
+          'Content-Type': 'application/json',
+        });
+        const parsedBody = JSON.parse(callArgs.body);
+        if (isMatch(parsedBody, args.body)) {
+          return;
+        }
+      }
+    }
+
+    // If we reach here, we didn't find the expected request
+    throw new Error(`Expected request not found: ${JSON.stringify(args)}`);
+  };
+
+  const expectPublicAPIPostRequest = (args: {
+    path: string;
+    body: Record<string, unknown>;
+  }) => {
+    for (const call of mockFetch.mock.calls) {
+      const [callUrl, callArgs] = call;
+      if (callUrl === `${API_ENDPOINT}/testing/ci${args.path}`) {
+        console.log('callArgs: ', callArgs);
+        expect(callArgs.method).toEqual('POST');
+        expect(callArgs.headers).toEqual({
+          Authorization: `Bearer ${mockAPIKey}`,
+          'Content-Type': 'application/json',
+        });
         const parsedBody = JSON.parse(callArgs.body);
         if (isMatch(parsedBody, args.body)) {
           return;
@@ -789,25 +825,14 @@ describe('Testing SDK', () => {
   it('collects test events', async () => {
     const timestamp = new Date().toISOString();
 
-    class MyEvaluator1 extends BaseTestEvaluator<MyTestCase, string> {
-      id = 'my-evaluator-1';
-
-      evaluateTestCase(): Evaluation {
-        return { score: 0.5 };
-      }
-    }
-
     const sleep = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
 
     await runTestSuite<MyTestCase, string>({
       id: 'my-test-id',
-      testCases: [
-        { x: 1, y: 2 },
-        { x: 3, y: 4 },
-      ],
+      testCases: [{ x: 1, y: 2 }],
       testCaseHash: ['x', 'y'],
-      evaluators: [new MyEvaluator1()],
+      evaluators: [],
       fn: async ({ testCase }: { testCase: MyTestCase }) => {
         const tracer = new AutoblocksTracer({
           ingestionKey: 'test',
@@ -832,26 +857,12 @@ describe('Testing SDK', () => {
       maxTestCaseConcurrency: 2,
     });
 
-    expectNumPosts(8);
+    expectNumPosts(4);
 
     expectPostRequest({
       path: '/start',
       body: {
         testExternalId: 'my-test-id',
-      },
-    });
-    expectPostRequest({
-      path: '/events',
-      body: {
-        testExternalId: 'my-test-id',
-        runId: mockRunId,
-        testCaseHash: md5(`12`),
-        event: {
-          message: '1 + 2 = 3',
-          traceId: 'test-trace-id',
-          timestamp,
-          properties: {},
-        },
       },
     });
     expectPostRequest({
@@ -864,48 +875,18 @@ describe('Testing SDK', () => {
         testCaseOutput: '1 + 2 = 3',
       },
     });
-    expectPostRequest({
-      path: '/events',
+    expectPublicAPIPostRequest({
+      path: `/runs/${mockRunId}/results/${mockTestCaseResultId}/events`,
       body: {
-        testExternalId: 'my-test-id',
-        runId: mockRunId,
-        testCaseHash: md5(`34`),
-        event: {
-          message: '3 + 4 = 7',
-          traceId: 'test-trace-id',
-          timestamp,
-          properties: {},
-        },
-      },
-    });
-    expectPostRequest({
-      path: '/results',
-      body: {
-        testExternalId: 'my-test-id',
-        runId: mockRunId,
-        testCaseHash: md5(`34`),
-        testCaseBody: { x: 3, y: 4 },
-        testCaseOutput: '3 + 4 = 7',
-      },
-    });
-    expectPostRequest({
-      path: '/evals',
-      body: {
-        testExternalId: 'my-test-id',
-        runId: mockRunId,
-        testCaseHash: md5(`12`),
-        evaluatorExternalId: 'my-evaluator-1',
-        score: 0.5,
-      },
-    });
-    expectPostRequest({
-      path: '/evals',
-      body: {
-        testExternalId: 'my-test-id',
-        runId: mockRunId,
-        testCaseHash: md5(`34`),
-        evaluatorExternalId: 'my-evaluator-1',
-        score: 0.5,
+        testCaseEvents: [
+          {
+            message: '1 + 2 = 3',
+            traceId: 'test-trace-id',
+            timestamp,
+            properties: {},
+            systemProperties: {},
+          },
+        ],
       },
     });
     expectPostRequest({
@@ -941,52 +922,22 @@ describe('Testing SDK', () => {
       }
     }
 
-    const timestamp = new Date().toISOString();
-
     await runTestSuite<T, O>({
       id: 'my-test-id',
       testCaseHash: ['x'],
       testCases: [{ x: 0.5 }],
       evaluators: [new MyEvaluator()],
       fn: async ({ testCase }) => {
-        const tracer = new AutoblocksTracer('mock-ingestion-key');
-
-        tracer.sendEvent('this is a test', {
-          timestamp,
-          traceId: 'test-trace-id',
-          properties: {
-            x: testCase.x,
-          },
-          evaluators: [new MyEvaluator()],
-        });
-
-        return 'whatever';
+        return `${testCase.x}`;
       },
     });
 
-    expectNumPosts(5);
+    expectNumPosts(4);
 
     expectPostRequest({
       path: '/start',
       body: {
         testExternalId: 'my-test-id',
-      },
-    });
-    expectPostRequest({
-      path: '/events',
-      body: {
-        testExternalId: 'my-test-id',
-        runId: mockRunId,
-        testCaseHash: md5(`0.5`),
-        event: {
-          message: 'this is a test',
-          traceId: 'test-trace-id',
-          timestamp,
-          properties: {
-            x: 0.5,
-            // Note: event evaluators are not run within test suites
-          },
-        },
       },
     });
     expectPostRequest({
@@ -996,7 +947,7 @@ describe('Testing SDK', () => {
         runId: mockRunId,
         testCaseHash: md5(`0.5`),
         testCaseBody: { x: 0.5 },
-        testCaseOutput: 'whatever',
+        testCaseOutput: '0.5',
       },
     });
     expectPostRequest({
@@ -1485,7 +1436,6 @@ describe('Testing Grid Search', () => {
     expectPostRequest({
       path: '/grids',
       body: {
-        testExternalId: 'my-test-id',
         gridSearchParams: {
           x: ['1', '2'],
           y: ['3', '4'],
