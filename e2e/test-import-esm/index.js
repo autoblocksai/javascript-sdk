@@ -1,5 +1,6 @@
 import { AutoblocksTracer } from '@autoblocks/client';
 
+// eslint-disable-next-line
 console.log(new AutoblocksTracer('test'));
 
 const assertLangchainImportThrowsError = async () => {
