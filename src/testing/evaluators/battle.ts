@@ -19,7 +19,7 @@ const zOpenAiResponseSchema = z
   .transform((str, ctx): z.infer<ReturnType<typeof JSON.parse>> => {
     try {
       return JSON.parse(str);
-    } catch (e) {
+    } catch {
       ctx.addIssue({ code: 'custom', message: 'Invalid JSON' });
       return z.NEVER;
     }
