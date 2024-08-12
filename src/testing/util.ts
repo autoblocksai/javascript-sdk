@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { Evaluation } from './models';
 
 interface Waiter {
   done: boolean;
@@ -158,4 +159,27 @@ export function makeGridSearchParamCombos(
       {} as Record<string, string>,
     );
   });
+}
+
+export function determineIfEvaluationPassed(args: {
+  evaluation: Evaluation;
+}): boolean | undefined {
+  const results: boolean[] = [];
+  const { score, threshold } = args.evaluation;
+  if (threshold?.lt !== undefined) {
+    results.push(score < threshold.lt);
+  }
+  if (threshold?.lte !== undefined) {
+    results.push(score <= threshold.lte);
+  }
+  if (threshold?.gt !== undefined) {
+    results.push(score > threshold.gt);
+  }
+  if (threshold?.gte !== undefined) {
+    results.push(score >= threshold.gte);
+  }
+  if (results.length === 0) {
+    return undefined;
+  }
+  return results.every((r) => r);
 }
