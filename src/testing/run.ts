@@ -13,6 +13,7 @@ import {
   sendEndRun,
   sendError,
   sendEvaluation,
+  sendSlackNotification,
   sendStartGridSearchRun,
   sendStartRun,
   sendTestCaseResult,
@@ -325,6 +326,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     testExternalId: args.testId,
     runId,
   });
+  await sendSlackNotification({ runId });
 }
 
 export async function runTestSuite<

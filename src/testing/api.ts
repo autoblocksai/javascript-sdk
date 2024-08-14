@@ -372,3 +372,23 @@ export async function sendEndRun(args: {
     body: {},
   });
 }
+
+export async function sendSlackNotification(args: { runId: string }) {
+  const slackWebhookUrl = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_SLACK_WEBHOOK_URL,
+  );
+  if (!slackWebhookUrl || isCLIRunning() || !isCI()) {
+    return;
+  }
+  console.log(`Sending slack notification for run ${args.runId}`);
+  try {
+    await client.postToAPI({
+      path: `/runs/${args.runId}/slack-notification`,
+      body: {
+        slackWebhookUrl,
+      },
+    });
+  } catch (e) {
+    console.warn(`Failed to send slack notification: ${e}`);
+  }
+}
