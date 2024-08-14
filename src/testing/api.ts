@@ -166,8 +166,7 @@ export async function sendStartRun(args: {
     body: {
       testExternalId: args.testExternalId,
       message: undefined,
-      // TODO: Handle CI runs when not using CLI
-      buildId: undefined,
+      buildId: readEnv(AutoblocksEnvVar.AUTOBLOCKS_CI_TEST_RUN_BUILD_ID),
       gridSearchRunGroupId: args.gridSearchRunGroupId,
       gridSearchParamsCombo: args.gridSearchParamsCombo,
     },
@@ -371,4 +370,24 @@ export async function sendEndRun(args: {
     path: `/runs/${args.runId}/end`,
     body: {},
   });
+}
+
+export async function sendSlackNotification(args: { runId: string }) {
+  const slackWebhookUrl = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_SLACK_WEBHOOK_URL,
+  );
+  if (!slackWebhookUrl || isCLIRunning() || !isCI()) {
+    return;
+  }
+  console.log(`Sending slack notification for run ${args.runId}`);
+  try {
+    await client.postToAPI({
+      path: `/runs/${args.runId}/slack-notification`,
+      body: {
+        slackWebhookUrl,
+      },
+    });
+  } catch (e) {
+    console.warn(`Failed to send slack notification: ${e}`);
+  }
 }
