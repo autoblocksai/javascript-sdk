@@ -1,5 +1,3 @@
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
 import { Semaphore } from './util';
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import {
@@ -20,11 +18,6 @@ const githubSemaphore = new Semaphore(1);
 const cliSemaphore = new Semaphore(10);
 const apiSemaphore = new Semaphore(10);
 
-axiosRetry(axios, {
-  retries: 3,
-  retryDelay: axiosRetry.exponentialDelay,
-});
-
 const client = {
   postToCLI: async <T>(args: {
     path: string;
@@ -37,21 +30,21 @@ const client = {
       throw new Error('CLI server address is not set.');
     }
     return await cliSemaphore.run(async () => {
-      try {
-        const resp = await axios.post<T>(serverAddress + args.path, args.body, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        return {
-          data: resp.data,
-        };
-      } catch (e) {
-        if (axios.isAxiosError(e)) {
-          throw new Error(`Failed to POST ${args.path}: ${e.toJSON()}`);
-        }
-        throw e;
+      const resp = await fetch(serverAddress + args.path, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(args.body),
+      });
+      if (!resp.ok) {
+        throw new Error(
+          `HTTP Request Error: POST ${args.path} "${resp.status} ${resp.statusText}"`,
+        );
       }
+      return {
+        data: await resp.json(),
+      };
     });
   },
   postToAPI: async <T>(args: {
@@ -67,22 +60,22 @@ const client = {
     }
     const url = `${API_ENDPOINT}${subPath}${args.path}`;
     return await apiSemaphore.run(async () => {
-      try {
-        const resp = await axios.post<T>(url, args.body, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-        });
-        return {
-          data: resp.data,
-        };
-      } catch (e) {
-        if (axios.isAxiosError(e)) {
-          throw new Error(`Failed to POST ${args.path}: ${e.toJSON()}`);
-        }
-        throw e;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(args.body),
+      });
+      if (!resp.ok) {
+        throw new Error(
+          `HTTP Request Error: POST ${url} "${resp.status} ${resp.statusText}"`,
+        );
       }
+      return {
+        data: await resp.json(),
+      };
     });
   },
 };
