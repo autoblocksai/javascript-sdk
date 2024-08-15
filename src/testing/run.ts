@@ -2,7 +2,7 @@ import {
   gridSearchAsyncLocalStorage,
   testCaseRunAsyncLocalStorage,
 } from '../asyncLocalStorage';
-import { AutoblocksEnvVar, isCLIRunning, readEnv } from '../util';
+import { AutoblocksEnvVar, isCI, isCLIRunning, readEnv } from '../util';
 import {
   BaseTestEvaluator,
   BaseEvaluator,
@@ -13,6 +13,7 @@ import {
   sendEndRun,
   sendError,
   sendEvaluation,
+  sendGitHubComment,
   sendSlackNotification,
   sendStartGridSearchRun,
   sendStartRun,
@@ -326,7 +327,10 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     testExternalId: args.testId,
     runId,
   });
-  await sendSlackNotification({ runId });
+  await Promise.allSettled([
+    sendSlackNotification({ runId }),
+    sendGitHubComment(),
+  ]);
 }
 
 export async function runTestSuite<
@@ -502,8 +506,11 @@ export async function runTestSuite<
     });
   }
   if (!isCLIRunning()) {
-    console.log(
-      `Finished running test suite '${args.id}'. View the results at https://app.autoblocks.ai/testing/local/test/${args.id}`,
-    );
+    console.log(`Finished running test suite '${args.id}'.`);
+    if (!isCI()) {
+      console.log(
+        'View the results at https://app.autoblocks.ai/testing/local/test/${args.id}',
+      );
+    }
   }
 }
