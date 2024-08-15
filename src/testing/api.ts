@@ -1,3 +1,6 @@
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
+import { Semaphore } from './util';
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import {
   API_ENDPOINT,
@@ -5,40 +8,51 @@ import {
   readEnv,
   isCLIRunning,
   isCI,
+  ThirdPartyEnvVar,
 } from '../util';
 import { Evaluation, HumanReviewField } from './models';
 import { determineIfEvaluationPassed, isPrimitive } from './util';
+
+// We want to try to avoid race conditions with creating the comment if multiple tests are running in parallel
+const githubSemaphore = new Semaphore(1);
+
+// Limit the number of concurrent requests to the CLI and API
+const cliSemaphore = new Semaphore(10);
+const apiSemaphore = new Semaphore(10);
+
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+});
 
 const client = {
   postToCLI: async <T>(args: {
     path: string;
     body: unknown;
-  }): Promise<{ ok: boolean; data?: T }> => {
+  }): Promise<{ data: T }> => {
     const serverAddress = readEnv(
       AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS,
     );
     if (!serverAddress) {
       throw new Error('CLI server address is not set.');
     }
-
-    try {
-      const resp = await fetch(serverAddress + args.path, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(args.body),
-      });
-      return {
-        ok: resp.ok,
-        data: await resp.json(),
-      };
-    } catch {
-      // Ignore, any errors for these requests are displayed by the CLI server
-      return {
-        ok: false,
-      };
-    }
+    return await cliSemaphore.run(async () => {
+      try {
+        const resp = await axios.post<T>(serverAddress + args.path, args.body, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        return {
+          data: resp.data,
+        };
+      } catch (e) {
+        if (axios.isAxiosError(e)) {
+          throw new Error(`Failed to POST ${args.path}: ${e.toJSON()}`);
+        }
+        throw e;
+      }
+    });
   },
   postToAPI: async <T>(args: {
     path: string;
@@ -52,22 +66,24 @@ const client = {
       );
     }
     const url = `${API_ENDPOINT}${subPath}${args.path}`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(args.body),
+    return await apiSemaphore.run(async () => {
+      try {
+        const resp = await axios.post<T>(url, args.body, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+        });
+        return {
+          data: resp.data,
+        };
+      } catch (e) {
+        if (axios.isAxiosError(e)) {
+          throw new Error(`Failed to POST ${args.path}: ${e.toJSON()}`);
+        }
+        throw e;
+      }
     });
-    if (!resp.ok) {
-      throw new Error(
-        `HTTP Request Error: POST ${url} "${resp.status} ${resp.statusText}"`,
-      );
-    }
-    return {
-      data: await resp.json(),
-    };
   },
 };
 
@@ -91,20 +107,24 @@ export async function sendError(args: {
             errorMessage: `${args.error}`,
             errorStack: '',
           };
-    await client.postToCLI({
-      path: '/errors',
-      body: {
-        testExternalId: args.testId,
-        runId: args.runId,
-        testCaseHash: args.testCaseHash,
-        evaluatorExternalId: args.evaluatorId,
-        error: {
-          name: errorName,
-          message: errorMessage,
-          stacktrace: errorStack,
+    try {
+      await client.postToCLI({
+        path: '/errors',
+        body: {
+          testExternalId: args.testId,
+          runId: args.runId,
+          testCaseHash: args.testCaseHash,
+          evaluatorExternalId: args.evaluatorId,
+          error: {
+            name: errorName,
+            message: errorMessage,
+            stacktrace: errorStack,
+          },
         },
-      },
-    });
+      });
+    } catch {
+      console.error(args.error);
+    }
   } else {
     console.error(args.error);
   }
@@ -120,11 +140,6 @@ export async function sendStartGridSearchRun(args: {
         gridSearchParams: args.gridSearchParams,
       },
     });
-    if (!gridResp.ok || !gridResp.data) {
-      throw new Error(
-        `Failed to start grid search run: ${JSON.stringify(gridResp)}`,
-      );
-    }
 
     return gridResp.data.id;
   }
@@ -151,14 +166,6 @@ export async function sendStartRun(args: {
         gridSearchParamsCombo: args.gridSearchParamsCombo,
       },
     });
-
-    if (!startResp.ok || !startResp.data) {
-      throw new Error(
-        `Failed to start run for test ${args.testExternalId}: ${JSON.stringify(
-          startResp,
-        )}`,
-      );
-    }
     return startResp.data.id;
   }
   const startResp = await client.postToAPI<{ id: string }>({
@@ -193,12 +200,18 @@ async function sendEvents(args: {
   if (store.testEvents.length === 0) {
     return;
   }
-  await client.postToAPI({
-    path: `/runs/${args.runId}/results/${args.testCaseResultId}/events`,
-    body: {
-      testCaseEvents: store.testEvents,
-    },
-  });
+  try {
+    await client.postToAPI({
+      path: `/runs/${args.runId}/results/${args.testCaseResultId}/events`,
+      body: {
+        testCaseEvents: store.testEvents,
+      },
+    });
+  } catch (e) {
+    console.warn(
+      `Failed to send test case events to Autoblocks for test case hash ${args.testCaseHash}: ${e}`,
+    );
+  }
 }
 
 export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
@@ -237,12 +250,6 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
         testCaseHumanReviewOutputFields: serializedHumanReviewOutputFields,
       },
     });
-
-    if (!resp.ok || !resp.data) {
-      throw new Error(
-        `Failed to send test case result: ${JSON.stringify(resp)}`,
-      );
-    }
     const resultId = resp.data.id;
 
     await sendEvents({
@@ -389,5 +396,28 @@ export async function sendSlackNotification(args: { runId: string }) {
     });
   } catch (e) {
     console.warn(`Failed to send slack notification: ${e}`);
+  }
+}
+
+export async function sendGitHubComment() {
+  const githubToken = readEnv(ThirdPartyEnvVar.GITHUB_TOKEN);
+  const buildId = readEnv(AutoblocksEnvVar.AUTOBLOCKS_CI_TEST_RUN_BUILD_ID);
+
+  if (!githubToken || !buildId || !isCI() || isCLIRunning()) {
+    return;
+  }
+
+  console.log(`Creating GitHub comment for build ${buildId}`);
+  try {
+    await githubSemaphore.run(async () => {
+      await client.postToAPI({
+        path: `/builds/${buildId}/github-comment`,
+        body: {
+          githubToken,
+        },
+      });
+    });
+  } catch (e) {
+    console.warn(`Failed to create GitHub comment: ${e}`);
   }
 }
