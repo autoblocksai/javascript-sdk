@@ -19,6 +19,7 @@ export enum AutoblocksEnvVar {
 
 export enum ThirdPartyEnvVar {
   OPENAI_API_KEY = 'OPENAI_API_KEY',
+  GITHUB_TOKEN = 'GITHUB_TOKEN',
 }
 
 export const readEnv = (key: string): string | undefined => {
