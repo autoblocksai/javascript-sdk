@@ -2,7 +2,7 @@ import {
   gridSearchAsyncLocalStorage,
   testCaseRunAsyncLocalStorage,
 } from '../asyncLocalStorage';
-import { AutoblocksEnvVar, isCLIRunning, readEnv } from '../util';
+import { AutoblocksEnvVar, isCI, isCLIRunning, readEnv } from '../util';
 import {
   BaseTestEvaluator,
   BaseEvaluator,
@@ -13,6 +13,7 @@ import {
   sendEndRun,
   sendError,
   sendEvaluation,
+  sendGitHubComment,
   sendSlackNotification,
   sendStartGridSearchRun,
   sendStartRun,
@@ -253,6 +254,14 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
 }): Promise<void> {
+  if (!isCLIRunning()) {
+    console.log(`Running test suite '${args.testId}'`);
+    if (args.gridSearchParamsCombo) {
+      console.log(
+        `Grid search params: ${JSON.stringify(args.gridSearchParamsCombo, null, 2)}`,
+      );
+    }
+  }
   let runId: string;
   try {
     runId = await sendStartRun({
@@ -326,7 +335,19 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     testExternalId: args.testId,
     runId,
   });
-  await sendSlackNotification({ runId });
+  await Promise.allSettled([
+    sendSlackNotification({ runId }),
+    sendGitHubComment(),
+  ]);
+
+  if (!isCLIRunning()) {
+    console.log(`Finished running test suite '${args.testId}'.`);
+    if (!isCI()) {
+      console.log(
+        'View the results at https://app.autoblocks.ai/testing/local/test/${args.id}',
+      );
+    }
+  }
 }
 
 export async function runTestSuite<
@@ -500,10 +521,5 @@ export async function runTestSuite<
       evaluatorId: null,
       error: err,
     });
-  }
-  if (!isCLIRunning()) {
-    console.log(
-      `Finished running test suite '${args.id}'. View the results at https://app.autoblocks.ai/testing/local/test/${args.id}`,
-    );
   }
 }
