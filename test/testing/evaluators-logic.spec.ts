@@ -3,6 +3,8 @@ import {
   BaseHasAllSubstrings,
   BaseIsEquals,
   BaseIsValidJSON,
+  BaseAssertions,
+  Assertion,
 } from '../../src/testing';
 import crypto from 'crypto';
 import { isMatch } from 'lodash';
@@ -218,6 +220,101 @@ describe('OOB Evaluators', () => {
         evaluatorExternalId: 'is-valid-json',
         score: 1,
         threshold: { gte: 1 },
+      },
+    });
+  });
+
+  it.only('BaseAssertions', async () => {
+    interface TestCase {
+      input: string;
+      assertions: {
+        criterion: string;
+        required: boolean;
+      }[];
+    }
+
+    class AssertionsEvaluator extends BaseAssertions<TestCase, string> {
+      id = 'assertion';
+
+      evaluateAssertions(args: {
+        testCase: TestCase;
+        output: string;
+      }): Assertion[] | undefined | Promise<Assertion[] | undefined> {
+        return args.testCase.assertions.map((assertion) => ({
+          criterion: assertion.criterion,
+          passed: args.output.includes(assertion.criterion),
+          required: assertion.required,
+        }));
+      }
+    }
+    await runTestSuite<TestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        {
+          input: 'hello world',
+          assertions: [
+            {
+              criterion: 'hello',
+              required: true,
+            },
+            {
+              criterion: 'hi',
+              required: false,
+            },
+          ],
+        },
+        {
+          input: 'hi world',
+          assertions: [
+            {
+              criterion: 'hello',
+              required: true,
+            },
+          ],
+        },
+      ],
+      testCaseHash: (testCase) => md5(testCase.input),
+      evaluators: [new AssertionsEvaluator()],
+      fn: ({ testCase }: { testCase: TestCase }) => testCase.input,
+    });
+
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('hello world'),
+        evaluatorExternalId: 'assertion',
+        score: 1,
+        threshold: { gte: 1 },
+        assertions: [
+          {
+            criterion: 'hello',
+            passed: true,
+            required: true,
+          },
+          {
+            criterion: 'hi',
+            passed: false,
+            required: false,
+          },
+        ],
+      },
+    });
+    expectPostRequest({
+      path: '/evals',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: md5('hi world'),
+        evaluatorExternalId: 'assertion',
+        score: 0,
+        threshold: { gte: 1 },
+        assertions: [
+          {
+            criterion: 'hello',
+            passed: false,
+            required: true,
+          },
+        ],
       },
     });
   });

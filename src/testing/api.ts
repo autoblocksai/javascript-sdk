@@ -339,6 +339,7 @@ export async function sendEvaluation(args: {
         score: args.evaluation.score,
         threshold: args.evaluation.threshold,
         metadata: args.evaluation.metadata,
+        assertions: args.evaluation.assertions,
       },
     });
     return;
@@ -351,6 +352,7 @@ export async function sendEvaluation(args: {
       passed: determineIfEvaluationPassed({ evaluation: args.evaluation }),
       threshold: args.evaluation.threshold,
       metadata: args.evaluation.metadata,
+      assertions: args.evaluation.assertions,
     },
   });
 }
