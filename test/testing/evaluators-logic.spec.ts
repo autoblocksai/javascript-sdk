@@ -224,7 +224,7 @@ describe('OOB Evaluators', () => {
     });
   });
 
-  it.only('BaseAssertions', async () => {
+  it('BaseAssertions', async () => {
     interface TestCase {
       input: string;
       assertions: {
