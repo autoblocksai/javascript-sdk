@@ -3,6 +3,7 @@ export {
   BaseTestEvaluator,
   BaseEventEvaluator,
   BaseEvaluator,
+  type Assertion,
   type Threshold,
   type Evaluation,
   type TracerEvent,
@@ -30,3 +31,4 @@ export { BaseLLMJudge } from './evaluators/llm-judge';
 export { BaseNSFW } from './evaluators/nsfw';
 export { BaseToxicity } from './evaluators/toxicity';
 export { BaseAccuracy } from './evaluators/accuracy';
+export { BaseAssertions } from './evaluators/assertions';

@@ -7,10 +7,18 @@ export interface Threshold {
   gte?: number;
 }
 
+export interface Assertion {
+  criterion: string;
+  passed: boolean;
+  required: boolean;
+  metadata?: ArbitraryProperties;
+}
+
 export interface Evaluation {
   score: number;
   threshold?: Threshold;
   metadata?: ArbitraryProperties;
+  assertions?: Assertion[];
 }
 
 export interface TracerEvent {
