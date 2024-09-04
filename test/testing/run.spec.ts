@@ -179,6 +179,67 @@ describe('Testing SDK', () => {
     );
   });
 
+  it('sends an error if there are duplicate test case hashes', async () => {
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        { x: 1, y: 2 },
+        { x: 1, y: 2 }, // Duplicate test case
+      ],
+      testCaseHash: ['x', 'y'],
+      evaluators: [],
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
+        `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+    });
+
+    expectNumPosts(1);
+    const req = decodeRequests()[0];
+    expect(req.path).toEqual('/errors');
+    expect(req.body.testExternalId).toEqual('my-test-id');
+    expect(req.body.testCaseHash).toBeNull();
+    expect(req.body.evaluatorExternalId).toBeNull();
+    expect(req.body.error.name).toEqual('Error');
+    expect(req.body.error.message).toEqual(
+      "[my-test-id] Duplicate test case hash found: 'c20ad4d76fe97759aa27a0c99bff6710'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing",
+    );
+    expect(req.body.error.stacktrace).toContain(
+      'Error: [my-test-id] Duplicate test case hash found:',
+    );
+  });
+
+  it('sends an error if there are duplicate evaluator ids', async () => {
+    class MyEvaluator extends BaseTestEvaluator<MyTestCase, string> {
+      id = 'my-evaluator';
+
+      evaluateTestCase(): Evaluation {
+        return { score: 0.5 };
+      }
+    }
+
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [{ x: 1, y: 2 }],
+      testCaseHash: ['x', 'y'],
+      evaluators: [new MyEvaluator(), new MyEvaluator()], // Duplicate evaluator
+      fn: ({ testCase }: { testCase: MyTestCase }) =>
+        `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+    });
+
+    expectNumPosts(1);
+    const req = decodeRequests()[0];
+    expect(req.path).toEqual('/errors');
+    expect(req.body.testExternalId).toEqual('my-test-id');
+    expect(req.body.testCaseHash).toBeNull();
+    expect(req.body.evaluatorExternalId).toBeNull();
+    expect(req.body.error.name).toEqual('Error');
+    expect(req.body.error.message).toEqual(
+      "[my-test-id] Duplicate evaluator id found: 'my-evaluator'.",
+    );
+    expect(req.body.error.stacktrace).toContain(
+      "Error: [my-test-id] Duplicate evaluator id found: 'my-evaluator'.",
+    );
+  });
+
   it('handles errors in the function being tested', async () => {
     await runTestSuite<MyTestCase, string>({
       id: 'my-test-id',
