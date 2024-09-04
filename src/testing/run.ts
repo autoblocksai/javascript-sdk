@@ -431,7 +431,7 @@ export async function runTestSuite<
       const hash = makeTestCaseHash(testCase, args.testCaseHash);
       if (testCaseHashes.has(hash)) {
         throw new Error(
-          `[${args.id}] Duplicate test case hash found: '${hash}'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing`,
+          `[${args.id}] Duplicate test case hash: '${hash}'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing`,
         );
       }
       testCaseHashes.add(hash);
@@ -450,7 +450,7 @@ export async function runTestSuite<
       }
       if (evaluatorIds.has(evaluator.id)) {
         throw new Error(
-          `[${args.id}] Duplicate evaluator id found: '${evaluator.id}'. Each evaluator id must be unique.`,
+          `[${args.id}] Duplicate evaluator id: '${evaluator.id}'. Each evaluator id must be unique.`,
         );
       }
       evaluatorIds.add(evaluator.id);

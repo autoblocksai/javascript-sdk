@@ -200,10 +200,10 @@ describe('Testing SDK', () => {
     expect(req.body.evaluatorExternalId).toBeNull();
     expect(req.body.error.name).toEqual('Error');
     expect(req.body.error.message).toEqual(
-      "[my-test-id] Duplicate test case hash found: 'c20ad4d76fe97759aa27a0c99bff6710'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing",
+      "[my-test-id] Duplicate test case hash: 'c20ad4d76fe97759aa27a0c99bff6710'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing",
     );
     expect(req.body.error.stacktrace).toContain(
-      'Error: [my-test-id] Duplicate test case hash found:',
+      "Error: [my-test-id] Duplicate test case hash: 'c20ad4d76fe97759aa27a0c99bff6710'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing",
     );
   });
 
@@ -233,10 +233,10 @@ describe('Testing SDK', () => {
     expect(req.body.evaluatorExternalId).toBeNull();
     expect(req.body.error.name).toEqual('Error');
     expect(req.body.error.message).toEqual(
-      "[my-test-id] Duplicate evaluator id found: 'my-evaluator'.",
+      "[my-test-id] Duplicate evaluator id: 'my-evaluator'.",
     );
     expect(req.body.error.stacktrace).toContain(
-      "Error: [my-test-id] Duplicate evaluator id found: 'my-evaluator'. Each evaluator id must be unique.",
+      "Error: [my-test-id] Duplicate evaluator id: 'my-evaluator'. Each evaluator id must be unique.",
     );
   });
 
