@@ -424,16 +424,36 @@ export async function runTestSuite<
     if (!filteredTestCases.length) {
       throw new Error(`[${args.id}] No test cases provided.`);
     }
+
+    // Check for unique test case hashes
+    const testCaseHashes = new Set<string>();
+    filteredTestCases.forEach((testCase) => {
+      const hash = makeTestCaseHash(testCase, args.testCaseHash);
+      if (testCaseHashes.has(hash)) {
+        throw new Error(
+          `[${args.id}] Duplicate test case hash: '${hash}'. See https://docs.autoblocks.ai/testing/sdk-reference#test-case-hashing`,
+        );
+      }
+      testCaseHashes.add(hash);
+    });
+
+    // Check for unique evaluator ids
+    const evaluatorIds = new Set<string>();
     args.evaluators?.forEach((evaluator) => {
-      if (evaluator instanceof BaseEvaluator) {
-        return;
+      if (
+        !(evaluator instanceof BaseEvaluator) &&
+        !(evaluator instanceof BaseTestEvaluator)
+      ) {
+        throw new Error(
+          `[${args.id}] Evaluators must be instances of ${BaseTestEvaluator.name} or ${BaseEvaluator.name}.`,
+        );
       }
-      if (evaluator instanceof BaseTestEvaluator) {
-        return;
+      if (evaluatorIds.has(evaluator.id)) {
+        throw new Error(
+          `[${args.id}] Duplicate evaluator id: '${evaluator.id}'. Each evaluator id must be unique.`,
+        );
       }
-      throw new Error(
-        `[${args.id}] Evaluators must be instances of ${BaseTestEvaluator.name} or ${BaseEvaluator.name}.`,
-      );
+      evaluatorIds.add(evaluator.id);
     });
   } catch (err) {
     await sendError({
