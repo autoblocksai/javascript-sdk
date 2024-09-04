@@ -236,7 +236,7 @@ describe('Testing SDK', () => {
       "[my-test-id] Duplicate evaluator id found: 'my-evaluator'.",
     );
     expect(req.body.error.stacktrace).toContain(
-      "Error: [my-test-id] Duplicate evaluator id found: 'my-evaluator'.",
+      "Error: [my-test-id] Duplicate evaluator id found: 'my-evaluator'. Each evaluator id must be unique.",
     );
   });
 

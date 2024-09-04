@@ -450,7 +450,7 @@ export async function runTestSuite<
       }
       if (evaluatorIds.has(evaluator.id)) {
         throw new Error(
-          `[${args.id}] Duplicate evaluator id found: '${evaluator.id}'.`,
+          `[${args.id}] Duplicate evaluator id found: '${evaluator.id}'. Each evaluator id must be unique.`,
         );
       }
       evaluatorIds.add(evaluator.id);
