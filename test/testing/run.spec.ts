@@ -233,7 +233,7 @@ describe('Testing SDK', () => {
     expect(req.body.evaluatorExternalId).toBeNull();
     expect(req.body.error.name).toEqual('Error');
     expect(req.body.error.message).toEqual(
-      "[my-test-id] Duplicate evaluator id: 'my-evaluator'.",
+      "[my-test-id] Duplicate evaluator id: 'my-evaluator'. Each evaluator id must be unique.",
     );
     expect(req.body.error.stacktrace).toContain(
       "Error: [my-test-id] Duplicate evaluator id: 'my-evaluator'. Each evaluator id must be unique.",
