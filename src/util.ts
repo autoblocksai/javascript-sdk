@@ -22,13 +22,6 @@ export enum ThirdPartyEnvVar {
   GITHUB_TOKEN = 'GITHUB_TOKEN',
 }
 
-export enum HumanReviewFieldContentType {
-  TEXT = 'text',
-  LINK = 'link',
-  HTML = 'html',
-  MARKDOWN = 'markdown',
-}
-
 export const readEnv = (key: string): string | undefined => {
   return process.env[key];
 };

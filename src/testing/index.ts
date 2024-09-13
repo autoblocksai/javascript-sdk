@@ -11,6 +11,8 @@ export {
   type EvaluationOverrideComment,
   type EvaluationOverrideField,
   type ScoreChoice,
+  type HumanReviewField,
+  type HumanReviewFieldContentType,
 } from './models';
 export { gridSearchAsyncLocalStorage } from '../asyncLocalStorage';
 export {
