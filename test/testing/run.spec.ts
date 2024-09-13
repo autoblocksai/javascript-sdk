@@ -6,6 +6,7 @@ import {
   TracerEvent,
   BaseEvaluator,
   gridSearchAsyncLocalStorage,
+  HumanReviewFieldContentType,
 } from '../../src/testing';
 import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
@@ -1128,6 +1129,7 @@ describe('Testing SDK', () => {
           {
             name: 'y',
             value: `${testCase.x}`,
+            contentType: HumanReviewFieldContentType.MARKDOWN,
           },
           {
             name: 'sum',
@@ -1161,6 +1163,7 @@ describe('Testing SDK', () => {
           {
             name: 'y',
             value: '1',
+            contentType: HumanReviewFieldContentType.MARKDOWN,
           },
           {
             name: 'sum',

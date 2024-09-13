@@ -87,9 +87,17 @@ export abstract class BaseEvaluator<TestCaseType, OutputType>
   }): Evaluation | Promise<Evaluation>;
 }
 
+export enum HumanReviewFieldContentType {
+  TEXT = 'text',
+  LINK = 'link',
+  HTML = 'html',
+  MARKDOWN = 'markdown',
+}
+
 export interface HumanReviewField {
   name: string;
   value: string;
+  contentType?: HumanReviewFieldContentType;
 }
 
 /**
