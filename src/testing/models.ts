@@ -90,6 +90,7 @@ export abstract class BaseEvaluator<TestCaseType, OutputType>
 export interface HumanReviewField {
   name: string;
   value: string;
+  contentType?: string;
 }
 
 /**
