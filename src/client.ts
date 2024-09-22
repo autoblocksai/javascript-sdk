@@ -235,7 +235,7 @@ export class AutoblocksAPIClient {
     return this.get('/human-review/jobs');
   }
 
-  public async getHumanReviewJobTestCases(
+  public async getTestCasesForHumanReviewJob(
     jobId: string,
   ): Promise<HumanReviewJobWithTestCases> {
     return this.get(
@@ -243,7 +243,7 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getHumanReviewJobTestCaseResult(
+  public async getTestCaseResultForHumanReviewJob(
     jobId: string,
     testCaseId: string,
   ): Promise<HumanReviewJobTestCaseResult> {
