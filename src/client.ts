@@ -235,21 +235,21 @@ export class AutoblocksAPIClient {
     return this.get('/human-review/jobs');
   }
 
-  public async getTestCasesForHumanReviewJob(
-    jobId: string,
-  ): Promise<HumanReviewJobWithTestCases> {
+  public async getTestCasesForHumanReviewJob(args: {
+    jobId: string;
+  }): Promise<HumanReviewJobWithTestCases> {
     return this.get(
-      `/human-review/jobs/${encodeURIComponent(jobId)}/test-cases`,
+      `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases`,
     );
   }
 
-  public async getTestCaseResultForHumanReviewJob(
-    jobId: string,
-    testCaseId: string,
-  ): Promise<HumanReviewJobTestCaseResult> {
+  public async getTestCaseResultForHumanReviewJob(args: {
+    jobId: string;
+    testCaseId: string;
+  }): Promise<HumanReviewJobTestCaseResult> {
     return this.get(
-      `/human-review/jobs/${encodeURIComponent(jobId)}/test-cases/${encodeURIComponent(
-        testCaseId,
+      `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases/${encodeURIComponent(
+        args.testCaseId,
       )}`,
     );
   }
