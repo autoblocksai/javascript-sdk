@@ -68,7 +68,7 @@ export class TestRun<
    */
   public async addResult(args: {
     testCase: TestCaseType;
-    testCaseDurationMs: number;
+    testCaseDurationMs?: number;
     output: OutputType;
     // Automated evaluations for the test case
     evaluations: (Evaluation & { id: string })[];

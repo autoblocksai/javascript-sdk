@@ -214,7 +214,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   testCase: TestCaseType;
   testCaseHash: string;
   testCaseOutput: OutputType;
-  testCaseDurationMs: number;
+  testCaseDurationMs?: number;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
