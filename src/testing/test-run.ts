@@ -60,7 +60,6 @@ export class TestRun<
       testExternalId: this.testExternalId,
       message: this.message,
     });
-    console.log('runId', runId);
     this.runId = runId;
   }
 
