@@ -229,7 +229,7 @@ export class AutoblocksAPIClient {
     return this.get(`/test-suites/${args.testSuiteId}/test-cases`);
   }
 
-  public async getHumanReviewJobs(): Promise<HumanReviewJob[]> {
+  public async getHumanReviewJobs(): Promise<{ jobs: HumanReviewJob[] }> {
     return this.get('/human-review/jobs');
   }
 
