@@ -1,3 +1,4 @@
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 import {
   sendEndRun,
   sendEvaluation,
@@ -63,6 +64,62 @@ export class TestRun<
     this.runId = runId;
   }
 
+  private async sendTestCaseResult(args: {
+    testCase: TestCaseType;
+    testCaseHash: string;
+    testCaseDurationMs?: number;
+    output: OutputType;
+    evaluations?: (Evaluation & { id: string })[];
+  }) {
+    if (!this.runId) {
+      throw new Error(
+        'You must start the run with `start()` before adding results.',
+      );
+    }
+
+    let testCaseResultId: string;
+    try {
+      testCaseResultId = await sendTestCaseResult<TestCaseType, OutputType>({
+        testExternalId: this.testExternalId,
+        runId: this.runId,
+        testCase: args.testCase,
+        testCaseOutput: args.output,
+        testCaseHash: args.testCaseHash,
+        testCaseDurationMs: args.testCaseDurationMs,
+        serializeTestCaseForHumanReview: this.serializeTestCaseForHumanReview,
+        serializeOutputForHumanReview: this.serializeOutputForHumanReview,
+      });
+    } catch (e) {
+      console.warn(
+        `Failed to send test case result to Autoblocks for test case hash ${args.testCaseHash}: ${e}`,
+      );
+      return;
+    }
+
+    if (!args.evaluations) {
+      return;
+    }
+
+    await Promise.all(
+      args.evaluations.map(async (evaluation) => {
+        try {
+          await sendEvaluation({
+            testExternalId: this.testExternalId,
+            runId: this.runId!,
+            testCaseHash: args.testCaseHash,
+            testCaseResultId,
+            evaluatorExternalId: evaluation.id,
+            evaluation,
+          });
+        } catch (e) {
+          console.warn(
+            `Failed to send evaluation to Autoblocks for test case hash ${args.testCaseHash}: ${e}`,
+          );
+        }
+      }),
+    );
+  }
+
   /**
    * Adds a test case, it's output, and evaluations to the run.
    */
@@ -82,46 +139,22 @@ export class TestRun<
       throw new Error('You cannot add results to an ended run.');
     }
     const testCaseHash = makeTestCaseHash(args.testCase, this.testCaseHash);
-    let testCaseResultId: string;
-    try {
-      testCaseResultId = await sendTestCaseResult<TestCaseType, OutputType>({
-        testExternalId: this.testExternalId,
-        runId: this.runId,
-        testCase: args.testCase,
-        testCaseOutput: args.output,
+    await testCaseRunAsyncLocalStorage.run(
+      {
         testCaseHash,
-        testCaseDurationMs: args.testCaseDurationMs,
-        serializeTestCaseForHumanReview: this.serializeTestCaseForHumanReview,
-        serializeOutputForHumanReview: this.serializeOutputForHumanReview,
-      });
-    } catch (e) {
-      console.warn(
-        `Failed to send test case result to Autoblocks for test case hash ${testCaseHash}: ${e}`,
-      );
-      return;
-    }
-
-    if (!args.evaluations) {
-      return;
-    }
-
-    await Promise.all(
-      args.evaluations.map(async (evaluation) => {
-        try {
-          await sendEvaluation({
-            testExternalId: this.testExternalId,
-            runId: this.runId!,
-            testCaseHash,
-            testCaseResultId,
-            evaluatorExternalId: evaluation.id,
-            evaluation,
-          });
-        } catch (e) {
-          console.warn(
-            `Failed to send evaluation to Autoblocks for test case hash ${testCaseHash}: ${e}`,
-          );
-        }
-      }),
+        testId: this.testExternalId,
+        runId: this.runId,
+        testEvents: [],
+      },
+      async () => {
+        await this.sendTestCaseResult({
+          testCase: args.testCase,
+          testCaseHash,
+          testCaseDurationMs: args.testCaseDurationMs,
+          output: args.output,
+          evaluations: args.evaluations,
+        });
+      },
     );
   }
 
