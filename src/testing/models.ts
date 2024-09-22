@@ -1,4 +1,5 @@
 import { ArbitraryProperties } from '../types';
+import { HumanReviewFieldContentType } from '../types';
 
 export interface Threshold {
   lt?: number;
@@ -85,13 +86,6 @@ export abstract class BaseEvaluator<TestCaseType, OutputType>
   abstract evaluateEvent(args: {
     event: TracerEvent;
   }): Evaluation | Promise<Evaluation>;
-}
-
-export enum HumanReviewFieldContentType {
-  TEXT = 'text',
-  LINK = 'link',
-  HTML = 'html',
-  MARKDOWN = 'markdown',
 }
 
 export interface HumanReviewField {

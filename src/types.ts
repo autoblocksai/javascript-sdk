@@ -42,3 +42,10 @@ export const zPromptSchema = z.object({
 });
 
 export type Prompt = z.infer<typeof zPromptSchema>;
+
+export enum HumanReviewFieldContentType {
+  TEXT = 'text',
+  MARKDOWN = 'markdown',
+  HTML = 'html',
+  LINK = 'link',
+}

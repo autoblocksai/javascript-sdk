@@ -1,4 +1,4 @@
-import type { TimeDelta } from './types';
+import type { HumanReviewFieldContentType, TimeDelta } from './types';
 import {
   convertTimeDeltaToMilliSeconds,
   readEnv,
@@ -67,6 +67,59 @@ interface TraceFilter {
 export enum SystemEventFilterKey {
   MESSAGE = 'SYSTEM:message',
   LABEL = 'SYSTEM:label',
+}
+
+export interface HumanReviewJob {
+  id: string;
+  name: string;
+  reviewer: { id: string; email: string };
+}
+
+export interface HumanReviewJobWithTestCases extends HumanReviewJob {
+  testCases: { id: string; status: 'Submitted' | 'Pending' }[];
+}
+
+export interface HumanReviewJobTestCaseResult {
+  id: string;
+  reviewer: { id: string; email: string };
+  status: 'Submitted' | 'Pending';
+  grades: { name: string; grade: number }[];
+  automatedEvaluations: {
+    id: string;
+    originalScore: number;
+    overrideScore: number;
+    overrideReason?: string;
+  }[];
+  inputFields: {
+    id: string;
+    name: string;
+    value: string;
+    contentType: HumanReviewFieldContentType;
+  }[];
+  outputFields: {
+    id: string;
+    name: string;
+    value: string;
+    contentType: HumanReviewFieldContentType;
+  }[];
+  fieldComments: {
+    fieldId: string;
+    startIdx?: number;
+    endIdx?: number;
+    value: string;
+    inRelationToGradeName?: string;
+    inRelationToAutomatedEvaluationId?: string;
+  }[];
+  inputComments: {
+    value: string;
+    inRelationToGradeName?: string;
+    inRelationToAutomatedEvaluationId?: string;
+  }[];
+  outputComments: {
+    value: string;
+    inRelationToGradeName?: string;
+    inRelationToAutomatedEvaluationId?: string;
+  }[];
 }
 
 interface ClientArgs {
@@ -151,7 +204,9 @@ export class AutoblocksAPIClient {
     if (args.cursor) {
       params.set('cursor', args.cursor);
     }
-    return this.get(`/views/${args.viewId}/traces?${params.toString()}`);
+    return this.get(
+      `/views/${encodeURIComponent(args.viewId)}/traces?${params.toString()}`,
+    );
   }
 
   public async searchTraces(args: {
@@ -174,5 +229,28 @@ export class AutoblocksAPIClient {
     testSuiteId: string;
   }): Promise<{ testCases: ManagedTestCase<T>[] }> {
     return this.get(`/test-suites/${args.testSuiteId}/test-cases`);
+  }
+
+  public async getHumanReviewJobs(): Promise<{ jobs: HumanReviewJob[] }> {
+    return this.get('/human-review/jobs');
+  }
+
+  public async getTestCasesForHumanReviewJob(args: {
+    jobId: string;
+  }): Promise<HumanReviewJobWithTestCases> {
+    return this.get(
+      `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases`,
+    );
+  }
+
+  public async getTestCaseResultForHumanReviewJob(args: {
+    jobId: string;
+    testCaseId: string;
+  }): Promise<HumanReviewJobTestCaseResult> {
+    return this.get(
+      `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases/${encodeURIComponent(
+        args.testCaseId,
+      )}`,
+    );
   }
 }
