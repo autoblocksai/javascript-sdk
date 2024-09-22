@@ -149,6 +149,7 @@ export async function sendStartRun(args: {
   testExternalId: string;
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
+  message?: string;
 }): Promise<string> {
   if (isCLIRunning()) {
     const startResp = await client.postToCLI<{ id: string }>({
@@ -165,7 +166,7 @@ export async function sendStartRun(args: {
     path: '/runs',
     body: {
       testExternalId: args.testExternalId,
-      message: undefined,
+      message: args.message,
       buildId: readEnv(AutoblocksEnvVar.AUTOBLOCKS_CI_TEST_RUN_BUILD_ID),
       gridSearchRunGroupId: args.gridSearchRunGroupId,
       gridSearchParamsCombo: args.gridSearchParamsCombo,
@@ -213,7 +214,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   testCase: TestCaseType;
   testCaseHash: string;
   testCaseOutput: OutputType;
-  testCaseDurationMs: number;
+  testCaseDurationMs?: number;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
@@ -415,4 +416,18 @@ export async function sendGitHubComment() {
   } catch (e) {
     console.warn(`Failed to create GitHub comment: ${e}`);
   }
+}
+
+export async function sendCreateHumanReviewJob(args: {
+  runId: string;
+  assigneeEmailAddress: string;
+  name: string;
+}) {
+  await client.postToAPI({
+    path: `/runs/${args.runId}/human-review-job`,
+    body: {
+      assigneeEmailAddress: args.assigneeEmailAddress,
+      name: args.name,
+    },
+  });
 }
