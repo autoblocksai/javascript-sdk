@@ -71,7 +71,7 @@ export class TestRun<
     testCaseDurationMs?: number;
     output: OutputType;
     // Automated evaluations for the test case
-    evaluations: (Evaluation & { id: string })[];
+    evaluations?: (Evaluation & { id: string })[];
   }) {
     if (!this.runId) {
       throw new Error(
@@ -98,6 +98,10 @@ export class TestRun<
       console.warn(
         `Failed to send test case result to Autoblocks for test case hash ${testCaseHash}: ${e}`,
       );
+      return;
+    }
+
+    if (!args.evaluations) {
       return;
     }
 
