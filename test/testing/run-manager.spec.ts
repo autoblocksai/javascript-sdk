@@ -1,8 +1,8 @@
 import { isMatch } from 'lodash';
-import { HumanReviewFieldContentType, TestRun } from '../../src/testing';
+import { HumanReviewFieldContentType, RunManager } from '../../src/testing';
 import { API_ENDPOINT, AutoblocksEnvVar } from '../../src/util';
 
-describe('TestRun', () => {
+describe('RunManager', () => {
   let mockFetch: jest.SpyInstance;
   const mockRunId = 'mock-run-id';
   const mockTestCaseResultId = 'mock-test-case-result-id';
@@ -58,7 +58,7 @@ describe('TestRun', () => {
   };
 
   it('does not allow adding a result before starting.', async () => {
-    const testRun = new TestRun<{ input: string }, { output: string }>({
+    const testRun = new RunManager<{ input: string }, { output: string }>({
       message: 'Test run',
       testId: 'test-id',
       testCaseHash: (testCase) => testCase.input,
@@ -99,7 +99,7 @@ describe('TestRun', () => {
   });
 
   it('does not allow adding a result after the run has ended', async () => {
-    const testRun = new TestRun<{ input: string }, { output: string }>({
+    const testRun = new RunManager<{ input: string }, { output: string }>({
       message: 'Test run',
       testId: 'test-id',
       testCaseHash: (testCase) => testCase.input,
@@ -141,7 +141,7 @@ describe('TestRun', () => {
   });
 
   it('does not allow ending a run that has not been started', async () => {
-    const testRun = new TestRun<{ input: string }, { output: string }>({
+    const testRun = new RunManager<{ input: string }, { output: string }>({
       message: 'Test run',
       testId: 'test-id',
       testCaseHash: (testCase) => testCase.input,
@@ -169,7 +169,7 @@ describe('TestRun', () => {
   });
 
   it('should go through full lifecycle', async () => {
-    const testRun = new TestRun<{ input: string }, { output: string }>({
+    const testRun = new RunManager<{ input: string }, { output: string }>({
       message: 'Test run',
       testId: 'test-id',
       testCaseHash: (testCase) => testCase.input,

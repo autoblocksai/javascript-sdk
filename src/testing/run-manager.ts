@@ -10,11 +10,11 @@ import { Evaluation, HumanReviewField } from './models';
 import { makeTestCaseHash } from './util';
 
 /**
- * The TestRun class can be used to manually manage the lifecycle of a test suite.
+ * The RunManager class can be used to manually manage the lifecycle of a test suite.
  *
  * You can also use `runTestSuite` for a more feature rich, managed experience.
  */
-export class TestRun<
+export class RunManager<
   // A workaround for making the type parameters required
   // See https://stackoverflow.com/a/76821931
   T = 'A test case type is required.',
