@@ -14,6 +14,7 @@ export {
   type HumanReviewField,
   HumanReviewFieldContentType,
 } from './models';
+export { TestRun } from './test-run';
 export { gridSearchAsyncLocalStorage } from '../asyncLocalStorage';
 export {
   BaseHasAllSubstrings,

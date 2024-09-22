@@ -99,7 +99,6 @@ describe('Testing SDK', () => {
     for (const call of mockFetch.mock.calls) {
       const [callUrl, callArgs] = call;
       if (callUrl === `${API_ENDPOINT}/testing/ci${args.path}`) {
-        console.log('callArgs: ', callArgs);
         expect(callArgs.method).toEqual('POST');
         expect(callArgs.headers).toEqual({
           Authorization: `Bearer ${mockAPIKey}`,
