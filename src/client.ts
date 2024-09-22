@@ -81,7 +81,7 @@ export interface HumanReviewJobWithTestCases extends HumanReviewJob {
 
 export interface HumanReviewJobTestCaseResult {
   id: string;
-  reviewerEmail: string;
+  reviewer: { id: string; email: string };
   status: 'Submitted' | 'Pending';
   grades: { name: string; grade: number }[];
   automatedEvaluations: {
@@ -204,7 +204,9 @@ export class AutoblocksAPIClient {
     if (args.cursor) {
       params.set('cursor', args.cursor);
     }
-    return this.get(`/views/${args.viewId}/traces?${params.toString()}`);
+    return this.get(
+      `/views/${encodeURIComponent(args.viewId)}/traces?${params.toString()}`,
+    );
   }
 
   public async searchTraces(args: {
@@ -236,13 +238,19 @@ export class AutoblocksAPIClient {
   public async getHumanReviewJobTestCases(
     jobId: string,
   ): Promise<HumanReviewJobWithTestCases> {
-    return this.get(`/human-review/jobs/${jobId}/test-cases`);
+    return this.get(
+      `/human-review/jobs/${encodeURIComponent(jobId)}/test-cases`,
+    );
   }
 
   public async getHumanReviewJobTestCaseResult(
     jobId: string,
     testCaseId: string,
   ): Promise<HumanReviewJobTestCaseResult> {
-    return this.get(`/human-review/jobs/${jobId}/test-cases/${testCaseId}`);
+    return this.get(
+      `/human-review/jobs/${encodeURIComponent(jobId)}/test-cases/${encodeURIComponent(
+        testCaseId,
+      )}`,
+    );
   }
 }
