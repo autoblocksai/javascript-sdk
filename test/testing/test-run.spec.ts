@@ -271,11 +271,13 @@ describe('TestRun', () => {
 
     await testRun.createHumanReviewJob({
       assigneeEmailAddress: 'test@test.com',
+      name: 'Test human review job',
     });
     expectPublicAPIPostRequest({
       path: `/runs/${mockRunId}/human-review-job`,
       body: {
         assigneeEmailAddress: 'test@test.com',
+        name: 'Test human review job',
       },
     });
   });

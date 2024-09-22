@@ -421,11 +421,13 @@ export async function sendGitHubComment() {
 export async function sendCreateHumanReviewJob(args: {
   runId: string;
   assigneeEmailAddress: string;
+  name: string;
 }) {
   await client.postToAPI({
     path: `/runs/${args.runId}/human-review-job`,
     body: {
       assigneeEmailAddress: args.assigneeEmailAddress,
+      name: args.name,
     },
   });
 }

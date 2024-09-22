@@ -160,22 +160,21 @@ export class TestRun<
   /**
    * Creates a new human review job that includes the test case results that have been added to the run.
    */
-  public async createHumanReviewJob(args: { assigneeEmailAddress: string }) {
+  public async createHumanReviewJob(args: {
+    assigneeEmailAddress: string; // Who to assign the job to
+    name: string; // Name of the job
+  }) {
     if (!this.runId) {
       throw new Error(
         'You must start the run with `start()` before creating a human review job.',
       );
     }
-    try {
-      await sendCreateHumanReviewJob({
-        runId: this.runId,
-        assigneeEmailAddress: args.assigneeEmailAddress,
-      });
-    } catch (e) {
-      console.warn(
-        `Failed to send create human review job to Autoblocks for run ${this.runId} and assignee email address ${args.assigneeEmailAddress}: ${e}`,
-      );
-    }
+
+    await sendCreateHumanReviewJob({
+      runId: this.runId,
+      assigneeEmailAddress: args.assigneeEmailAddress,
+      name: args.name,
+    });
   }
 
   /**
