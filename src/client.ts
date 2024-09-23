@@ -69,6 +69,12 @@ export enum SystemEventFilterKey {
   LABEL = 'SYSTEM:label',
 }
 
+export enum HumanReviewTestCaseStatus {
+  SUBMITTED = 'Submitted',
+  PENDING = 'Pending',
+  DRAFT = 'Draft',
+}
+
 export interface HumanReviewJob {
   id: string;
   name: string;
@@ -76,13 +82,13 @@ export interface HumanReviewJob {
 }
 
 export interface HumanReviewJobWithTestCases extends HumanReviewJob {
-  testCases: { id: string; status: 'Submitted' | 'Pending' }[];
+  testCases: { id: string; status: HumanReviewTestCaseStatus }[];
 }
 
 export interface HumanReviewJobTestCaseResult {
   id: string;
   reviewer: { id: string; email: string };
-  status: 'Submitted' | 'Pending';
+  status: HumanReviewTestCaseStatus;
   grades: { name: string; grade: number }[];
   automatedEvaluations: {
     id: string;
