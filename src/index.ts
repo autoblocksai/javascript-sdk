@@ -8,5 +8,6 @@ export type {
   HumanReviewJob,
   HumanReviewJobWithTestCases,
   HumanReviewJobTestCaseResult,
+  HumanReviewTestCaseStatus,
 } from './client';
 export type { TimeDelta, HumanReviewFieldContentType } from './types';
