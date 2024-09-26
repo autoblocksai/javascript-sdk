@@ -32,7 +32,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
       args.datasets.forEach((dataset) => {
         generated += `\n  '${dataset.id}': {`; // start of dataset definition
 
-        generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': object;`;
+        generated += `\n    '${RevisionSpecialVersionsEnum.LATEST}': object;`;
 
         dataset.schemaVersions.forEach((schemaVersion) => {
           generated += `\n    '${schemaVersion.version}': {`; // start of schema version definition

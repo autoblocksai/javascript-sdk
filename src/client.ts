@@ -278,10 +278,7 @@ export class AutoblocksAPIClient {
     const encodedName = encodeURIComponent(args.name);
     const encodedSchemaVersion = encodeURIComponent(args.schemaVersion);
     if (args.revisionId) {
-      if (
-        args.revisionId ===
-        RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
-      ) {
+      if (args.revisionId === RevisionSpecialVersionsEnum.LATEST) {
         return this.get(`/datasets/${encodedName}/revisions/latest`);
       }
       return this.get(
