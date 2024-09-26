@@ -1,7 +1,7 @@
 import {
   DatasetId,
   DatasetSchemaVersion,
-  DatasetSchemaVersionData,
+  DatasetSchemaVersionItem,
 } from './datasets';
 import type { HumanReviewFieldContentType, TimeDelta } from './types';
 import {
@@ -273,7 +273,10 @@ export class AutoblocksAPIClient {
     name: DatasetId;
     schemaVersion: DatasetSchemaVersion<DatasetId>;
     revisionId: string;
-    data: DatasetSchemaVersionData<DatasetId, DatasetSchemaVersion<DatasetId>>;
+    items: DatasetSchemaVersionItem<
+      DatasetId,
+      DatasetSchemaVersion<DatasetId>
+    >[];
   }> {
     if (args.revisionId) {
       return this.get(

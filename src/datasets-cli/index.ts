@@ -6,17 +6,9 @@ import {
   API_ENDPOINT,
   RevisionSpecialVersionsEnum,
 } from '../util';
-import { DatasetSchema, PropertySchema, PropertyTypesEnum } from './types';
+import { ParsedDataset, PropertySchema, PropertyTypesEnum } from './types';
 
 type SymbolType = 'interface' | 'variable';
-
-export interface ParsedDataset {
-  id: string;
-  schemaVersions: {
-    schema: DatasetSchema;
-    version: number;
-  }[];
-}
 
 interface AutogenerationConfig {
   // The name of the symbol we're autogenerating.
@@ -47,7 +39,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
           schemaVersion.schema.forEach((property) => {
             generated += `\n      '${property.name}${property.required ? '' : '?'}': ${makeTypeForProperty({ property })};`;
           });
-          generated += '\n    }[];'; // end of schema version definition
+          generated += '\n    };'; // end of schema version definition
         });
 
         generated += '\n  };'; // end of dataset definition

@@ -91,3 +91,11 @@ export const zDatasetSchema = z
   });
 
 export type DatasetSchema = z.infer<typeof zDatasetSchema>;
+
+export interface ParsedDataset {
+  id: string;
+  schemaVersions: {
+    schema: DatasetSchema;
+    version: number;
+  }[];
+}
