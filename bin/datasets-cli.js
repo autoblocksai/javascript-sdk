@@ -10,4 +10,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error('An unexpected error occurred: ', error);
+  process.exit(1);
+});

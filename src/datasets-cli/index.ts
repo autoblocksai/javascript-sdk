@@ -62,6 +62,9 @@ function makeTypeForProperty(args: { property: PropertySchema }): string {
       return `(${args.property.options.map((option) => `'${option}'`).join(' | ')})[]`;
     case PropertyTypesEnum.ValidJSON:
       return 'Record<string, unknown>';
+    default:
+      // @ts-expect-error this is handling the case where a new property type is added
+      throw new Error(`Unknown property type: ${args.property.type}`);
   }
 }
 

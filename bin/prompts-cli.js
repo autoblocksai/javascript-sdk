@@ -3,7 +3,6 @@
 const { run } = require('../dist/prompts-cli');
 
 async function main() {
-  // TODO: move this into the new CLI at autoblocksai/cli
   if (process.argv[2] === 'generate') {
     await run();
   } else {
@@ -11,4 +10,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error('An unexpected error occurred: ', error);
+  process.exit(1);
+});
