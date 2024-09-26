@@ -4,7 +4,6 @@ import {
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
   API_ENDPOINT,
-  RevisionSpecialVersionsEnum,
 } from '../util';
 import { ParsedDataset, PropertySchema, PropertyTypesEnum } from './types';
 
@@ -27,12 +26,10 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
     symbolType: 'interface',
     filesToModify: ['../datasets/index.d.ts', '../datasets/index.d.mts'],
     generate: (args) => {
-      let generated = `interface ${args.symbolName} {`;
+      let generated = `interface ${args.symbolName} {`; // start of definition
 
       args.datasets.forEach((dataset) => {
         generated += `\n  '${dataset.name}': {`; // start of dataset definition
-
-        generated += `\n    '${RevisionSpecialVersionsEnum.LATEST}': Record<string, unknown>;`;
 
         dataset.schemaVersions.forEach((schemaVersion) => {
           generated += `\n    '${schemaVersion.version}': {`; // start of schema version definition
@@ -45,7 +42,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
         generated += '\n  };'; // end of dataset definition
       });
 
-      generated += '\n}';
+      generated += '\n}'; // end of definition
       return generated;
     },
   },
@@ -130,9 +127,9 @@ function determineStartAndEndIdx(args: {
   );
 }
 
-async function getAllDatasetSchemasFromAPI(args: {
-  apiKey: string;
-}): Promise<ParsedDataset[]> {
+async function getAllDatasetSchemasFromAPI(args: { apiKey: string }): Promise<{
+  datasets: ParsedDataset[];
+}> {
   const resp = await fetch(`${API_ENDPOINT}/datasets/schemas`, {
     method: 'GET',
     headers: {
@@ -183,7 +180,7 @@ export async function run(): Promise<void> {
     );
   }
 
-  const datasets = await getAllDatasetSchemasFromAPI({ apiKey });
+  const { datasets } = await getAllDatasetSchemasFromAPI({ apiKey });
 
   if (datasets.length === 0) {
     console.log('No dataset schemas found.');
