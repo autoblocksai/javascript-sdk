@@ -30,7 +30,7 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
       let generated = `interface ${args.symbolName} {`;
 
       args.datasets.forEach((dataset) => {
-        generated += `\n  '${dataset.id}': {`; // start of dataset definition
+        generated += `\n  '${dataset.name}': {`; // start of dataset definition
 
         generated += `\n    '${RevisionSpecialVersionsEnum.LATEST}': Record<string, unknown>;`;
 

@@ -1,4 +1,8 @@
-import { DatasetId, DatasetItem, DatasetSchemaVersion } from './datasets';
+import type {
+  DatasetItem,
+  DatasetName,
+  DatasetSchemaVersion,
+} from './datasets';
 import type { HumanReviewFieldContentType, TimeDelta } from './types';
 import {
   convertTimeDeltaToMilliSeconds,
@@ -263,7 +267,7 @@ export class AutoblocksAPIClient {
   }
 
   public async getDataset<
-    T extends DatasetId,
+    T extends DatasetName,
     U extends DatasetSchemaVersion<T>,
   >(args: {
     name: T;

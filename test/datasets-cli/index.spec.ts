@@ -9,7 +9,7 @@ describe('Datasets CLI', () => {
     it('should autogenerate types', () => {
       const datasets: ParsedDataset[] = [
         {
-          id: 'dataset-a',
+          name: 'dataset-a',
           schemaVersions: [
             {
               version: 1,
@@ -44,7 +44,7 @@ describe('Datasets CLI', () => {
           ],
         },
         {
-          id: 'dataset-b',
+          name: 'dataset-b',
           schemaVersions: [
             {
               version: 1,
@@ -78,7 +78,7 @@ describe('Datasets CLI', () => {
           ],
         },
         {
-          id: 'dataset-c',
+          name: 'dataset-c',
           schemaVersions: [],
         },
       ];
