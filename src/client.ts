@@ -281,16 +281,19 @@ export class AutoblocksAPIClient {
   }> {
     const encodedName = encodeURIComponent(args.name);
     const encodedSchemaVersion = encodeURIComponent(args.schemaVersion);
+
     if (args.revisionId) {
-      if (args.revisionId === RevisionSpecialVersionsEnum.LATEST) {
-        return this.get(`/datasets/${encodedName}/revisions/latest`);
-      }
       return this.get(
         `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}/revisions/${encodeURIComponent(
           args.revisionId,
         )}`,
       );
     }
+
+    if (args.schemaVersion === RevisionSpecialVersionsEnum.LATEST) {
+      return this.get(`/datasets/${encodedName}/revisions/latest`);
+    }
+
     return this.get(
       `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}`,
     );
