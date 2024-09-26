@@ -99,7 +99,7 @@ describe('Datasets CLI', () => {
     'dangerously-use-undeployed': object[];
     '1': {
       'name': string;
-      'age?': number;
+      'age'?: number;
       'transcript': Record<string, unknown>;
       'speciality': 'option1' | 'option2' | 'option3';
     };
@@ -111,7 +111,7 @@ describe('Datasets CLI', () => {
     }[];
     '2': {
       'isActive': boolean;
-      'tags?': ('tag1' | 'tag2' | 'tag3')[];
+      'tags'?: ('tag1' | 'tag2' | 'tag3')[];
     }[];
   };
   'dataset-c': {

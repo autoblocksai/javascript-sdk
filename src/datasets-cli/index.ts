@@ -32,12 +32,12 @@ export const autogenerationConfigs: AutogenerationConfig[] = [
       args.datasets.forEach((dataset) => {
         generated += `\n  '${dataset.id}': {`; // start of dataset definition
 
-        generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': object[];`;
+        generated += `\n    '${RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED}': object;`;
 
         dataset.schemaVersions.forEach((schemaVersion) => {
           generated += `\n    '${schemaVersion.version}': {`; // start of schema version definition
           schemaVersion.schema.forEach((property) => {
-            generated += `\n      '${property.name}${property.required ? '' : '?'}': ${makeTypeForProperty({ property })};`;
+            generated += `\n      '${property.name}'${property.required ? '' : '?'}: ${makeTypeForProperty({ property })};`;
           });
           generated += '\n    };'; // end of schema version definition
         });

@@ -11,3 +11,4 @@ export type {
   HumanReviewTestCaseStatus,
 } from './client';
 export type { TimeDelta, HumanReviewFieldContentType } from './types';
+export type { DatasetId, DatasetSchemaVersion, DatasetItem } from './datasets';

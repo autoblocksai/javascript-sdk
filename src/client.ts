@@ -1,8 +1,4 @@
-import {
-  DatasetId,
-  DatasetSchemaVersion,
-  DatasetSchemaVersionItem,
-} from './datasets';
+import { DatasetId, DatasetItem, DatasetSchemaVersion } from './datasets';
 import type { HumanReviewFieldContentType, TimeDelta } from './types';
 import {
   convertTimeDeltaToMilliSeconds,
@@ -10,6 +6,7 @@ import {
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
   API_ENDPOINT,
+  RevisionSpecialVersionsEnum,
 } from './util';
 
 export interface View {
@@ -265,24 +262,36 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getDataset(args: {
-    name: DatasetId;
-    schemaVersion: DatasetSchemaVersion<DatasetId>;
+  public async getDataset<
+    T extends DatasetId,
+    U extends DatasetSchemaVersion<T>,
+  >(args: {
+    name: T;
+    schemaVersion: U;
     revisionId?: string;
   }): Promise<{
-    name: DatasetId;
-    schemaVersion: DatasetSchemaVersion<DatasetId>;
+    name: T;
+    schemaVersion: U;
     revisionId: string;
-    items: DatasetSchemaVersionItem<
-      DatasetId,
-      DatasetSchemaVersion<DatasetId>
-    >[];
+    items: DatasetItem<T, U>[];
   }> {
+    const encodedName = encodeURIComponent(args.name);
+    const encodedSchemaVersion = encodeURIComponent(args.schemaVersion);
     if (args.revisionId) {
+      if (
+        args.revisionId ===
+        RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED
+      ) {
+        return this.get(`/datasets/${encodedName}/revisions/latest`);
+      }
       return this.get(
-        `/datasets/${args.name}/schema/${args.schemaVersion}/revisions/${args.revisionId}`,
+        `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}/revisions/${encodeURIComponent(
+          args.revisionId,
+        )}`,
       );
     }
-    return this.get(`/datasets/${args.name}/schema/${args.schemaVersion}`);
+    return this.get(
+      `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}`,
+    );
   }
 }

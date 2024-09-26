@@ -2,7 +2,8 @@ import type { TimeDelta } from './types';
 import packageJson from '../package.json';
 
 export const INGESTION_ENDPOINT = 'https://ingest-event.autoblocks.ai';
-export const API_ENDPOINT = 'https://api.autoblocks.ai';
+export const API_ENDPOINT =
+  'https://adamnolte-public-api.autoblocksinternal.com';
 
 export enum AutoblocksEnvVar {
   AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',
