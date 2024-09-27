@@ -1179,6 +1179,32 @@ describe('Testing SDK', () => {
     });
   });
 
+  it('serializes dataset item ids', async () => {
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [{ x: 1, y: 2 }],
+      testCaseHash: ['x', 'y'],
+      fn: ({ testCase }: { testCase: MyTestCase }) => {
+        return `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`;
+      },
+      serializeDatasetItemId: (testCase) => {
+        return `${testCase.x}-${testCase.y}`;
+      },
+    });
+
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: mockRunId,
+        testCaseHash: md5(`12`),
+        testCaseBody: { x: 1, y: 2 },
+        testCaseOutput: '1 + 2 = 3',
+        datasetItemId: '1-2',
+      },
+    });
+  });
+
   describe('Test Suite Filters', () => {
     it('filters test suites when none match', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES] =
