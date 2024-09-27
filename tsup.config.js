@@ -7,6 +7,8 @@ export default defineConfig({
     'src/prompts-cli/index.ts',
     'src/testing/index.ts',
     'src/configs/index.ts',
+    'src/datasets/index.ts',
+    'src/datasets-cli/index.ts',
   ],
   format: ['cjs', 'esm'],
   sourcemap: true,

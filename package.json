@@ -3,7 +3,8 @@
   "version": "0.0.0-automated",
   "description": "JavaScript client for Autoblocks",
   "bin": {
-    "prompts": "./bin/prompts-cli.js"
+    "prompts": "./bin/prompts-cli.js",
+    "datasets": "./bin/datasets-cli.js"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

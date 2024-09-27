@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { run } = require('../dist/prompts-cli');
+const { run } = require('../dist/datasets-cli');
 
 async function main() {
   if (process.argv[2] === 'generate') {

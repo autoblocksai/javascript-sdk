@@ -1,3 +1,8 @@
+import type {
+  DatasetItem,
+  DatasetName,
+  DatasetSchemaVersion,
+} from './datasets';
 import type { HumanReviewFieldContentType, TimeDelta } from './types';
 import {
   convertTimeDeltaToMilliSeconds,
@@ -257,6 +262,37 @@ export class AutoblocksAPIClient {
       `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases/${encodeURIComponent(
         args.testCaseId,
       )}`,
+    );
+  }
+
+  public async getDataset<
+    T extends DatasetName,
+    U extends DatasetSchemaVersion<T>,
+  >(args: {
+    name: T;
+    schemaVersion: U;
+    revisionId?: string;
+  }): Promise<{
+    name: T;
+    schemaVersion: U;
+    revisionId: string;
+    items: {
+      id: string;
+      data: DatasetItem<T, U>;
+    }[];
+  }> {
+    const encodedName = encodeURIComponent(args.name);
+    const encodedSchemaVersion = encodeURIComponent(args.schemaVersion);
+    if (args.revisionId) {
+      return this.get(
+        `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}/revisions/${encodeURIComponent(
+          args.revisionId,
+        )}`,
+      );
+    }
+
+    return this.get(
+      `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}`,
     );
   }
 }
