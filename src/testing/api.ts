@@ -215,6 +215,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   testCaseHash: string;
   testCaseOutput: OutputType;
   testCaseDurationMs?: number;
+  datasetItemId?: string;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
@@ -242,6 +243,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
         testCaseDurationMs: args.testCaseDurationMs,
         testCaseHumanReviewInputFields: serializedHumanReviewInputFields,
         testCaseHumanReviewOutputFields: serializedHumanReviewOutputFields,
+        datasetItemId: args.datasetItemId,
       },
     });
     const resultId = resp.data.id;
@@ -261,6 +263,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
     body: {
       testCaseHash: args.testCaseHash,
       testCaseDurationMs: args.testCaseDurationMs,
+      datasetItemId: args.datasetItemId,
     },
   });
   const resultId = resp.data.id;

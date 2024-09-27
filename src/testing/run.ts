@@ -141,6 +141,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
   testCase: TestCaseType;
   testCaseHash: string;
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  serializeDatasetItemId?: (testCase: TestCaseType) => string;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
@@ -165,6 +166,7 @@ async function runTestCaseUnsafe<TestCaseType, OutputType>(args: {
     testCaseHash: args.testCaseHash,
     testCaseOutput: output,
     testCaseDurationMs: durationMs,
+    datasetItemId: args.serializeDatasetItemId?.(args.testCase),
     serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
     serializeOutputForHumanReview: args.serializeOutputForHumanReview,
   });
@@ -182,6 +184,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   testCaseHash: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  serializeDatasetItemId?: (testCase: TestCaseType) => string;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
@@ -196,6 +199,7 @@ async function runTestCase<TestCaseType, OutputType>(args: {
       testCase: args.testCase,
       testCaseHash: args.testCaseHash,
       fn: args.fn,
+      serializeDatasetItemId: args.serializeDatasetItemId,
       serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
       serializeOutputForHumanReview: args.serializeOutputForHumanReview,
     });
@@ -247,6 +251,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     | ((testCase: TestCaseType) => string);
   evaluators?: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  serializeDatasetItemId?: (testCase: TestCaseType) => string;
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
@@ -310,6 +315,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
                   testCaseHash,
                   evaluators: args.evaluators || [],
                   fn: args.fn,
+                  serializeDatasetItemId: args.serializeDatasetItemId,
                   serializeTestCaseForHumanReview:
                     args.serializeTestCaseForHumanReview,
                   serializeOutputForHumanReview:
@@ -368,6 +374,7 @@ export async function runTestSuite<
   evaluators?: BaseTestEvaluator<TestCaseType, OutputType>[];
   // How many test cases to run concurrently
   maxTestCaseConcurrency?: number;
+  serializeDatasetItemId?: (testCase: TestCaseType) => string; // Get the dataset item id from the test case
   serializeTestCaseForHumanReview?: (
     testCase: TestCaseType,
   ) => HumanReviewField[];
@@ -483,6 +490,7 @@ export async function runTestSuite<
         testCaseHash: args.testCaseHash,
         evaluators: args.evaluators,
         fn: args.fn,
+        serializeDatasetItemId: args.serializeDatasetItemId,
         serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
         serializeOutputForHumanReview: args.serializeOutputForHumanReview,
       });
@@ -527,6 +535,7 @@ export async function runTestSuite<
           testCaseHash: args.testCaseHash,
           evaluators: args.evaluators,
           fn: args.fn,
+          serializeDatasetItemId: args.serializeDatasetItemId,
           serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
           serializeOutputForHumanReview: args.serializeOutputForHumanReview,
           gridSearchRunGroupId,
