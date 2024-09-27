@@ -276,7 +276,10 @@ export class AutoblocksAPIClient {
     name: T;
     schemaVersion: U;
     revisionId: string;
-    items: DatasetItem<T, U>[];
+    items: {
+      id: string;
+      data: DatasetItem<T, U>;
+    }[];
   }> {
     const encodedName = encodeURIComponent(args.name);
     const encodedSchemaVersion = encodeURIComponent(args.schemaVersion);
