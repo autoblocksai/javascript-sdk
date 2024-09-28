@@ -272,27 +272,32 @@ export class AutoblocksAPIClient {
     name: T;
     schemaVersion: U;
     revisionId?: string;
+    splits?: string[];
   }): Promise<{
     name: T;
     schemaVersion: U;
     revisionId: string;
     items: {
       id: string;
+      splits: string[];
       data: DatasetItem<T, U>;
     }[];
   }> {
     const encodedName = encodeURIComponent(args.name);
     const encodedSchemaVersion = encodeURIComponent(args.schemaVersion);
+    const splitsQueryParam = args.splits
+      ? `?splits=${args.splits?.map(encodeURIComponent).join(',')}`
+      : '';
     if (args.revisionId) {
       return this.get(
         `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}/revisions/${encodeURIComponent(
           args.revisionId,
-        )}`,
+        )}${splitsQueryParam}`,
       );
     }
 
     return this.get(
-      `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}`,
+      `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}${splitsQueryParam}`,
     );
   }
 }
