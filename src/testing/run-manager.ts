@@ -1,4 +1,5 @@
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
+import { AutoblocksEnvVar, readEnv } from '../util';
 import {
   sendEndRun,
   sendEvaluation,
@@ -58,7 +59,8 @@ export class RunManager<
   public async start() {
     const runId = await sendStartRun({
       testExternalId: this.testExternalId,
-      message: this.message,
+      message:
+        this.message || readEnv(AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE),
     });
     this.runId = runId;
   }

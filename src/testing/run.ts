@@ -273,6 +273,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
       testExternalId: args.testId,
       gridSearchRunGroupId: args.gridSearchRunGroupId,
       gridSearchParamsCombo: args.gridSearchParamsCombo,
+      message: readEnv(AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE),
     });
   } catch (err) {
     // Don't allow the run to continue if /start failed, since all subsequent
