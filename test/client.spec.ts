@@ -130,4 +130,257 @@ describe('Autoblocks Client', () => {
       expect(testCaseResult.testCases[0].body.input).toEqual('test');
     });
   });
+
+  describe('getLocalRuns', () => {
+    it('Should fetch local runs', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              runs: [{ id: 'local-run-1' }, { id: 'local-run-2' }],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const localRunsResult = await client.getLocalRuns('test-external-id');
+      expect(localRunsResult.runs).toHaveLength(2);
+      expect(localRunsResult.runs[0].id).toEqual('local-run-1');
+      expect(localRunsResult.runs[1].id).toEqual('local-run-2');
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/testing/local/tests/test-external-id/runs`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getCIRuns', () => {
+    it('Should fetch CI runs', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              runs: [
+                { id: 'ci-run-1' },
+                { id: 'ci-run-2' },
+                { id: 'ci-run-3' },
+              ],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const ciRunsResult = await client.getCIRuns('test-external-id');
+      expect(ciRunsResult.runs).toHaveLength(3);
+      expect(ciRunsResult.runs[0].id).toEqual('ci-run-1');
+      expect(ciRunsResult.runs[1].id).toEqual('ci-run-2');
+      expect(ciRunsResult.runs[2].id).toEqual('ci-run-3');
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/testing/ci/tests/test-external-id/runs`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getLocalResults', () => {
+    it('Should fetch local results', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              results: [{ id: 'local-result-1' }, { id: 'local-result-2' }],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const localResultsResult = await client.getLocalResults('local-run-id');
+      expect(localResultsResult.results).toHaveLength(2);
+      expect(localResultsResult.results[0].id).toEqual('local-result-1');
+      expect(localResultsResult.results[1].id).toEqual('local-result-2');
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/testing/local/runs/local-run-id/results`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getCIResults', () => {
+    it('Should fetch CI results', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              results: [
+                { id: 'ci-result-1' },
+                { id: 'ci-result-2' },
+                { id: 'ci-result-3' },
+              ],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const ciResultsResult = await client.getCIResults('ci-run-id');
+      expect(ciResultsResult.results).toHaveLength(3);
+      expect(ciResultsResult.results[0].id).toEqual('ci-result-1');
+      expect(ciResultsResult.results[1].id).toEqual('ci-result-2');
+      expect(ciResultsResult.results[2].id).toEqual('ci-result-3');
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/testing/ci/runs/ci-run-id/results`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getLocalResultWithEvaluations', () => {
+    it('Should fetch local result with evaluations', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              id: 'local-result-1',
+              runId: 'local-run-1',
+              hash: 'hash123',
+              datasedItemId: 'dataset-item-1',
+              durationMs: 1000,
+              events: [{ id: 'event-1', message: 'Test event' }],
+              body: { input: 'test input' },
+              output: { result: 'test output' },
+              evaluations: [
+                {
+                  evaluatorId: 'evaluator-1',
+                  score: 0.95,
+                  passed: true,
+                  threshold: 0.8,
+                  metadata: { key: 'value' },
+                },
+              ],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result =
+        await client.getLocalResultWithEvaluations('local-result-1');
+
+      expect(result).toEqual({
+        id: 'local-result-1',
+        runId: 'local-run-1',
+        hash: 'hash123',
+        datasedItemId: 'dataset-item-1',
+        durationMs: 1000,
+        events: [expect.any(Object)],
+        body: { input: 'test input' },
+        output: { result: 'test output' },
+        evaluations: [
+          {
+            evaluatorId: 'evaluator-1',
+            score: 0.95,
+            passed: true,
+            threshold: 0.8,
+            metadata: { key: 'value' },
+          },
+        ],
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/testing/local/results/local-result-1/evaluations`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getCIResultWithEvaluations', () => {
+    it('Should fetch CI result with evaluations', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              id: 'ci-result-1',
+              runId: 'ci-run-1',
+              hash: 'hash456',
+              datasedItemId: 'dataset-item-2',
+              durationMs: 2000,
+              events: [{ id: 'event-2', message: 'CI Test event' }],
+              body: { input: 'ci test input' },
+              output: { result: 'ci test output' },
+              evaluations: [
+                {
+                  evaluatorId: 'evaluator-2',
+                  score: 0.85,
+                  passed: true,
+                  threshold: 0.7,
+                  metadata: { ci_key: 'ci_value' },
+                },
+              ],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.getCIResultWithEvaluations('ci-result-1');
+
+      expect(result).toEqual({
+        id: 'ci-result-1',
+        runId: 'ci-run-1',
+        hash: 'hash456',
+        datasedItemId: 'dataset-item-2',
+        durationMs: 2000,
+        events: expect.arrayContaining([expect.any(Object)]),
+        body: { input: 'ci test input' },
+        output: { result: 'ci test output' },
+        evaluations: [
+          {
+            evaluatorId: 'evaluator-2',
+            score: 0.85,
+            passed: true,
+            threshold: 0.7,
+            metadata: { ci_key: 'ci_value' },
+          },
+        ],
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/testing/ci/results/ci-result-1/evaluations`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
 });

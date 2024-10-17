@@ -138,6 +138,34 @@ interface ClientArgs {
   timeout?: TimeDelta;
 }
 
+interface ResultWithEvaluations {
+  id: string;
+  runId: string;
+  hash: string;
+  datasedItemId: string;
+  durationMs: number;
+  events?: Event[];
+  body: {
+    id: string;
+    name: string;
+    value: string;
+    contentType: HumanReviewFieldContentType;
+  }[];
+  output: {
+    id: string;
+    name: string;
+    value: string;
+    contentType: HumanReviewFieldContentType;
+  }[];
+  evaluations: {
+    evaluatorId: string;
+    score: number;
+    passed: boolean | null;
+    threshold?: number;
+    metadata?: Record<string, unknown>;
+  }[];
+}
+
 export class AutoblocksAPIClient {
   private readonly apiKey: string;
   private readonly timeoutMs: number;
@@ -262,6 +290,58 @@ export class AutoblocksAPIClient {
       `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases/${encodeURIComponent(
         args.testCaseId,
       )}`,
+    );
+  }
+
+  public async getLocalRuns(testExternalId: string): Promise<{
+    runs: {
+      id: string;
+    }[];
+  }> {
+    return this.get(
+      `/testing/local/tests/${encodeURIComponent(testExternalId)}/runs`,
+    );
+  }
+
+  public async getCIRuns(testExternalId: string): Promise<{
+    runs: {
+      id: string;
+    }[];
+  }> {
+    return this.get(
+      `/testing/ci/tests/${encodeURIComponent(testExternalId)}/runs`,
+    );
+  }
+
+  public async getLocalResults(runId: string): Promise<{
+    results: {
+      id: string;
+    }[];
+  }> {
+    return this.get(`/testing/local/runs/${encodeURIComponent(runId)}/results`);
+  }
+
+  public async getCIResults(runId: string): Promise<{
+    results: {
+      id: string;
+    }[];
+  }> {
+    return this.get(`/testing/ci/runs/${encodeURIComponent(runId)}/results`);
+  }
+
+  public async getLocalResultWithEvaluations(
+    testCaseResultId: string,
+  ): Promise<ResultWithEvaluations> {
+    return this.get(
+      `/testing/local/results/${encodeURIComponent(testCaseResultId)}/evaluations`,
+    );
+  }
+
+  public async getCIResultWithEvaluations(
+    testCaseResultId: string,
+  ): Promise<ResultWithEvaluations> {
+    return this.get(
+      `/testing/ci/results/${encodeURIComponent(testCaseResultId)}/evaluations`,
     );
   }
 
