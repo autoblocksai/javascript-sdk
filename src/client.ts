@@ -138,30 +138,25 @@ interface ClientArgs {
   timeout?: TimeDelta;
 }
 
-interface ResultWithEvaluations {
+interface ResultWithEvaluations<T = unknown, U = unknown> {
   id: string;
   runId: string;
   hash: string;
-  datasetItemId: string;
-  durationMs: number;
+  datasetItemId?: string;
+  durationMs?: number;
   events?: Event[];
-  body: {
-    id: string;
-    name: string;
-    value: string;
-    contentType: HumanReviewFieldContentType;
-  }[];
-  output: {
-    id: string;
-    name: string;
-    value: string;
-    contentType: HumanReviewFieldContentType;
-  }[];
+  body: T;
+  output: U;
   evaluations: {
     evaluatorId: string;
     score: number;
-    passed: boolean | null;
-    threshold?: number;
+    passed?: boolean;
+    threshold?: {
+      lt?: number;
+      lte?: number;
+      gt?: number;
+      gte?: number;
+    };
     metadata?: Record<string, unknown>;
   }[];
 }
@@ -293,7 +288,7 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getLocalRuns(testExternalId: string): Promise<{
+  public async getLocalTestRuns(testExternalId: string): Promise<{
     runs: {
       id: string;
     }[];
@@ -303,7 +298,7 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getCIRuns(testExternalId: string): Promise<{
+  public async getCITestRuns(testExternalId: string): Promise<{
     runs: {
       id: string;
     }[];
@@ -313,7 +308,7 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getLocalResults(runId: string): Promise<{
+  public async getLocalTestResults(runId: string): Promise<{
     results: {
       id: string;
     }[];
@@ -321,7 +316,7 @@ export class AutoblocksAPIClient {
     return this.get(`/testing/local/runs/${encodeURIComponent(runId)}/results`);
   }
 
-  public async getCIResults(runId: string): Promise<{
+  public async getCITestResults(runId: string): Promise<{
     results: {
       id: string;
     }[];
@@ -329,19 +324,25 @@ export class AutoblocksAPIClient {
     return this.get(`/testing/ci/runs/${encodeURIComponent(runId)}/results`);
   }
 
-  public async getLocalResultWithEvaluations(
+  public async getLocalTestResultWithEvaluations<
+    ResultBodyType = unknown,
+    ResultOutputType = unknown,
+  >(
     testCaseResultId: string,
-  ): Promise<ResultWithEvaluations> {
+  ): Promise<ResultWithEvaluations<ResultBodyType, ResultOutputType>> {
     return this.get(
-      `/testing/local/results/${encodeURIComponent(testCaseResultId)}/evaluations`,
+      `/testing/local/results/${encodeURIComponent(testCaseResultId)}`,
     );
   }
 
-  public async getCIResultWithEvaluations(
+  public async getCITestResultWithEvaluations<
+    ResultBodyType = unknown,
+    ResultOutputType = unknown,
+  >(
     testCaseResultId: string,
-  ): Promise<ResultWithEvaluations> {
+  ): Promise<ResultWithEvaluations<ResultBodyType, ResultOutputType>> {
     return this.get(
-      `/testing/ci/results/${encodeURIComponent(testCaseResultId)}/evaluations`,
+      `/testing/ci/results/${encodeURIComponent(testCaseResultId)}`,
     );
   }
 

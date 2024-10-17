@@ -131,8 +131,8 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getLocalRuns', () => {
-    it('Should fetch local runs', async () => {
+  describe('getLocalTestRuns', () => {
+    it('Should fetch local Test runs', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
         // @ts-expect-error - Only need json
@@ -144,7 +144,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const localRunsResult = await client.getLocalRuns('test-external-id');
+      const localRunsResult = await client.getLocalTestRuns('test-external-id');
       expect(localRunsResult.runs).toHaveLength(2);
       expect(localRunsResult.runs[0].id).toEqual('local-run-1');
       expect(localRunsResult.runs[1].id).toEqual('local-run-2');
@@ -160,8 +160,8 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getCIRuns', () => {
-    it('Should fetch CI runs', async () => {
+  describe('getCITestRuns', () => {
+    it('Should fetch CI Test runs', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
         // @ts-expect-error - Only need json
@@ -177,7 +177,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const ciRunsResult = await client.getCIRuns('test-external-id');
+      const ciRunsResult = await client.getCITestRuns('test-external-id');
       expect(ciRunsResult.runs).toHaveLength(3);
       expect(ciRunsResult.runs[0].id).toEqual('ci-run-1');
       expect(ciRunsResult.runs[1].id).toEqual('ci-run-2');
@@ -194,8 +194,8 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getLocalResults', () => {
-    it('Should fetch local results', async () => {
+  describe('getLocalTestResults', () => {
+    it('Should fetch local Test results', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
         // @ts-expect-error - Only need json
@@ -207,7 +207,8 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const localResultsResult = await client.getLocalResults('local-run-id');
+      const localResultsResult =
+        await client.getLocalTestResults('local-run-id');
       expect(localResultsResult.results).toHaveLength(2);
       expect(localResultsResult.results[0].id).toEqual('local-result-1');
       expect(localResultsResult.results[1].id).toEqual('local-result-2');
@@ -223,8 +224,8 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getCIResults', () => {
-    it('Should fetch CI results', async () => {
+  describe('getCITestResults', () => {
+    it('Should fetch CI Testresults', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
         // @ts-expect-error - Only need json
@@ -240,7 +241,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const ciResultsResult = await client.getCIResults('ci-run-id');
+      const ciResultsResult = await client.getCITestResults('ci-run-id');
       expect(ciResultsResult.results).toHaveLength(3);
       expect(ciResultsResult.results[0].id).toEqual('ci-result-1');
       expect(ciResultsResult.results[1].id).toEqual('ci-result-2');
@@ -257,8 +258,8 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getLocalResultWithEvaluations', () => {
-    it('Should fetch local result with evaluations', async () => {
+  describe('getLocalTestResultWithEvaluations', () => {
+    it('Should fetch local test result with evaluations', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
         // @ts-expect-error - Only need json
@@ -287,7 +288,7 @@ describe('Autoblocks Client', () => {
         });
       const client = new AutoblocksAPIClient('mock-api-key');
       const result =
-        await client.getLocalResultWithEvaluations('local-result-1');
+        await client.getLocalTestResultWithEvaluations('local-result-1');
 
       expect(result).toEqual({
         id: 'local-result-1',
@@ -310,7 +311,7 @@ describe('Autoblocks Client', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_ENDPOINT}/testing/local/results/local-result-1/evaluations`,
+        `${API_ENDPOINT}/testing/local/results/local-result-1`,
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -321,8 +322,8 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getCIResultWithEvaluations', () => {
-    it('Should fetch CI result with evaluations', async () => {
+  describe('getCITestResultWithEvaluations', () => {
+    it('Should fetch CI test result with evaluations', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
         // @ts-expect-error - Only need json
@@ -350,7 +351,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const result = await client.getCIResultWithEvaluations('ci-result-1');
+      const result = await client.getCITestResultWithEvaluations('ci-result-1');
 
       expect(result).toEqual({
         id: 'ci-result-1',
@@ -373,7 +374,7 @@ describe('Autoblocks Client', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `${API_ENDPOINT}/testing/ci/results/ci-result-1/evaluations`,
+        `${API_ENDPOINT}/testing/ci/results/ci-result-1`,
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
