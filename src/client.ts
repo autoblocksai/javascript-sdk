@@ -142,7 +142,7 @@ interface ResultWithEvaluations {
   id: string;
   runId: string;
   hash: string;
-  datasedItemId: string;
+  datasetItemId: string;
   durationMs: number;
   events?: Event[];
   body: {
