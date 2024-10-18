@@ -138,6 +138,29 @@ interface ClientArgs {
   timeout?: TimeDelta;
 }
 
+interface TestResult<T = unknown, U = unknown> {
+  id: string;
+  runId: string;
+  hash: string;
+  datasetItemId?: string;
+  durationMs?: number;
+  events?: Event[];
+  body: T;
+  output: U;
+  evaluations: {
+    evaluatorId: string;
+    score: number;
+    passed?: boolean;
+    threshold?: {
+      lt?: number;
+      lte?: number;
+      gt?: number;
+      gte?: number;
+    };
+    metadata?: Record<string, unknown>;
+  }[];
+}
+
 export class AutoblocksAPIClient {
   private readonly apiKey: string;
   private readonly timeoutMs: number;
@@ -262,6 +285,64 @@ export class AutoblocksAPIClient {
       `/human-review/jobs/${encodeURIComponent(args.jobId)}/test-cases/${encodeURIComponent(
         args.testCaseId,
       )}`,
+    );
+  }
+
+  public async getLocalTestRuns(testExternalId: string): Promise<{
+    runs: {
+      id: string;
+    }[];
+  }> {
+    return this.get(
+      `/testing/local/tests/${encodeURIComponent(testExternalId)}/runs`,
+    );
+  }
+
+  public async getCITestRuns(testExternalId: string): Promise<{
+    runs: {
+      id: string;
+    }[];
+  }> {
+    return this.get(
+      `/testing/ci/tests/${encodeURIComponent(testExternalId)}/runs`,
+    );
+  }
+
+  public async getLocalTestResults(runId: string): Promise<{
+    results: {
+      id: string;
+    }[];
+  }> {
+    return this.get(`/testing/local/runs/${encodeURIComponent(runId)}/results`);
+  }
+
+  public async getCITestResults(runId: string): Promise<{
+    results: {
+      id: string;
+    }[];
+  }> {
+    return this.get(`/testing/ci/runs/${encodeURIComponent(runId)}/results`);
+  }
+
+  public async getLocalTestResult<
+    ResultBodyType = unknown,
+    ResultOutputType = unknown,
+  >(
+    testCaseResultId: string,
+  ): Promise<TestResult<ResultBodyType, ResultOutputType>> {
+    return this.get(
+      `/testing/local/results/${encodeURIComponent(testCaseResultId)}`,
+    );
+  }
+
+  public async getCITestResult<
+    ResultBodyType = unknown,
+    ResultOutputType = unknown,
+  >(
+    testCaseResultId: string,
+  ): Promise<TestResult<ResultBodyType, ResultOutputType>> {
+    return this.get(
+      `/testing/ci/results/${encodeURIComponent(testCaseResultId)}`,
     );
   }
 
