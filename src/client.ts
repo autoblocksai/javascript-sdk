@@ -138,7 +138,7 @@ interface ClientArgs {
   timeout?: TimeDelta;
 }
 
-interface ResultWithEvaluations<T = unknown, U = unknown> {
+interface TestResult<T = unknown, U = unknown> {
   id: string;
   runId: string;
   hash: string;
@@ -324,23 +324,23 @@ export class AutoblocksAPIClient {
     return this.get(`/testing/ci/runs/${encodeURIComponent(runId)}/results`);
   }
 
-  public async getLocalTestResultWithEvaluations<
+  public async getLocalTestResult<
     ResultBodyType = unknown,
     ResultOutputType = unknown,
   >(
     testCaseResultId: string,
-  ): Promise<ResultWithEvaluations<ResultBodyType, ResultOutputType>> {
+  ): Promise<TestResult<ResultBodyType, ResultOutputType>> {
     return this.get(
       `/testing/local/results/${encodeURIComponent(testCaseResultId)}`,
     );
   }
 
-  public async getCITestResultWithEvaluations<
+  public async getCITestResult<
     ResultBodyType = unknown,
     ResultOutputType = unknown,
   >(
     testCaseResultId: string,
-  ): Promise<ResultWithEvaluations<ResultBodyType, ResultOutputType>> {
+  ): Promise<TestResult<ResultBodyType, ResultOutputType>> {
     return this.get(
       `/testing/ci/results/${encodeURIComponent(testCaseResultId)}`,
     );

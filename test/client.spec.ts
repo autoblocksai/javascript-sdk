@@ -258,7 +258,7 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getLocalTestResultWithEvaluations', () => {
+  describe('getLocalTestResult', () => {
     it('Should fetch local test result with evaluations', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
@@ -287,8 +287,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const result =
-        await client.getLocalTestResultWithEvaluations('local-result-1');
+      const result = await client.getLocalTestResult('local-result-1');
 
       expect(result).toEqual({
         id: 'local-result-1',
@@ -322,7 +321,7 @@ describe('Autoblocks Client', () => {
     });
   });
 
-  describe('getCITestResultWithEvaluations', () => {
+  describe('getCITestResult', () => {
     it('Should fetch CI test result with evaluations', async () => {
       mockFetch = jest
         .spyOn(global, 'fetch')
@@ -351,7 +350,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const result = await client.getCITestResultWithEvaluations('ci-result-1');
+      const result = await client.getCITestResult('ci-result-1');
 
       expect(result).toEqual({
         id: 'ci-result-1',
