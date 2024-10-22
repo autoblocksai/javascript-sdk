@@ -156,6 +156,12 @@ interface TestResult<T = unknown, U = unknown> {
       lte?: number;
       gt?: number;
       gte?: number;
+      assertions: {
+        passed: boolean;
+        required: boolean;
+        criterion: string;
+        metadata?: Record<string, unknown>;
+      }[];
     };
     metadata?: Record<string, unknown>;
   }[];

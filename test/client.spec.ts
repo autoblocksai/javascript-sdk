@@ -282,6 +282,14 @@ describe('Autoblocks Client', () => {
                   passed: true,
                   threshold: 0.8,
                   metadata: { key: 'value' },
+                  assertions: [
+                    {
+                      passed: true,
+                      required: true,
+                      criterion: 'Test criterion',
+                      metadata: undefined,
+                    },
+                  ],
                 },
               ],
             }),
@@ -305,6 +313,14 @@ describe('Autoblocks Client', () => {
             passed: true,
             threshold: 0.8,
             metadata: { key: 'value' },
+            assertions: [
+              {
+                passed: true,
+                required: true,
+                criterion: 'Test criterion',
+                metadata: undefined,
+              },
+            ],
           },
         ],
       });
@@ -345,6 +361,7 @@ describe('Autoblocks Client', () => {
                   passed: true,
                   threshold: 0.7,
                   metadata: { ci_key: 'ci_value' },
+                  assertions: [],
                 },
               ],
             }),
@@ -368,6 +385,7 @@ describe('Autoblocks Client', () => {
             passed: true,
             threshold: 0.7,
             metadata: { ci_key: 'ci_value' },
+            assertions: [],
           },
         ],
       });
