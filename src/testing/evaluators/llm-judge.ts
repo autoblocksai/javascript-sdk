@@ -60,9 +60,9 @@ export abstract class BaseLLMJudge<
    * The model to use for the evaluator.
    * It must be an OpenAI model that supports tools.
    *
-   * @default "gpt-4-turbo".
+   * @default "gpt-4o".
    */
-  model = 'gpt-4-turbo';
+  model = 'gpt-4o';
   /**
    * The number of recent evaluation overrides to fetch for the evaluator and pass to make_prompt.
    *
