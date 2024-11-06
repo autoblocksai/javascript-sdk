@@ -401,4 +401,116 @@ describe('Autoblocks Client', () => {
       );
     });
   });
+
+  describe('getTestCaseResultPairsForHumanReviewJob', () => {
+    it('Should fetch test case result pairs for a human review job', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              pairs: [{ id: 'pair-1' }, { id: 'pair-2' }, { id: 'pair-3' }],
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.getTestCaseResultPairsForHumanReviewJob({
+        jobId: 'job-123',
+      });
+
+      expect(result.pairs).toHaveLength(3);
+      expect(result.pairs[0].id).toEqual('pair-1');
+      expect(result.pairs[1].id).toEqual('pair-2');
+      expect(result.pairs[2].id).toEqual('pair-3');
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/human-review/jobs/job-123/pairs`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('getTestCaseResultPairForHumanReviewJob', () => {
+    it('Should fetch a specific test case result pair for a human review job', async () => {
+      mockFetch = jest
+        .spyOn(global, 'fetch')
+        // @ts-expect-error - Only need json
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              pair: {
+                id: 'pair-1',
+                hash: 'hash123',
+                chosenOutputId: 'output-1',
+                testCaseResults: [
+                  {
+                    id: 'result-1',
+                    runId: 'run-1',
+                    hash: 'hash456',
+                    datasetItemId: 'dataset-1',
+                    durationMs: 1000,
+                    events: [{ id: 'event-1', message: 'Test event' }],
+                    body: { input: 'test input' },
+                    output: { result: 'test output' },
+                  },
+                  {
+                    id: 'result-2',
+                    runId: 'run-2',
+                    hash: 'hash789',
+                    events: [{ id: 'event-2', message: 'Another test event' }],
+                    body: { input: 'another test input' },
+                    output: { result: 'another test output' },
+                  },
+                ],
+              },
+            }),
+        });
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.getTestCaseResultPairForHumanReviewJob({
+        jobId: 'job-123',
+        pairId: 'pair-1',
+      });
+
+      expect(result.pair).toEqual({
+        id: 'pair-1',
+        hash: 'hash123',
+        chosenOutputId: 'output-1',
+        testCaseResults: [
+          {
+            id: 'result-1',
+            runId: 'run-1',
+            hash: 'hash456',
+            datasetItemId: 'dataset-1',
+            durationMs: 1000,
+            events: expect.arrayContaining([expect.any(Object)]),
+            body: { input: 'test input' },
+            output: { result: 'test output' },
+          },
+          {
+            id: 'result-2',
+            runId: 'run-2',
+            hash: 'hash789',
+            events: expect.arrayContaining([expect.any(Object)]),
+            body: { input: 'another test input' },
+            output: { result: 'another test output' },
+          },
+        ],
+      });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/human-review/jobs/job-123/pairs/pair-1`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
 });
