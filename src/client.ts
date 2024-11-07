@@ -138,7 +138,7 @@ interface ClientArgs {
   timeout?: TimeDelta;
 }
 
-interface TestResult<T = unknown, U = unknown> {
+interface TestResultWithEvaluations<T = unknown, U = unknown> {
   id: string;
   runId: string;
   hash: string;
@@ -165,6 +165,17 @@ interface TestResult<T = unknown, U = unknown> {
     };
     metadata?: Record<string, unknown>;
   }[];
+}
+
+interface TestResult<T = unknown, U = unknown> {
+  id: string;
+  runId: string;
+  hash: string;
+  datasetItemId?: string;
+  durationMs?: number;
+  events?: Event[];
+  body: T;
+  output: U;
 }
 
 export class AutoblocksAPIClient {
@@ -294,6 +305,32 @@ export class AutoblocksAPIClient {
     );
   }
 
+  public async getHumanReviewJobPairs(args: {
+    jobId: string;
+  }): Promise<{ pairs: { id: string }[] }> {
+    return this.get(
+      `/human-review/jobs/${encodeURIComponent(args.jobId)}/pairs`,
+    );
+  }
+
+  public async getHumanReviewJobPair(args: {
+    jobId: string;
+    pairId: string;
+  }): Promise<{
+    pair: {
+      id: string;
+      hash: string;
+      chosenOutputId?: string;
+      testCaseResults: TestResult[];
+    };
+  }> {
+    return this.get(
+      `/human-review/jobs/${encodeURIComponent(args.jobId)}/pairs/${encodeURIComponent(
+        args.pairId,
+      )}`,
+    );
+  }
+
   public async getLocalTestRuns(testExternalId: string): Promise<{
     runs: {
       id: string;
@@ -335,7 +372,7 @@ export class AutoblocksAPIClient {
     ResultOutputType = unknown,
   >(
     testCaseResultId: string,
-  ): Promise<TestResult<ResultBodyType, ResultOutputType>> {
+  ): Promise<TestResultWithEvaluations<ResultBodyType, ResultOutputType>> {
     return this.get(
       `/testing/local/results/${encodeURIComponent(testCaseResultId)}`,
     );
@@ -346,7 +383,7 @@ export class AutoblocksAPIClient {
     ResultOutputType = unknown,
   >(
     testCaseResultId: string,
-  ): Promise<TestResult<ResultBodyType, ResultOutputType>> {
+  ): Promise<TestResultWithEvaluations<ResultBodyType, ResultOutputType>> {
     return this.get(
       `/testing/ci/results/${encodeURIComponent(testCaseResultId)}`,
     );
