@@ -305,7 +305,7 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getTestCaseResultPairsForHumanReviewJob(args: {
+  public async getHumanReviewJobPairs(args: {
     jobId: string;
   }): Promise<{ pairs: { id: string }[] }> {
     return this.get(
@@ -313,7 +313,7 @@ export class AutoblocksAPIClient {
     );
   }
 
-  public async getTestCaseResultPairForHumanReviewJob(args: {
+  public async getHumanReviewJobPair(args: {
     jobId: string;
     pairId: string;
   }): Promise<{

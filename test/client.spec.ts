@@ -415,7 +415,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const result = await client.getTestCaseResultPairsForHumanReviewJob({
+      const result = await client.getHumanReviewJobPairs({
         jobId: 'job-123',
       });
 
@@ -472,7 +472,7 @@ describe('Autoblocks Client', () => {
             }),
         });
       const client = new AutoblocksAPIClient('mock-api-key');
-      const result = await client.getTestCaseResultPairForHumanReviewJob({
+      const result = await client.getHumanReviewJobPair({
         jobId: 'job-123',
         pairId: 'pair-1',
       });
