@@ -240,6 +240,43 @@ export class AutoblocksAPIClient {
     return resp.json();
   }
 
+  private async delete<T>(path: string): Promise<T> {
+    const url = `${API_ENDPOINT}${path}`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: DELETE ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
+    return resp.json();
+  }
+
+  private async put<T>(path: string, body: unknown): Promise<T> {
+    const url = `${API_ENDPOINT}${path}`;
+    const resp = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: PUT ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
+    return resp.json();
+  }
+
   public async getViews(): Promise<View[]> {
     return this.get('/views');
   }
@@ -422,6 +459,37 @@ export class AutoblocksAPIClient {
 
     return this.get(
       `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}${splitsQueryParam}`,
+    );
+  }
+
+  public async createDatasetItem(args: {
+    datasetExternalId: string;
+    data: Record<string, unknown>;
+  }): Promise<{ id: string }> {
+    return this.post(
+      `/datasets/${encodeURIComponent(args.datasetExternalId)}/items`,
+      { data: args.data },
+    );
+  }
+
+  public async deleteDatasetItem(args: {
+    datasetExternalId: string;
+    itemId: string;
+  }): Promise<{ id: string }> {
+    return this.delete(
+      `/datasets/${encodeURIComponent(args.datasetExternalId)}/items/${encodeURIComponent(args.itemId)}`,
+    );
+  }
+
+  public async updateDatasetItem(args: {
+    datasetExternalId: string;
+    itemId: string;
+    data: Record<string, unknown>;
+    splitNames: string[];
+  }): Promise<{ id: string }> {
+    return this.put(
+      `/datasets/${encodeURIComponent(args.datasetExternalId)}/items/${encodeURIComponent(args.itemId)}`,
+      { data: args.data, splitNames: args.splitNames },
     );
   }
 }
