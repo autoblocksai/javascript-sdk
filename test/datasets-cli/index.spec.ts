@@ -79,7 +79,20 @@ describe('Datasets CLI', () => {
         },
         {
           name: 'dataset-c',
-          schemaVersions: [],
+          schemaVersions: [
+            {
+              version: 3,
+              schema: [
+                {
+                  id: '1',
+                  name: 'strings',
+                  type: PropertyTypesEnum.ListOfStrings,
+                  required: false,
+                  defaultValue: ['default1', 'default2'],
+                },
+              ],
+            },
+          ],
         },
       ];
 
@@ -113,6 +126,9 @@ describe('Datasets CLI', () => {
     };
   };
   'dataset-c': {
+    '3': {
+      'strings'?: ('default1' | 'default2')[];
+    };
   };
 }`,
       );
