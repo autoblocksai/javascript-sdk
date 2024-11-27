@@ -52,6 +52,8 @@ function makeTypeForProperty(args: { property: PropertySchema }): string {
   switch (args.property.type) {
     case PropertyTypesEnum.String:
       return 'string';
+    case PropertyTypesEnum.ListOfStrings:
+      return 'string[]';
     case PropertyTypesEnum.Number:
       return 'number';
     case PropertyTypesEnum.Boolean:
