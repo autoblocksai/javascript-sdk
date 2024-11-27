@@ -127,7 +127,7 @@ describe('Datasets CLI', () => {
   };
   'dataset-c': {
     '3': {
-      'strings'?: ('default1' | 'default2')[];
+      'strings'?: string[];
     };
   };
 }`,
