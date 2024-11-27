@@ -465,10 +465,11 @@ export class AutoblocksAPIClient {
   public async createDatasetItem(args: {
     datasetExternalId: string;
     data: Record<string, unknown>;
+    splitNames?: string[];
   }): Promise<{ id: string }> {
     return this.post(
       `/datasets/${encodeURIComponent(args.datasetExternalId)}/items`,
-      { data: args.data },
+      { data: args.data, splitNames: args.splitNames ?? [] },
     );
   }
 
@@ -485,11 +486,11 @@ export class AutoblocksAPIClient {
     datasetExternalId: string;
     itemId: string;
     data: Record<string, unknown>;
-    splitNames: string[];
+    splitNames?: string[];
   }): Promise<{ id: string }> {
     return this.put(
       `/datasets/${encodeURIComponent(args.datasetExternalId)}/items/${encodeURIComponent(args.itemId)}`,
-      { data: args.data, splitNames: args.splitNames },
+      { data: args.data, splitNames: args.splitNames ?? [] },
     );
   }
 }

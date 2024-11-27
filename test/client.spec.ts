@@ -536,7 +536,37 @@ describe('Autoblocks Client', () => {
           headers: expect.objectContaining({
             Authorization: 'Bearer mock-api-key',
           }),
-          body: JSON.stringify({ data: { key: 'value' } }),
+          body: JSON.stringify({ data: { key: 'value' }, splitNames: [] }),
+        }),
+      );
+    });
+
+    it('Should create a dataset item with split names', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.createDatasetItem({
+        datasetExternalId: 'dataset-123',
+        data: { key: 'value' },
+        splitNames: ['split1', 'split2'],
+      });
+
+      expect(result).toEqual(mockResponse);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+          body: JSON.stringify({
+            data: { key: 'value' },
+            splitNames: ['split1', 'split2'],
+          }),
         }),
       );
     });
