@@ -53,7 +53,7 @@ function makeTypeForProperty(args: { property: PropertySchema }): string {
     case PropertyTypesEnum.String:
       return 'string';
     case PropertyTypesEnum.ListOfStrings:
-      return `(${args.property.defaultValue?.map((value) => `'${value}'`).join(' | ')})[]`;
+      return 'string[]';
     case PropertyTypesEnum.Number:
       return 'number';
     case PropertyTypesEnum.Boolean:
