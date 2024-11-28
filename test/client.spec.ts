@@ -524,7 +524,7 @@ describe('Autoblocks Client', () => {
 
       const client = new AutoblocksAPIClient('mock-api-key');
       const result = await client.createDatasetItem({
-        datasetExternalId: 'dataset-123',
+        name: 'dataset-123',
         data: { key: 'value' },
       });
 
@@ -550,9 +550,9 @@ describe('Autoblocks Client', () => {
 
       const client = new AutoblocksAPIClient('mock-api-key');
       const result = await client.createDatasetItem({
-        datasetExternalId: 'dataset-123',
+        name: 'dataset-123',
         data: { key: 'value' },
-        splitNames: ['split1', 'split2'],
+        splits: ['split1', 'split2'],
       });
 
       expect(result).toEqual(mockResponse);
@@ -582,7 +582,7 @@ describe('Autoblocks Client', () => {
 
       const client = new AutoblocksAPIClient('mock-api-key');
       const result = await client.deleteDatasetItem({
-        datasetExternalId: 'dataset-123',
+        name: 'dataset-123',
         itemId: 'item-456',
       });
 
@@ -609,10 +609,10 @@ describe('Autoblocks Client', () => {
 
       const client = new AutoblocksAPIClient('mock-api-key');
       const result = await client.updateDatasetItem({
-        datasetExternalId: 'dataset-123',
+        name: 'dataset-123',
         itemId: 'item-456',
         data: { key: 'new-value' },
-        splitNames: ['split1', 'split2'],
+        splits: ['split1', 'split2'],
       });
 
       expect(result).toEqual(mockResponse);
