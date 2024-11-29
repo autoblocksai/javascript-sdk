@@ -500,8 +500,6 @@ export class AutoblocksAPIClient {
       { data: args.data, splitNames: args.splits ?? [] },
     );
 
-    console.log('RESPONSEE', response);
-
     return { revisionId: response.id };
   }
 }
