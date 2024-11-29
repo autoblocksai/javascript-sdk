@@ -528,7 +528,7 @@ describe('Autoblocks Client', () => {
         data: { key: 'value' },
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
       expect(mockFetch).toHaveBeenCalledWith(
         `${API_ENDPOINT}/datasets/dataset-123/items`,
         expect.objectContaining({
@@ -555,7 +555,7 @@ describe('Autoblocks Client', () => {
         splits: ['split1', 'split2'],
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
       expect(mockFetch).toHaveBeenCalledWith(
         `${API_ENDPOINT}/datasets/dataset-123/items`,
         expect.objectContaining({
@@ -586,7 +586,7 @@ describe('Autoblocks Client', () => {
         itemId: 'item-456',
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
       expect(mockFetch).toHaveBeenCalledWith(
         `${API_ENDPOINT}/datasets/dataset-123/items/item-456`,
         expect.objectContaining({
@@ -615,7 +615,7 @@ describe('Autoblocks Client', () => {
         splits: ['split1', 'split2'],
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
       expect(mockFetch).toHaveBeenCalledWith(
         `${API_ENDPOINT}/datasets/dataset-123/items/item-456`,
         expect.objectContaining({
@@ -626,6 +626,36 @@ describe('Autoblocks Client', () => {
           body: JSON.stringify({
             data: { key: 'new-value' },
             splitNames: ['split1', 'split2'],
+          }),
+        }),
+      );
+    });
+
+    it('Should update a dataset item without splits', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.updateDatasetItem({
+        name: 'dataset-123',
+        itemId: 'item-456',
+        data: { key: 'new-value' },
+      });
+
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items/item-456`,
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+          body: JSON.stringify({
+            data: { key: 'new-value' },
+            splitNames: [],
           }),
         }),
       );

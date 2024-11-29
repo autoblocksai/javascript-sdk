@@ -466,20 +466,27 @@ export class AutoblocksAPIClient {
     name: string;
     data: Record<string, unknown>;
     splits?: string[];
-  }): Promise<{ id: string }> {
-    return this.post(`/datasets/${encodeURIComponent(args.name)}/items`, {
-      data: args.data,
-      splitNames: args.splits ?? [],
-    });
+  }): Promise<{ revisionId: string }> {
+    const response: { id: string } = await this.post(
+      `/datasets/${encodeURIComponent(args.name)}/items`,
+      {
+        data: args.data,
+        splitNames: args.splits ?? [],
+      },
+    );
+
+    return { revisionId: response.id };
   }
 
   public async deleteDatasetItem(args: {
     name: string;
     itemId: string;
-  }): Promise<{ id: string }> {
-    return this.delete(
+  }): Promise<{ revisionId: string }> {
+    const response: { id: string } = await this.delete(
       `/datasets/${encodeURIComponent(args.name)}/items/${encodeURIComponent(args.itemId)}`,
     );
+
+    return { revisionId: response.id };
   }
 
   public async updateDatasetItem(args: {
@@ -487,10 +494,14 @@ export class AutoblocksAPIClient {
     itemId: string;
     data: Record<string, unknown>;
     splits?: string[];
-  }): Promise<{ id: string }> {
-    return this.put(
+  }): Promise<{ revisionId: string }> {
+    const response: { id: string } = await this.put(
       `/datasets/${encodeURIComponent(args.name)}/items/${encodeURIComponent(args.itemId)}`,
       { data: args.data, splitNames: args.splits ?? [] },
     );
+
+    console.log('RESPONSEE', response);
+
+    return { revisionId: response.id };
   }
 }
