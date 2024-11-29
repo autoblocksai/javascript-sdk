@@ -513,4 +513,152 @@ describe('Autoblocks Client', () => {
       );
     });
   });
+
+  describe('createDatasetItem', () => {
+    it('Should create a dataset item', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.createDatasetItem({
+        name: 'dataset-123',
+        data: { key: 'value' },
+      });
+
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+          body: JSON.stringify({ data: { key: 'value' }, splitNames: [] }),
+        }),
+      );
+    });
+
+    it('Should create a dataset item with split names', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.createDatasetItem({
+        name: 'dataset-123',
+        data: { key: 'value' },
+        splits: ['split1', 'split2'],
+      });
+
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items`,
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+          body: JSON.stringify({
+            data: { key: 'value' },
+            splitNames: ['split1', 'split2'],
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('deleteDatasetItem', () => {
+    it('Should delete a dataset item', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.deleteDatasetItem({
+        name: 'dataset-123',
+        itemId: 'item-456',
+      });
+
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items/item-456`,
+        expect.objectContaining({
+          method: 'DELETE',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+        }),
+      );
+    });
+  });
+
+  describe('updateDatasetItem', () => {
+    it('Should update a dataset item', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.updateDatasetItem({
+        name: 'dataset-123',
+        itemId: 'item-456',
+        data: { key: 'new-value' },
+        splits: ['split1', 'split2'],
+      });
+
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items/item-456`,
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+          body: JSON.stringify({
+            data: { key: 'new-value' },
+            splitNames: ['split1', 'split2'],
+          }),
+        }),
+      );
+    });
+
+    it('Should update a dataset item without splits', async () => {
+      const mockResponse = { id: 'new-revision-id' };
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockResponse),
+      });
+
+      const client = new AutoblocksAPIClient('mock-api-key');
+      const result = await client.updateDatasetItem({
+        name: 'dataset-123',
+        itemId: 'item-456',
+        data: { key: 'new-value' },
+      });
+
+      expect(result).toEqual({ revisionId: 'new-revision-id' });
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${API_ENDPOINT}/datasets/dataset-123/items/item-456`,
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-api-key',
+          }),
+          body: JSON.stringify({
+            data: { key: 'new-value' },
+            splitNames: [],
+          }),
+        }),
+      );
+    });
+  });
 });
