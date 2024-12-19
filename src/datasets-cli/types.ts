@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export enum PropertyTypesEnum {
   String = 'String',
+  ListOfStrings = 'List of Strings',
   Number = 'Number',
   Boolean = 'Boolean',
   Select = 'Select',
@@ -18,6 +19,11 @@ const zCommonFields = z.object({
 const zStringPropertySchema = zCommonFields.extend({
   type: z.literal(PropertyTypesEnum.String),
   defaultValue: z.string().optional(),
+});
+
+const zListOfStringsPropertySchema = zCommonFields.extend({
+  type: z.literal(PropertyTypesEnum.ListOfStrings),
+  defaultValue: z.array(z.string()).optional(),
 });
 
 const zNumberPropertySchema = zCommonFields.extend({
@@ -49,6 +55,7 @@ const zValidJSONPropertySchema = zCommonFields.extend({
 
 export const zPropertySchema = z.discriminatedUnion('type', [
   zStringPropertySchema,
+  zListOfStringsPropertySchema,
   zNumberPropertySchema,
   zBooleanPropertySchema,
   zSelectPropertySchema,
@@ -57,6 +64,9 @@ export const zPropertySchema = z.discriminatedUnion('type', [
 ]);
 
 export type StringPropertySchema = z.infer<typeof zStringPropertySchema>;
+export type ListOfStringsPropertySchema = z.infer<
+  typeof zListOfStringsPropertySchema
+>;
 export type NumberPropertySchema = z.infer<typeof zNumberPropertySchema>;
 export type BooleanPropertySchema = z.infer<typeof zBooleanPropertySchema>;
 export type SelectPropertySchema = z.infer<typeof zSelectPropertySchema>;
