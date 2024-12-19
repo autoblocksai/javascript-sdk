@@ -240,6 +240,43 @@ export class AutoblocksAPIClient {
     return resp.json();
   }
 
+  private async delete<T>(path: string): Promise<T> {
+    const url = `${API_ENDPOINT}${path}`;
+    const resp = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: DELETE ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
+    return resp.json();
+  }
+
+  private async put<T>(path: string, body: unknown): Promise<T> {
+    const url = `${API_ENDPOINT}${path}`;
+    const resp = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        ...AUTOBLOCKS_HEADERS,
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(this.timeoutMs),
+    });
+    if (!resp.ok) {
+      throw new Error(
+        `HTTP Request Error: PUT ${url} "${resp.status} ${resp.statusText}"`,
+      );
+    }
+    return resp.json();
+  }
+
   public async getViews(): Promise<View[]> {
     return this.get('/views');
   }
@@ -423,5 +460,46 @@ export class AutoblocksAPIClient {
     return this.get(
       `/datasets/${encodedName}/schema-versions/${encodedSchemaVersion}${splitsQueryParam}`,
     );
+  }
+
+  public async createDatasetItem(args: {
+    name: string;
+    data: Record<string, unknown>;
+    splits?: string[];
+  }): Promise<{ revisionId: string }> {
+    const response: { id: string } = await this.post(
+      `/datasets/${encodeURIComponent(args.name)}/items`,
+      {
+        data: args.data,
+        splitNames: args.splits ?? [],
+      },
+    );
+
+    return { revisionId: response.id };
+  }
+
+  public async deleteDatasetItem(args: {
+    name: string;
+    itemId: string;
+  }): Promise<{ revisionId: string }> {
+    const response: { id: string } = await this.delete(
+      `/datasets/${encodeURIComponent(args.name)}/items/${encodeURIComponent(args.itemId)}`,
+    );
+
+    return { revisionId: response.id };
+  }
+
+  public async updateDatasetItem(args: {
+    name: string;
+    itemId: string;
+    data: Record<string, unknown>;
+    splits?: string[];
+  }): Promise<{ revisionId: string }> {
+    const response: { id: string } = await this.put(
+      `/datasets/${encodeURIComponent(args.name)}/items/${encodeURIComponent(args.itemId)}`,
+      { data: args.data, splitNames: args.splits ?? [] },
+    );
+
+    return { revisionId: response.id };
   }
 }
