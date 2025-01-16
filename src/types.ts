@@ -26,6 +26,7 @@ export interface TimeDelta {
 
 export const zPromptSchema = z.object({
   id: z.string(),
+  revisionId: z.string(),
   version: z.string(),
   templates: z.array(
     z.object({

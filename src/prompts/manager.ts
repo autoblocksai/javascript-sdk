@@ -25,6 +25,7 @@ import {
   REVISION_UNDEPLOYED_VERSION,
 } from '../util';
 import { renderTemplateWithParams, renderToolWithParams } from './util';
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 
 /**
  * Note that we check for the presence of the CLI environment
@@ -412,6 +413,15 @@ export class AutoblocksPromptManager<
       throw new Error(
         `[${this.id}@${this.majorVersion}] Failed to choose execution prompt. Did you initialize the prompt manager?`,
       );
+    }
+    const testCaseStore = testCaseRunAsyncLocalStorage.getStore();
+    if (testCaseStore) {
+      testCaseStore.revisionUsage.push({
+        entityExternalId: this.id,
+        entityType: 'prompt',
+        revisionId: prompt.revisionId,
+        usedAt: new Date(),
+      });
     }
     const ctx = new PromptExecutionContext<PromptId, MajorVersion>(prompt);
     return fn({ prompt: ctx });

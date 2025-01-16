@@ -12,7 +12,7 @@ import * as testingUtilModule from '../../src/testing/util';
 import crypto from 'crypto';
 import { isMatch, omit } from 'lodash';
 import { API_ENDPOINT, AutoblocksEnvVar } from '../../src/util';
-
+import { AutoblocksPromptManager } from '../../src/prompts';
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
 
 interface MyTestCase {
@@ -29,6 +29,17 @@ describe('Testing SDK', () => {
   const mockRunId = 'mock-run-id';
   const mockTestCaseResultId = 'mock-test-case-result-id';
   const mockAPIKey = 'mock-api-key';
+  const mockPrompt = {
+    id: 'my-prompt-id',
+    revisionId: 'my-revision-id',
+    version: '1.0',
+    templates: [
+      {
+        id: 'my-template-id',
+        template: 'Hello, {{ name }}!',
+      },
+    ],
+  };
 
   beforeEach(() => {
     mockFetch = jest.spyOn(global, 'fetch').mockImplementation((url) => {
@@ -39,6 +50,9 @@ describe('Testing SDK', () => {
           }
           if (url.toString().endsWith('/results')) {
             return Promise.resolve({ id: mockTestCaseResultId });
+          }
+          if (url.toString().includes('prompts')) {
+            return Promise.resolve(mockPrompt);
           }
           return Promise.resolve({});
         },
@@ -532,6 +546,84 @@ describe('Testing SDK', () => {
     });
   });
 
+  it('tracks prompt manager usage', async () => {
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [{ x: 1, y: 2 }],
+      testCaseHash: ['x', 'y'],
+      fn: async ({ testCase }) => {
+        const promptManager = new AutoblocksPromptManager({
+          // @ts-expect-error this is just a test
+          id: 'my-prompt-id',
+          version: {
+            major: '1',
+            // @ts-expect-error this is just a test
+            minor: '0',
+          },
+          apiKey: 'mock-api-key',
+        });
+
+        await promptManager.init();
+
+        promptManager.exec(() => {});
+
+        return `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`;
+      },
+    });
+
+    // Verify the test run requests
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: mockRunId,
+        testCaseHash: md5(`12`),
+        testCaseBody: { x: 1, y: 2 },
+        testCaseOutput: '1 + 2 = 3',
+        testCaseRevisionUsage: [
+          {
+            entityExternalId: 'my-prompt-id',
+            entityType: 'prompt',
+            revisionId: 'my-revision-id',
+          },
+        ],
+      },
+    });
+
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: mockRunId,
+      },
+    });
+
+    // Verify the prompt manager request
+    const promptRequests = mockFetch.mock.calls.filter((call) =>
+      call[0].toString().includes('/prompts/'),
+    );
+    expect(promptRequests).toHaveLength(1);
+    expect(promptRequests[0][0]).toEqual(
+      `${API_ENDPOINT}/prompts/my-prompt-id/major/1/minor/0`,
+    );
+    expect(promptRequests[0][1]).toEqual({
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer mock-api-key',
+        'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+      },
+      signal: expect.any(AbortSignal),
+    });
+  });
+
   /**
    * If we set max concurrency to 1 for both test cases and
    * evaluators, the order is deterministic.
@@ -596,6 +688,7 @@ describe('Testing SDK', () => {
           testCaseHash: md5(`12`),
           testCaseBody: { x: 1, y: 2 },
           testCaseOutput: '1 + 2 = 3',
+          testCaseRevisionUsage: [],
         },
       },
       {
@@ -606,6 +699,7 @@ describe('Testing SDK', () => {
           testCaseHash: md5(`34`),
           testCaseBody: { x: 3, y: 4 },
           testCaseOutput: '3 + 4 = 7',
+          testCaseRevisionUsage: [],
         },
       },
       {

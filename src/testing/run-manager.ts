@@ -146,6 +146,7 @@ export class RunManager<
         testId: this.testExternalId,
         runId: this.runId,
         testEvents: [],
+        revisionUsage: [],
       },
       async () => {
         await this.sendTestCaseResult({

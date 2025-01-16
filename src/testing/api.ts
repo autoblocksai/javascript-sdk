@@ -175,16 +175,30 @@ export async function sendStartRun(args: {
   return startResp.data.id;
 }
 
+function getTestCaseRunStore(args: {
+  testExternalId: string;
+  testCaseHash: string;
+}) {
+  const store = testCaseRunAsyncLocalStorage.getStore();
+  if (!store) {
+    throw new Error('No test case run store found');
+  }
+  if (
+    store.testId !== args.testExternalId ||
+    store.testCaseHash !== args.testCaseHash
+  ) {
+    throw new Error('Test case run store does not match the test case result');
+  }
+  return store;
+}
+
 async function sendEvents(args: {
   testExternalId: string;
   runId: string;
   testCaseHash: string;
   testCaseResultId: string;
 }): Promise<void> {
-  const store = testCaseRunAsyncLocalStorage.getStore();
-  if (!store) {
-    throw new Error('No test case run store found');
-  }
+  const store = getTestCaseRunStore(args);
   if (
     store.testId !== args.testExternalId ||
     store.testCaseHash !== args.testCaseHash
@@ -221,6 +235,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
 }): Promise<string> {
+  const store = getTestCaseRunStore(args);
   const serializedOutput = isPrimitive(args.testCaseOutput)
     ? args.testCaseOutput
     : JSON.stringify(args.testCaseOutput);
@@ -244,6 +259,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
         testCaseHumanReviewInputFields: serializedHumanReviewInputFields,
         testCaseHumanReviewOutputFields: serializedHumanReviewOutputFields,
         datasetItemId: args.datasetItemId,
+        testCaseRevisionUsage: store.revisionUsage,
       },
     });
     const resultId = resp.data.id;
@@ -264,6 +280,7 @@ export async function sendTestCaseResult<TestCaseType, OutputType>(args: {
       testCaseHash: args.testCaseHash,
       testCaseDurationMs: args.testCaseDurationMs,
       datasetItemId: args.datasetItemId,
+      testCaseRevisionUsage: store.revisionUsage,
     },
   });
   const resultId = resp.data.id;

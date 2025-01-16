@@ -94,6 +94,13 @@ export interface HumanReviewField {
   contentType?: HumanReviewFieldContentType;
 }
 
+export interface RevisionUsage {
+  entityExternalId: string;
+  entityType: 'prompt' | 'config';
+  revisionId: string;
+  usedAt: Date;
+}
+
 /**
  * A choice used in an LLM judge evaluator.
  */
