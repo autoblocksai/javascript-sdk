@@ -160,6 +160,7 @@ describe('Prompt Manager', () => {
 
       const mockPrompt = {
         id: 'my-prompt-id',
+        revisionId: 'my-revision-id',
         version: '1.0',
         templates: [
           {
@@ -250,6 +251,7 @@ describe('Prompt Manager', () => {
 
       const mockPrompt = {
         id: 'my-prompt-id',
+        revisionId: 'my-revision-id',
         version: '1.0',
         templates: [
           {
