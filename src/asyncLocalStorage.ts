@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { HumanReviewField } from './testing/models';
+import type { HumanReviewField, RevisionUsage } from './testing/models';
 
 export const testCaseRunAsyncLocalStorage = new AsyncLocalStorage<{
   testCaseHash: string;
@@ -14,6 +14,7 @@ export const testCaseRunAsyncLocalStorage = new AsyncLocalStorage<{
       humanReviewFields: HumanReviewField[] | undefined;
     };
   }[];
+  revisionUsage: RevisionUsage[];
 }>();
 
 // This gets exported from the testing package since it is testing related.
