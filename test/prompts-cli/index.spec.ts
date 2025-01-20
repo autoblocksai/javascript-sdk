@@ -32,8 +32,10 @@ describe('Prompts CLI', () => {
                   model: 'gpt-4',
                   presencePenalty: 0.3,
                   stopSequences: [],
+                  seed: 4096,
                   temperature: 0.7,
                   topP: 1,
+                  responseFormat: { type: 'json_schema' },
                 },
               },
             },
@@ -65,8 +67,10 @@ describe('Prompts CLI', () => {
                   model: 'gpt-4',
                   presencePenalty: -0.3,
                   stopSequences: [],
+                  seed: 4096,
                   temperature: 0.7,
                   topP: 1,
+                  responseFormat: { type: 'json_object' },
                 },
               },
             },
@@ -128,6 +132,11 @@ describe('Prompts CLI', () => {
         'maxTokens': number;
         'model': string;
         'presencePenalty': number;
+        'responseFormat': {
+          'type': string;
+        };
+        'seed': number;
+        'stopSequences': Array<never>;
         'temperature': number;
         'topP': number;
       };
@@ -154,6 +163,11 @@ describe('Prompts CLI', () => {
         'maxTokens': number;
         'model': string;
         'presencePenalty': number;
+        'responseFormat': {
+          'type': string;
+        };
+        'seed': number;
+        'stopSequences': Array<never>;
         'temperature': number;
         'topP': number;
       };

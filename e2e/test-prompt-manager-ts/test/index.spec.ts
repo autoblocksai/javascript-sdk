@@ -56,6 +56,8 @@ describe('AutoblocksPromptManager v1.0', () => {
         stopSequences: [],
         temperature: 0.7,
         topP: 1,
+        seed: 4096,
+        responseFormat: { type: 'json_schema' },
       });
     });
   });
@@ -84,6 +86,8 @@ describe('AutoblocksPromptManager v1.0', () => {
             stopSequences: [],
             temperature: 0.7,
             topP: 1,
+            seed: 4096,
+            responseFormat: { type: 'json_schema' },
           },
         },
         tools: undefined,
@@ -132,6 +136,8 @@ describe('AutoblocksPromptManager v1 latest', () => {
         stopSequences: [],
         temperature: 0.7,
         topP: 1,
+        seed: 2048,
+        responseFormat: { type: 'json_object' },
       });
     });
   });
@@ -160,6 +166,8 @@ describe('AutoblocksPromptManager v1 latest', () => {
             stopSequences: [],
             temperature: 0.7,
             topP: 1,
+            seed: 2048,
+            responseFormat: { type: 'json_object' },
           },
         },
         tools: undefined,
@@ -218,6 +226,8 @@ describe('AutoblocksPromptManager v2.1', () => {
         stopSequences: [],
         temperature: 0.7,
         topP: 1,
+        seed: 8192,
+        responseFormat: { type: 'json_object' },
       });
     });
   });
@@ -250,6 +260,8 @@ describe('AutoblocksPromptManager v2.1', () => {
             stopSequences: [],
             temperature: 0.7,
             topP: 1,
+            seed: 8192,
+            responseFormat: { type: 'json_schema' },
           },
         },
         tools: undefined,
@@ -364,6 +376,8 @@ describe('Pinned Undeployed', () => {
             temperature: 0.3,
             topP: 1,
             stopSequences: [],
+            seed: 8192,
+            responseFormat: { type: 'json_schema' },
           },
         },
         tools: undefined,
