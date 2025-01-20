@@ -56,8 +56,6 @@ describe('AutoblocksPromptManager v1.0', () => {
         stopSequences: [],
         temperature: 0.7,
         topP: 1,
-        seed: 4096,
-        responseFormat: { type: 'json_schema' },
       });
     });
   });
@@ -86,8 +84,6 @@ describe('AutoblocksPromptManager v1.0', () => {
             stopSequences: [],
             temperature: 0.7,
             topP: 1,
-            seed: 4096,
-            responseFormat: { type: 'json_schema' },
           },
         },
         tools: undefined,
@@ -136,8 +132,6 @@ describe('AutoblocksPromptManager v1 latest', () => {
         stopSequences: [],
         temperature: 0.7,
         topP: 1,
-        seed: 2048,
-        responseFormat: { type: 'json_object' },
       });
     });
   });
@@ -166,8 +160,6 @@ describe('AutoblocksPromptManager v1 latest', () => {
             stopSequences: [],
             temperature: 0.7,
             topP: 1,
-            seed: 2048,
-            responseFormat: { type: 'json_object' },
           },
         },
         tools: undefined,
@@ -226,8 +218,6 @@ describe('AutoblocksPromptManager v2.1', () => {
         stopSequences: [],
         temperature: 0.7,
         topP: 1,
-        seed: 8192,
-        responseFormat: { type: 'json_object' },
       });
     });
   });
@@ -260,8 +250,6 @@ describe('AutoblocksPromptManager v2.1', () => {
             stopSequences: [],
             temperature: 0.7,
             topP: 1,
-            seed: 8192,
-            responseFormat: { type: 'json_schema' },
           },
         },
         tools: undefined,
@@ -336,7 +324,7 @@ describe('Pinned Undeployed', () => {
     id: 'used-by-ci-dont-delete',
     version: {
       major: 'dangerously-use-undeployed',
-      minor: 'clvig4j4l0003tskj39y42nys',
+      minor: 'cm65c408x00031djbx1g4xrnn',
     },
     apiKey: process.env.AUTOBLOCKS_API_KEY_USER,
   });
@@ -353,7 +341,7 @@ describe('Pinned Undeployed', () => {
     manager.exec(({ prompt }) => {
       expect(prompt.track()).toEqual({
         id: 'used-by-ci-dont-delete',
-        version: 'revision:clvig4j4l0003tskj39y42nys',
+        version: 'revision:cm65c408x00031djbx1g4xrnn',
         templates: [
           {
             id: 'template-a',
@@ -376,11 +364,11 @@ describe('Pinned Undeployed', () => {
             temperature: 0.3,
             topP: 1,
             stopSequences: [],
-            seed: 8192,
-            responseFormat: { type: 'json_schema' },
+            seed: 4096,
+            responseFormat: 'json_object',
           },
         },
-        tools: undefined,
+        tools: [],
       });
     });
   });
