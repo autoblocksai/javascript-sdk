@@ -324,7 +324,7 @@ describe('Pinned Undeployed', () => {
     id: 'used-by-ci-dont-delete',
     version: {
       major: 'dangerously-use-undeployed',
-      minor: 'cm6gr3yz30003abjh9754wf2t',
+      minor: 'cm6grg7lk0003rc2qzr9okfcd',
     },
     apiKey: process.env.AUTOBLOCKS_API_KEY_USER,
   });
@@ -341,7 +341,7 @@ describe('Pinned Undeployed', () => {
     manager.exec(({ prompt }) => {
       expect(prompt.track()).toEqual({
         id: 'used-by-ci-dont-delete',
-        version: 'revision:cm6gr3yz30003abjh9754wf2t',
+        version: 'revision:cm6grg7lk0003rc2qzr9okfcd',
         templates: [
           {
             id: 'template-a',
