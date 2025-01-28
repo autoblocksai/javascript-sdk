@@ -154,9 +154,22 @@ function makeTypeScriptTypeFromValue(val: unknown): string | undefined {
     return 'number';
   } else if (typeof val === 'boolean') {
     return 'boolean';
-  } else if (Array.isArray(val) && val.length > 0) {
+  } else if (Array.isArray(val)) {
+    if (val.length === 0) {
+      return 'Array<never>';
+    }
     const item = val[0];
     return `Array<${makeTypeScriptTypeFromValue(item)}>`;
+  } else if (typeof val === 'object' && val !== null) {
+    let result = '{';
+    for (const [key, value] of Object.entries(val)) {
+      const type = makeTypeScriptTypeFromValue(value);
+      if (type) {
+        result += `\n          '${key}': ${type};`;
+      }
+    }
+    result += '\n        }';
+    return result;
   }
 
   return undefined;
