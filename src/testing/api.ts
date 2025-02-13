@@ -7,6 +7,7 @@ import {
   isCLIRunning,
   isCI,
   ThirdPartyEnvVar,
+  isGitHubCommentDisabled,
 } from '../util';
 import { Evaluation, HumanReviewField } from './models';
 import { determineIfEvaluationPassed, isPrimitive } from './util';
@@ -419,7 +420,13 @@ export async function sendGitHubComment() {
   const githubToken = readEnv(ThirdPartyEnvVar.GITHUB_TOKEN);
   const buildId = readEnv(AutoblocksEnvVar.AUTOBLOCKS_CI_TEST_RUN_BUILD_ID);
 
-  if (!githubToken || !buildId || !isCI() || isCLIRunning()) {
+  if (
+    !githubToken ||
+    !buildId ||
+    !isCI() ||
+    isCLIRunning() ||
+    isGitHubCommentDisabled()
+  ) {
     return;
   }
 
