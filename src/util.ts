@@ -16,6 +16,7 @@ export enum AutoblocksEnvVar {
   AUTOBLOCKS_CI_TEST_RUN_BUILD_ID = 'AUTOBLOCKS_CI_TEST_RUN_BUILD_ID',
   AUTOBLOCKS_SLACK_WEBHOOK_URL = 'AUTOBLOCKS_SLACK_WEBHOOK_URL',
   AUTOBLOCKS_TEST_RUN_MESSAGE = 'AUTOBLOCKS_TEST_RUN_MESSAGE',
+  AUTOBLOCKS_DISABLE_GITHUB_COMMENT = 'AUTOBLOCKS_DISABLE_GITHUB_COMMENT',
 }
 
 export enum ThirdPartyEnvVar {
@@ -61,4 +62,8 @@ export function isCI(): boolean {
 
 export function isCLIRunning(): boolean {
   return readEnv(AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS) !== undefined;
+}
+
+export function isGitHubCommentDisabled(): boolean {
+  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_DISABLE_GITHUB_COMMENT) === '1';
 }
