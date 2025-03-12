@@ -445,27 +445,48 @@ describe('Autoblocks Client', () => {
           json: () =>
             Promise.resolve({
               pair: {
-                id: 'pair-1',
-                hash: 'hash123',
-                chosenOutputId: 'output-1',
-                testCaseResults: [
+                pairId: 'pair-1',
+                chosenId: 'chosen-1',
+                testCases: [
                   {
-                    id: 'result-1',
-                    runId: 'run-1',
-                    hash: 'hash456',
-                    datasetItemId: 'dataset-1',
-                    durationMs: 1000,
-                    events: [{ id: 'event-1', message: 'Test event' }],
-                    body: { input: 'test input' },
-                    output: { result: 'test output' },
-                  },
-                  {
-                    id: 'result-2',
-                    runId: 'run-2',
-                    hash: 'hash789',
-                    events: [{ id: 'event-2', message: 'Another test event' }],
-                    body: { input: 'another test input' },
-                    output: { result: 'another test output' },
+                    id: 'test-case-1',
+                    inputFields: [
+                      {
+                        id: 'input-1',
+                        name: 'input name',
+                        value: 'input value',
+                        contentType: 'text',
+                      },
+                    ],
+                    outputFields: [
+                      {
+                        id: 'output-1',
+                        name: 'output name',
+                        value: 'output value',
+                        contentType: 'text',
+                      },
+                    ],
+                    fieldComments: [
+                      {
+                        fieldId: 'field-1',
+                        startIdx: 0,
+                        endIdx: 5,
+                        value: 'comment',
+                        inRelationToGradeName: 'grade-1',
+                      },
+                    ],
+                    inputComments: [
+                      {
+                        value: 'input comment',
+                        inRelationToGradeName: 'grade-1',
+                      },
+                    ],
+                    outputComments: [
+                      {
+                        value: 'output comment',
+                        inRelationToAutomatedEvaluationId: 'eval-1',
+                      },
+                    ],
                   },
                 ],
               },
@@ -478,27 +499,48 @@ describe('Autoblocks Client', () => {
       });
 
       expect(result.pair).toEqual({
-        id: 'pair-1',
-        hash: 'hash123',
-        chosenOutputId: 'output-1',
-        testCaseResults: [
+        pairId: 'pair-1',
+        chosenId: 'chosen-1',
+        testCases: [
           {
-            id: 'result-1',
-            runId: 'run-1',
-            hash: 'hash456',
-            datasetItemId: 'dataset-1',
-            durationMs: 1000,
-            events: expect.arrayContaining([expect.any(Object)]),
-            body: { input: 'test input' },
-            output: { result: 'test output' },
-          },
-          {
-            id: 'result-2',
-            runId: 'run-2',
-            hash: 'hash789',
-            events: expect.arrayContaining([expect.any(Object)]),
-            body: { input: 'another test input' },
-            output: { result: 'another test output' },
+            id: 'test-case-1',
+            inputFields: [
+              {
+                id: 'input-1',
+                name: 'input name',
+                value: 'input value',
+                contentType: 'text',
+              },
+            ],
+            outputFields: [
+              {
+                id: 'output-1',
+                name: 'output name',
+                value: 'output value',
+                contentType: 'text',
+              },
+            ],
+            fieldComments: [
+              {
+                fieldId: 'field-1',
+                startIdx: 0,
+                endIdx: 5,
+                value: 'comment',
+                inRelationToGradeName: 'grade-1',
+              },
+            ],
+            inputComments: [
+              {
+                value: 'input comment',
+                inRelationToGradeName: 'grade-1',
+              },
+            ],
+            outputComments: [
+              {
+                value: 'output comment',
+                inRelationToAutomatedEvaluationId: 'eval-1',
+              },
+            ],
           },
         ],
       });
