@@ -167,17 +167,6 @@ interface TestResultWithEvaluations<T = unknown, U = unknown> {
   }[];
 }
 
-interface TestResult<T = unknown, U = unknown> {
-  id: string;
-  runId: string;
-  hash: string;
-  datasetItemId?: string;
-  durationMs?: number;
-  events?: Event[];
-  body: T;
-  output: U;
-}
-
 export class AutoblocksAPIClient {
   private readonly apiKey: string;
   private readonly timeoutMs: number;
@@ -355,10 +344,41 @@ export class AutoblocksAPIClient {
     pairId: string;
   }): Promise<{
     pair: {
-      id: string;
-      hash: string;
-      chosenOutputId?: string;
-      testCaseResults: TestResult[];
+      pairId: string;
+      chosenId?: string;
+      testCases: {
+        id: string;
+        inputFields: {
+          id: string;
+          name: string;
+          value: string;
+          contentType: HumanReviewFieldContentType;
+        }[];
+        outputFields: {
+          id: string;
+          name: string;
+          value: string;
+          contentType: HumanReviewFieldContentType;
+        }[];
+        fieldComments: {
+          fieldId: string;
+          startIdx?: number;
+          endIdx?: number;
+          value: string;
+          inRelationToGradeName?: string;
+          inRelationToAutomatedEvaluationId?: string;
+        }[];
+        inputComments: {
+          value: string;
+          inRelationToGradeName?: string;
+          inRelationToAutomatedEvaluationId?: string;
+        }[];
+        outputComments: {
+          value: string;
+          inRelationToGradeName?: string;
+          inRelationToAutomatedEvaluationId?: string;
+        }[];
+      }[];
     };
   }> {
     return this.get(
