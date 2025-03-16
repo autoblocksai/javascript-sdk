@@ -4,10 +4,8 @@ import {
   AutoblocksEnvVar,
   RevisionSpecialVersionsEnum,
   AUTOBLOCKS_HEADERS,
+  V2_API_ENDPOINT,
 } from '../util';
-
-// export const V2_API_ENDPOINT = 'https://dev-api.autoblocks.ai';
-export const V2_API_ENDPOINT = 'http://localhost:3004';
 
 interface ParsedTemplate {
   id: string;

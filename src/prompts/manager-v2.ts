@@ -216,6 +216,13 @@ export class AutoblocksPromptManagerV2<
         },
         signal: AbortSignal.timeout(args.timeoutMs),
       });
+
+      if (!resp.ok) {
+        throw new Error(
+          `Failed to fetch from V2 API: ${resp.status} ${resp.statusText}`,
+        );
+      }
+
       const data = await resp.json();
       return zPromptSchema.parse(data);
     } catch (err) {
@@ -286,6 +293,10 @@ export class AutoblocksPromptManagerV2<
       throw new Error(
         `Can't override prompt '${this.id}' with revision '${args.revisionId}' because it is not compatible with major version '${this.majorVersion}'.`,
       );
+    }
+
+    if (!resp.ok) {
+      throw new Error(`HTTP Error: ${resp.status} ${resp.statusText}`);
     }
 
     const data = await resp.json();
