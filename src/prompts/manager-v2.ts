@@ -23,12 +23,10 @@ import {
   RevisionSpecialVersionsEnum,
   AUTOBLOCKS_HEADERS,
   REVISION_UNDEPLOYED_VERSION,
+  V2_API_ENDPOINT,
 } from '../util';
 import { renderTemplateWithParams, renderToolWithParams } from './util';
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
-
-// V2 API endpoint
-export const V2_API_ENDPOINT = 'https://dev-api.autoblocks.ai';
 
 /**
  * Note that we check for the presence of the CLI environment

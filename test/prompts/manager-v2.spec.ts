@@ -1,10 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import { AutoblocksEnvVar, RevisionSpecialVersionsEnum } from '../../src/util';
+import {
+  AutoblocksEnvVar,
+  RevisionSpecialVersionsEnum,
+  V2_API_ENDPOINT,
+} from '../../src/util';
 import { AutoblocksPromptManagerV2 } from '../../src/prompts';
-
-// Hardcoded for testing
-const V2_API_ENDPOINT = 'https://dev-api.autoblocks.ai';
 
 describe('Prompt Manager V2', () => {
   let mockFetch;
