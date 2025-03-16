@@ -9,6 +9,7 @@
   "scripts": {
     "test": "jest",
     "gen": "prompts generate",
+    "gen:v2": "prompts generate-v2",
     "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
   },
   "dependencies": {

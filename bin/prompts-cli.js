@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
-const { run } = require('../dist/prompts-cli');
+const { run, runV2 } = require('../dist/prompts-cli');
 
 async function main() {
   if (process.argv[2] === 'generate') {
     await run();
+  } else if (process.argv[2] === 'generate-v2') {
+    console.log('Generating V2 prompts...');
+    await runV2();
   } else {
     console.error(`Unknown command: ${process.argv.slice(2).join(' ')}`);
   }
