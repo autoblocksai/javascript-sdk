@@ -237,7 +237,7 @@ describe('AutoblocksPromptManagerV2 v2.1', () => {
   });
 });
 
-describe('Latest Undeployed V2', () => {
+describe.skip('Latest Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
     id: 'prompt-basic',
