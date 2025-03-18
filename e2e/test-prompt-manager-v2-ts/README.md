@@ -23,20 +23,6 @@ npm test
 
 Before running the tests, make sure to set the `AUTOBLOCKS_V2_API_KEY` environment variable with a valid API key for the V2 API.
 
-## Handling Network Connections
-
-The tests make network requests to the Autoblocks API, which can sometimes result in Jest detecting open handles that prevent it from exiting cleanly. To address this, we:
-
-1. Register all manager instances in a collection
-2. Close all managers after all tests complete
-3. Add a small delay to allow network connections to fully close
-
-If you're still seeing issues with open handles, you can run Jest with the `--forceExit` flag:
-
-```bash
-npm test -- --forceExit
-```
-
 ## Required Prompts in Autoblocks UI
 
 To run these tests successfully, you'll need to create the following in the Autoblocks UI:
