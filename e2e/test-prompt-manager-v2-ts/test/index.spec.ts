@@ -279,12 +279,12 @@ describe('AutoblocksPromptManagerV2 v1 weighted', () => {
 describe('Latest Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
-    // @ts-expect-error
-    id: 'prompt-basic22',
+    id: 'prompt-basic',
     version: {
       major: 'dangerously-use-undeployed',
       minor: 'latest',
     },
+    initTimeout: { seconds: 5 },
   });
 
   beforeAll(async () => {
@@ -306,12 +306,12 @@ describe('Latest Undeployed V2', () => {
 describe('Pinned Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
-    // @ts-expect-error
-    id: 'prompt-basic22',
+    id: 'prompt-basic',
     version: {
       major: 'dangerously-use-undeployed',
       minor: 'cm6grg7lk0003rc2qzr9okfcd',
     },
+    initTimeout: { seconds: 5 },
   });
 
   beforeAll(async () => {
