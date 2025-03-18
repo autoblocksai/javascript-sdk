@@ -7,7 +7,7 @@
   },
   "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "jest --forceExit",
     "gen:v2": "prompts generate-v2",
     "gen:v2:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen:v2\""
   },

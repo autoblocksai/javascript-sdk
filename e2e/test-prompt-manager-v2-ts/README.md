@@ -23,61 +23,64 @@ npm test
 
 Before running the tests, make sure to set the `AUTOBLOCKS_V2_API_KEY` environment variable with a valid API key for the V2 API.
 
+## Handling Network Connections
+
+The tests make network requests to the Autoblocks API, which can sometimes result in Jest detecting open handles that prevent it from exiting cleanly. To address this, we:
+
+1. Register all manager instances in a collection
+2. Close all managers after all tests complete
+3. Add a small delay to allow network connections to fully close
+
+If you're still seeing issues with open handles, you can run Jest with the `--forceExit` flag:
+
+```bash
+npm test -- --forceExit
+```
+
 ## Required Prompts in Autoblocks UI
 
 To run these tests successfully, you'll need to create the following in the Autoblocks UI:
 
 ### App
 
-Create a single app with ID `app-sdk-test`.
+Create a single app with ID `jqg74mpzzovssq38j055yien`.
 
 ### Prompts
 
 1. **prompt-basic**
 
-   - Major version 1 with minors 0 and 1
+   - Major version 1 with minor 0
    - Major version 2 with minor 1
    - Templates:
-     - `template-a`: `Hello, {{ name }}! The weather is {{ weather }} today.`
-     - `template-b`: `Hello, {{ optional? }}! My name is {{ name }}.`
-     - `template-c`: `I am template c and I have no params` (only in major version 2)
+     - `template-a` (v1.0): `Hello, {{name}}! The weather is {{weather}} today.`
+     - `template-b` (v1.0): `Hello, {{ optional? }}! My name is {{ name }}.`
+     - `template-c` (v2.1): `Hello, {{ first_name }}!`
    - Parameters for v1.0:
      ```json
      {
        "frequencyPenalty": 0,
        "maxTokens": 256,
-       "model": "gpt-4",
-       "presencePenalty": 0.3,
+       "model": "gpt-4o",
+       "presencePenalty": 0,
        "stopSequences": [],
        "temperature": 0.7,
        "topP": 1
      }
      ```
-   - Parameters for v1.1 and v2.1:
+   - Parameters for v2.1:
      ```json
      {
-       "frequencyPenalty": 0,
-       "maxTokens": 256,
-       "model": "gpt-4",
-       "presencePenalty": -0.3,
-       "stopSequences": [],
-       "temperature": 0.7,
-       "topP": 1
+       "model": "gpt-4o",
+       "seed": -7324655555050587,
+       "topK": 0
      }
      ```
    - Create a revision with ID `cm6grg7lk0003rc2qzr9okfcd` with these parameters:
      ```json
      {
-       "model": "llama7b-v2-chat",
-       "topK": 0,
-       "maxTokens": 256,
-       "temperature": 0.3,
-       "topP": 1,
-       "stopSequences": [],
-       "seed": 4096,
-       "responseFormat": {
-         "type": "json_object"
-       }
+       "model": "gpt-4o",
+       "seed": -7324655555050587,
+       "topK": 0
      }
      ```
 
