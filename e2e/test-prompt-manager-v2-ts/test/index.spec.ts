@@ -98,247 +98,247 @@ describe('AutoblocksPromptManagerV2 v1.0', () => {
   });
 });
 
-// describe('AutoblocksPromptManagerV2 v1 latest', () => {
-//   const manager = new AutoblocksPromptManagerV2({
-//     appId: APP_ID,
-//     id: 'prompt-basic',
-//     version: {
-//       major: '1',
-//       minor: 'latest',
-//     },
-//   });
+describe('AutoblocksPromptManagerV2 v1 latest', () => {
+  const manager = new AutoblocksPromptManagerV2({
+    appId: APP_ID,
+    id: 'prompt-basic',
+    version: {
+      major: '1',
+      minor: 'latest',
+    },
+  });
 
-//   beforeAll(async () => {
-//     await manager.init();
-//   });
+  beforeAll(async () => {
+    await manager.init();
+  });
 
-//   afterAll(() => {
-//     manager.close();
-//   });
+  afterAll(() => {
+    manager.close();
+  });
 
-//   it('renders prompts', () => {
-//     manager.exec(({ prompt }) => {
-//       const rendered = prompt.renderTemplate({
-//         template: 'template-a',
-//         params: {
-//           name: 'Alice',
-//           weather: 'sunny',
-//         },
-//       });
-//       expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
-//     });
-//   });
+  it('renders prompts', () => {
+    manager.exec(({ prompt }) => {
+      const rendered = prompt.renderTemplate({
+        template: 'template-a',
+        params: {
+          name: 'Alice',
+          weather: 'sunny',
+        },
+      });
+      expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
+    });
+  });
 
-//   it('provides params', () => {
-//     manager.exec(({ prompt }) => {
-//       expect(prompt.params).toEqual({
-//         frequencyPenalty: 0,
-//         maxTokens: 256,
-//         model: 'gpt-4o',
-//         presencePenalty: 0,
-//         stopSequences: [],
-//         temperature: 0.7,
-//         topP: 1,
-//       });
-//     });
-//   });
+  it('provides params', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.params).toEqual({
+        frequencyPenalty: 0,
+        maxTokens: 256,
+        model: 'gpt-4o',
+        presencePenalty: 0,
+        stopSequences: [],
+        temperature: 0.7,
+        topP: 1,
+      });
+    });
+  });
 
-//   it('provides tracking info', () => {
-//     manager.exec(({ prompt }) => {
-//       expect(prompt.track()).toEqual({
-//         id: 'prompt-basic',
-//         version: '1.0',
-//         templates: [
-//           {
-//             id: 'template-a',
-//             template: 'Hello, {{name}}! The weather is {{weather}} today.',
-//           },
-//           {
-//             id: 'template-b',
-//             template: 'Hello, {{ optional? }}! My name is {{ name }}.',
-//           },
-//         ],
-//         params: {
-//           params: {
-//             frequencyPenalty: 0,
-//             maxTokens: 256,
-//             model: 'gpt-4o',
-//             presencePenalty: 0,
-//             stopSequences: [],
-//             temperature: 0.7,
-//             topP: 1,
-//           },
-//         },
-//         tools: [],
-//       });
-//     });
-//   });
-// });
+  it('provides tracking info', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.track()).toEqual({
+        id: 'prompt-basic',
+        version: '1.0',
+        templates: [
+          {
+            id: 'template-a',
+            template: 'Hello, {{name}}! The weather is {{weather}} today.',
+          },
+          {
+            id: 'template-b',
+            template: 'Hello, {{ optional? }}! My name is {{ name }}.',
+          },
+        ],
+        params: {
+          params: {
+            frequencyPenalty: 0,
+            maxTokens: 256,
+            model: 'gpt-4o',
+            presencePenalty: 0,
+            stopSequences: [],
+            temperature: 0.7,
+            topP: 1,
+          },
+        },
+        tools: [],
+      });
+    });
+  });
+});
 
-// describe('AutoblocksPromptManagerV2 v2.1', () => {
-//   const manager = new AutoblocksPromptManagerV2({
-//     appId: APP_ID,
-//     id: 'prompt-basic',
-//     version: {
-//       major: '2',
-//       minor: '1',
-//     },
-//   });
+describe('AutoblocksPromptManagerV2 v2.1', () => {
+  const manager = new AutoblocksPromptManagerV2({
+    appId: APP_ID,
+    id: 'prompt-basic',
+    version: {
+      major: '2',
+      minor: '1',
+    },
+  });
 
-//   beforeAll(async () => {
-//     await manager.init();
-//   });
+  beforeAll(async () => {
+    await manager.init();
+  });
 
-//   afterAll(() => {
-//     manager.close();
-//   });
+  afterAll(() => {
+    manager.close();
+  });
 
-//   it('renders prompts', () => {
-//     manager.exec(({ prompt }) => {
-//       const rendered = prompt.renderTemplate({
-//         template: 'template-c',
-//         params: {
-//           first_name: 'Alice',
-//         },
-//       });
-//       expect(rendered).toEqual('Hello, Alice!');
-//     });
-//   });
+  it('renders prompts', () => {
+    manager.exec(({ prompt }) => {
+      const rendered = prompt.renderTemplate({
+        template: 'template-c',
+        params: {
+          first_name: 'Alice',
+        },
+      });
+      expect(rendered).toEqual('Hello, Alice!');
+    });
+  });
 
-//   it('provides params', () => {
-//     manager.exec(({ prompt }) => {
-//       expect(prompt.params).toEqual({
-//         model: 'gpt-4o',
-//         seed: -7324655555050587,
-//         topK: 0,
-//       });
-//     });
-//   });
+  it('provides params', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.params).toEqual({
+        model: 'gpt-4o',
+        seed: -7324655555050587,
+        topK: 0,
+      });
+    });
+  });
 
-//   it('provides tracking info', () => {
-//     manager.exec(({ prompt }) => {
-//       expect(prompt.track()).toEqual({
-//         id: 'prompt-basic',
-//         version: '2.1',
-//         templates: [
-//           {
-//             id: 'template-c',
-//             template: 'Hello, {{ first_name }}!',
-//           },
-//         ],
-//         params: {
-//           params: {
-//             model: 'gpt-4o',
-//             seed: -7324655555050587,
-//             topK: 0,
-//           },
-//         },
-//         tools: [],
-//       });
-//     });
-//   });
-// });
+  it('provides tracking info', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.track()).toEqual({
+        id: 'prompt-basic',
+        version: '2.1',
+        templates: [
+          {
+            id: 'template-c',
+            template: 'Hello, {{ first_name }}!',
+          },
+        ],
+        params: {
+          params: {
+            model: 'gpt-4o',
+            seed: -7324655555050587,
+            topK: 0,
+          },
+        },
+        tools: [],
+      });
+    });
+  });
+});
 
-// describe('AutoblocksPromptManagerV2 v1 weighted', () => {
-//   const manager = new AutoblocksPromptManagerV2({
-//     appId: APP_ID,
-//     id: 'prompt-basic',
-//     version: {
-//       major: '1',
-//       minor: [
-//         {
-//           version: 'latest',
-//           weight: 10,
-//         },
-//         {
-//           version: '0',
-//           weight: 90,
-//         },
-//       ],
-//     },
-//   });
+describe('AutoblocksPromptManagerV2 v1 weighted', () => {
+  const manager = new AutoblocksPromptManagerV2({
+    appId: APP_ID,
+    id: 'prompt-basic',
+    version: {
+      major: '1',
+      minor: [
+        {
+          version: 'latest',
+          weight: 10,
+        },
+        {
+          version: '0',
+          weight: 90,
+        },
+      ],
+    },
+  });
 
-//   beforeAll(async () => {
-//     await manager.init();
-//   });
+  beforeAll(async () => {
+    await manager.init();
+  });
 
-//   afterAll(() => {
-//     manager.close();
-//   });
+  afterAll(() => {
+    manager.close();
+  });
 
-//   it('provides tracking info', () => {
-//     manager.exec(({ prompt }) => {
-//       const tracking = prompt.track();
-//       // Either 1.0 or 1.1 should be chosen based on their weights
-//       expect(['1.0', '1.1'].includes(tracking.version)).toBe(true);
-//     });
-//   });
-// });
+  it('provides tracking info', () => {
+    manager.exec(({ prompt }) => {
+      const tracking = prompt.track();
+      // Either 1.0 or 1.1 should be chosen based on their weights
+      expect(['1.0', '1.1'].includes(tracking.version)).toBe(true);
+    });
+  });
+});
 
-// describe.skip('Latest Undeployed V2', () => {
-//   const manager = new AutoblocksPromptManagerV2({
-//     appId: APP_ID,
-//     id: 'prompt-basic',
-//     version: {
-//       major: 'dangerously-use-undeployed',
-//       minor: 'latest',
-//     },
-//   });
+describe.skip('Latest Undeployed V2', () => {
+  const manager = new AutoblocksPromptManagerV2({
+    appId: APP_ID,
+    id: 'prompt-basic',
+    version: {
+      major: 'dangerously-use-undeployed',
+      minor: 'latest',
+    },
+  });
 
-//   beforeAll(async () => {
-//     await manager.init();
-//   });
+  beforeAll(async () => {
+    await manager.init();
+  });
 
-//   afterAll(() => {
-//     manager.close();
-//   });
+  afterAll(() => {
+    manager.close();
+  });
 
-//   it('works', () => {
-//     manager.exec(({ prompt }) => {
-//       expect(prompt.track().id).toEqual('prompt-basic');
-//       expect(prompt.track().version.startsWith('revision:')).toBe(true);
-//     });
-//   });
-// });
+  it('works', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.track().id).toEqual('prompt-basic');
+      expect(prompt.track().version.startsWith('revision:')).toBe(true);
+    });
+  });
+});
 
-// describe('Pinned Undeployed V2', () => {
-//   const manager = new AutoblocksPromptManagerV2({
-//     appId: APP_ID,
-//     id: 'prompt-basic',
-//     version: {
-//       major: 'dangerously-use-undeployed',
-//       minor: 'cm6grg7lk0003rc2qzr9okfcd',
-//     },
-//   });
+describe('Pinned Undeployed V2', () => {
+  const manager = new AutoblocksPromptManagerV2({
+    appId: APP_ID,
+    id: 'prompt-basic',
+    version: {
+      major: 'dangerously-use-undeployed',
+      minor: 'cm6grg7lk0003rc2qzr9okfcd',
+    },
+  });
 
-//   beforeAll(async () => {
-//     await manager.init();
-//   });
+  beforeAll(async () => {
+    await manager.init();
+  });
 
-//   afterAll(() => {
-//     manager.close();
-//   });
+  afterAll(() => {
+    manager.close();
+  });
 
-//   it('works', () => {
-//     manager.exec(({ prompt }) => {
-//       expect(prompt.track()).toEqual({
-//         id: 'prompt-basic',
-//         version: 'revision:etv6z712691iu8qawrwnqnl9',
-//         templates: [
-//           {
-//             id: 'template-c',
-//             template: 'Hello, {{ first_name }}!',
-//           },
-//         ],
-//         params: {
-//           params: {
-//             model: 'gpt-4o',
-//             seed: -7324655555050587,
-//             topK: 0,
-//           },
-//         },
-//         tools: [],
-//       });
-//     });
-//   });
-// });
+  it('works', () => {
+    manager.exec(({ prompt }) => {
+      expect(prompt.track()).toEqual({
+        id: 'prompt-basic',
+        version: 'revision:etv6z712691iu8qawrwnqnl9',
+        templates: [
+          {
+            id: 'template-c',
+            template: 'Hello, {{ first_name }}!',
+          },
+        ],
+        params: {
+          params: {
+            model: 'gpt-4o',
+            seed: -7324655555050587,
+            topK: 0,
+          },
+        },
+        tools: [],
+      });
+    });
+  });
+});
