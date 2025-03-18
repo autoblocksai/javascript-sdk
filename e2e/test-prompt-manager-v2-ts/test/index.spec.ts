@@ -279,6 +279,7 @@ describe('AutoblocksPromptManagerV2 v1 weighted', () => {
 describe('Latest Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
+    // @ts-expect-error
     id: 'prompt-basic22',
     version: {
       major: 'dangerously-use-undeployed',
@@ -305,6 +306,7 @@ describe('Latest Undeployed V2', () => {
 describe('Pinned Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
+    // @ts-expect-error
     id: 'prompt-basic22',
     version: {
       major: 'dangerously-use-undeployed',
