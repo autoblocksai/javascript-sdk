@@ -1,5 +1,5 @@
 {
-  "name": "test-prompt-manager-ts",
+  "name": "test-prompt-manager-v2-ts",
   "version": "0.0.0",
   "private": true,
   "engines": {
@@ -8,10 +8,11 @@
   "type": "module",
   "scripts": {
     "test": "jest",
-    "gen": "prompts generate",
-    "gen:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen\""
+    "gen:v2": "prompts generate-v2",
+    "gen:v2:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen:v2\""
   },
   "dependencies": {
+    "@autoblocks/client": "file:.yalc/@autoblocks/client",
     "@types/jest": "*",
     "jest": "*",
     "nodemon": "*",

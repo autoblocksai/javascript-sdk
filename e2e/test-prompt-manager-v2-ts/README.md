@@ -1,0 +1,130 @@
+# AutoblocksPromptManagerV2 Tests
+
+This directory contains tests for the `AutoblocksPromptManagerV2` class, which is used to interact with Autoblocks V2 API for managing prompts.
+
+## Key Differences from V1 Manager Tests
+
+1. **API Version**: These tests are for the V2 API, which uses a different endpoint and authentication mechanism.
+
+2. **Authentication**: V2 only supports owner-type tokens, so all tests use a single API key.
+
+3. **App ID**: V2 requires an `appId` parameter in the constructor, which is used to identify the application that owns the prompts.
+
+4. **Class Name**: Uses `AutoblocksPromptManagerV2` instead of `AutoblocksPromptManager`.
+
+5. **Type Signature**: The class has a different type signature with a new `AppId` generic parameter.
+
+## Running the Tests
+
+```bash
+cd e2e/test-prompt-manager-v2-ts
+npm test
+```
+
+Before running the tests, make sure to set the `AUTOBLOCKS_V2_API_KEY` environment variable with a valid API key for the V2 API.
+
+## Required Prompts in Autoblocks UI
+
+To run these tests successfully, you'll need to create the following in the Autoblocks UI:
+
+### App
+
+Create a single app with ID `app-sdk-test`.
+
+### Prompts
+
+1. **prompt-basic**
+
+   - Major version 1 with minors 0 and 1
+   - Major version 2 with minor 1
+   - Templates:
+     - `template-a`: `Hello, {{ name }}! The weather is {{ weather }} today.`
+     - `template-b`: `Hello, {{ optional? }}! My name is {{ name }}.`
+     - `template-c`: `I am template c and I have no params` (only in major version 2)
+   - Parameters for v1.0:
+     ```json
+     {
+       "frequencyPenalty": 0,
+       "maxTokens": 256,
+       "model": "gpt-4",
+       "presencePenalty": 0.3,
+       "stopSequences": [],
+       "temperature": 0.7,
+       "topP": 1
+     }
+     ```
+   - Parameters for v1.1 and v2.1:
+     ```json
+     {
+       "frequencyPenalty": 0,
+       "maxTokens": 256,
+       "model": "gpt-4",
+       "presencePenalty": -0.3,
+       "stopSequences": [],
+       "temperature": 0.7,
+       "topP": 1
+     }
+     ```
+   - Create a revision with ID `cm6grg7lk0003rc2qzr9okfcd` with these parameters:
+     ```json
+     {
+       "model": "llama7b-v2-chat",
+       "topK": 0,
+       "maxTokens": 256,
+       "temperature": 0.3,
+       "topP": 1,
+       "stopSequences": [],
+       "seed": 4096,
+       "responseFormat": {
+         "type": "json_object"
+       }
+     }
+     ```
+
+2. **prompt-brackets**
+
+   - Major version 1 with minors 1 and 2
+   - Templates:
+
+     - `brackets-nested` (v1.1):
+
+       ```
+       Hello! Please respond in the following format:
+
+       {{
+         "x": {{
+           "y": 1
+         }}
+       }}
+       ```
+
+     - `brackets-inline` (v1.2):
+
+       ```
+       Hello! Please respond in the following format:
+
+       {{"x": {{"y": 1}}}}
+       ```
+
+3. **prompt-tools**
+   - Major version 1 with minor 0
+   - Templates:
+     - `system`: `System Template`
+   - Tools:
+     - `MyTool`:
+       - Description: `This is the description`
+       - Parameters:
+         - `myParam`: (string) with description `{{ description }}`
+
+## Test Coverage
+
+The tests cover all the major functionality of the V2 prompt manager:
+
+- Rendering templates with parameters
+- Handling async execution
+- Accessing prompt parameters
+- Tracking prompt usage
+- Using weighted prompt selection
+- Working with undeployed prompts
+- Rendering tools
+- Handling special characters in templates
