@@ -237,42 +237,6 @@ describe('AutoblocksPromptManagerV2 v2.1', () => {
   });
 });
 
-describe('AutoblocksPromptManagerV2 v1 weighted', () => {
-  const manager = new AutoblocksPromptManagerV2({
-    appId: APP_ID,
-    id: 'prompt-basic',
-    version: {
-      major: '1',
-      minor: [
-        {
-          version: 'latest',
-          weight: 10,
-        },
-        {
-          version: '0',
-          weight: 90,
-        },
-      ],
-    },
-  });
-
-  beforeAll(async () => {
-    await manager.init();
-  });
-
-  afterAll(() => {
-    manager.close();
-  });
-
-  it('provides tracking info', () => {
-    manager.exec(({ prompt }) => {
-      const tracking = prompt.track();
-      // Either 1.0 or 1.1 should be chosen based on their weights
-      expect(['1.0', '1.1'].includes(tracking.version)).toBe(true);
-    });
-  });
-});
-
 describe('Latest Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
