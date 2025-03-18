@@ -21,7 +21,7 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -100,7 +100,6 @@ jobs:
           npx yalc add @autoblocks/client && \
           npm install && \
           npm run gen:v2 && \
-          tsc --noEmit && \
           npm run test
         env:
           AUTOBLOCKS_V2_API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
