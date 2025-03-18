@@ -325,7 +325,7 @@ describe('Pinned Undeployed V2', () => {
   it('works', () => {
     manager.exec(({ prompt }) => {
       expect(prompt.track()).toEqual({
-        id: 'prompt-basic22',
+        id: 'prompt-basic',
         version: 'revision:etv6z712691iu8qawrwnqnl9',
         templates: [
           {
