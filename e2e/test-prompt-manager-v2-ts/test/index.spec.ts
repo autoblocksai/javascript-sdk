@@ -98,6 +98,7 @@ describe('AutoblocksPromptManagerV2 v1.0', () => {
   });
 });
 
+
 describe('AutoblocksPromptManagerV2 v1 latest', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
@@ -275,7 +276,7 @@ describe('AutoblocksPromptManagerV2 v1 weighted', () => {
   });
 });
 
-describe.skip('Latest Undeployed V2', () => {
+describe('Latest Undeployed V2', () => {
   const manager = new AutoblocksPromptManagerV2({
     appId: APP_ID,
     id: 'prompt-basic',
