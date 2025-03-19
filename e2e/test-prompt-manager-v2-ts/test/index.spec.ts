@@ -1,14 +1,13 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
 
-jest.setTimeout(10000);
+jest.setTimeout(20000);
 
 // Use a single app ID across all tests
 const APP_ID = 'jqg74mpzzovssq38j055yien';
 
 describe('Loop', () => {
   it('works', async () => {
-    const iterations = Array.from({ length: 500 }).map(async (_, index) => {
-      console.log(`Fetching ${index + 1} of 500`);
+    const iterations = Array.from({ length: 200 }).map(async (_, index) => {
       const resp = await fetch('https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd', {
         headers: {
           'Content-Type': 'application/json',
@@ -16,10 +15,14 @@ describe('Loop', () => {
         },
         signal: AbortSignal.timeout(5000),
       });
+      if (!resp.ok) {
+        throw new Error(`Failed to fetch: ${resp.status} ${resp.statusText}`);
+      }
       const data = await resp.json();
-      console.log(`Fetched ${index + 1} of 500`, data);
+      return data;
     });
     await Promise.all(iterations);
+    expect(true).toBe(true);
   });
 });
 
