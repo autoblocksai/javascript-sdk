@@ -1,12 +1,12 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect,  } from 'vitest';
 
 // Use a single app ID across all tests
 const APP_ID = 'jqg74mpzzovssq38j055yien';
 
 describe('Loop', () => {
   it('works', async () => {
-    const iterations = Array.from({ length: 10 }).map(async (_, index) => {
+    const iterations = Array.from({ length: 100 }).map(async (_, index) => {
       const resp = await fetch('https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd', {
         headers: {
           'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ describe('Loop', () => {
     });
     await Promise.all(iterations);
     expect(true).toBe(true);
-  });
+  }, { timeout: 30000 });
 });
 
 // describe('AutoblocksPromptManagerV2', () => {
