@@ -7,23 +7,29 @@ const APP_ID = 'jqg74mpzzovssq38j055yien';
 describe('Loop', () => {
   it('works', async () => {
     const iterations = Array.from({ length: 100 }).map(async (_, index) => {
-      const resp = await fetch('https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.AUTOBLOCKS_V2_API_KEY}`,
-        },
-        signal: AbortSignal.timeout(5000),
-      });
-      if (!resp.ok) {
-        console.log('Failed at', index);
-        throw new Error(`Failed to fetch: ${resp.status} ${resp.statusText}`);
+      try {
+        const resp = await fetch('https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.AUTOBLOCKS_V2_API_KEY}`,
+          },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (!resp.ok) {
+
+          throw new Error(`Failed to fetch: ${resp.status} ${resp.statusText}`);
+        }
+        const data = await resp.json();
+        return data;
       }
-      const data = await resp.json();
-      return data;
+      catch (error) {
+        console.log('Failed at', index);
+        throw error;
+      }
     });
     await Promise.all(iterations);
     expect(true).toBe(true);
-  }, { timeout: 30000 });
+  }, 30000);
 });
 
 // describe('AutoblocksPromptManagerV2', () => {
