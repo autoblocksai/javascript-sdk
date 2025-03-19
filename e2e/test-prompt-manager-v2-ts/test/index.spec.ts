@@ -6,13 +6,39 @@ import { describe, it, expect,  } from 'vitest';
 const APP_ID = 'jqg74mpzzovssq38j055yien';
 
 describe('Loop', () => {
-  it('works', async () => {
+  it('works v2', async () => {
     const iterations = Array.from({ length: 20 }).map(async (_, index) => {
       try {
-        const resp = await fetch(`https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd?index=${index}`, {
+        const resp = await fetch(`https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/etv6z712691iu8qawrwnqnl9?index=${index}`, {
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${process.env.AUTOBLOCKS_V2_API_KEY}`,
+          },
+          signal: AbortSignal.timeout(5000),
+          keepalive: false,
+        });
+        if (!resp.ok) {
+
+          throw new Error(`Failed to fetch: ${resp.status} ${resp.statusText}`);
+        }
+        const data = await resp.json();
+        return data;
+      }
+      catch (error) {
+        console.log('Failed at', index);
+      }
+    });
+    await Promise.all(iterations);
+    expect(true).toBe(true);
+  }, 30000);
+
+  it('works', async () => {
+    const iterations = Array.from({ length: 20 }).map(async (_, index) => {
+      try {
+        const resp = await fetch(`https://api.autoblocks.ai/prompts/used-by-ci-dont-delete/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd?index=${index}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.AUTOBLOCKS_API_KEY}`,
           },
           signal: AbortSignal.timeout(5000),
           keepalive: false,
@@ -338,7 +364,7 @@ describe('Loop', () => {
 //       id: 'prompt-basic',
 //       version: {
 //         major: 'dangerously-use-undeployed',
-//         minor: 'cm6grg7lk0003rc2qzr9okfcd',
+//         minor: 'etv6z712691iu8qawrwnqnl9',
 //       },
 //       initTimeout: { seconds: 5 },
 //     });
