@@ -7,7 +7,7 @@ const APP_ID = 'jqg74mpzzovssq38j055yien';
 
 describe('Loop', () => {
   it('works', async () => {
-    const iterations = Array.from({ length: 5 }).map(async (_, index) => {
+    const iterations = Array.from({ length: 20 }).map(async (_, index) => {
       try {
         const resp = await fetch(`https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd?index=${index}`, {
           headers: {
