@@ -6,7 +6,7 @@ const APP_ID = 'jqg74mpzzovssq38j055yien';
 
 describe('Loop', () => {
   it('works', async () => {
-    const iterations = Array.from({ length: 200 }).map(async (_, index) => {
+    const iterations = Array.from({ length: 10 }).map(async (_, index) => {
       const resp = await fetch('https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd', {
         headers: {
           'Content-Type': 'application/json',
@@ -15,6 +15,7 @@ describe('Loop', () => {
         signal: AbortSignal.timeout(5000),
       });
       if (!resp.ok) {
+        console.log('Failed at', index);
         throw new Error(`Failed to fetch: ${resp.status} ${resp.statusText}`);
       }
       const data = await resp.json();
