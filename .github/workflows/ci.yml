@@ -94,6 +94,10 @@ jobs:
       #     # User-scoped API key
       #     AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
 
+      - name: IP Address
+        working-directory: e2e/test-prompt-manager-v2-ts
+        run: curl -s ifconfig.me 
+
       - name: Test Prompt Manager V2
         working-directory: e2e/test-prompt-manager-v2-ts
         run: |
