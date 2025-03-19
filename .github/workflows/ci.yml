@@ -96,7 +96,30 @@ jobs:
 
       - name: IP Address
         working-directory: e2e/test-prompt-manager-v2-ts
-        run: curl -s ifconfig.me 
+        run: curl -s ifconfig.me
+
+      - name: nslookup
+        run: nslookup dev-api.autoblocks.ai
+      
+      - name: dig
+        run: dig dev-api.autoblocks.ai
+
+      - name: Run Bash API test
+        env:
+          API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
+        run: |
+          URL="https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd"
+          echo "Starting API test with curl..."
+          for i in {0..19}; do
+            echo "Request index: ${i}"
+            curl -s -w "\nHTTP_CODE: %{http_code}\n" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${API_KEY}" \
+              --max-time 5 \
+              "${URL}?index=${i}" &
+          done
+          wait
+          echo "All requests completed."
 
       - name: Test Prompt Manager V2
         working-directory: e2e/test-prompt-manager-v2-ts
