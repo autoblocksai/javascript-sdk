@@ -20,14 +20,14 @@ concurrency:
 
 jobs:
   ci:
-    runs-on:
-      - codebuild-autoblocksai-${{ github.run_id }}-${{ github.run_attempt }}
-      - instance-size:small
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         node-version:
+          - '18'
+          - '20'
           - '22'
 
     steps:
@@ -46,18 +46,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # - name: Run type checks
-      #   run: npm run type-check
+      - name: Run type checks
+        run: npm run type-check
 
-      # - name: Run lint checks
-      #   run: npm run lint
+      - name: Run lint checks
+        run: npm run lint
 
-      # - name: Run tests
-      #   run: npm run test
-      #   env:
-      #     AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_ADAM }}
-      #     AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
-      #     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Run tests
+        run: npm run test
+        env:
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_ADAM }}
+          AUTOBLOCKS_INGESTION_KEY: ${{ secrets.CI_AUTOBLOCKS_INGESTION_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Run build
         run: npm run build
@@ -68,58 +68,31 @@ jobs:
       - name: Delete top level node_modules
         run: rm -rf node_modules
 
-      # - name: Test CJS imports
-      #   working-directory: e2e/test-import-cjs
-      #   run: npx yalc add @autoblocks/client && npm install && npm run start
-      #   env:
-      #     AUTOBLOCKS_INGESTION_KEY: test
-
-      # - name: Test ESM imports
-      #   working-directory: e2e/test-import-esm
-      #   run: npx yalc add @autoblocks/client && npm install && npm run start
-      #   env:
-      #     AUTOBLOCKS_INGESTION_KEY: test
-
-      # - name: Test Prompt Manager
-      #   working-directory: e2e/test-prompt-manager-ts
-      #   run: |
-      #     npx yalc add @autoblocks/client && \
-      #     npm install && \
-      #     npm run gen && \
-      #     tsc --noEmit && \
-      #     npm run test
-      #   env:
-      #     # Org-scoped API key
-      #     AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
-      #     # User-scoped API key
-      #     AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
-
-      - name: IP Address
-        working-directory: e2e/test-prompt-manager-v2-ts
-        run: curl -s ifconfig.me
-
-      - name: nslookup
-        run: nslookup dev-api.autoblocks.ai
-      
-      - name: dig
-        run: dig dev-api.autoblocks.ai
-
-      - name: Run Bash API test
+      - name: Test CJS imports
+        working-directory: e2e/test-import-cjs
+        run: npx yalc add @autoblocks/client && npm install && npm run start
         env:
-          API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
+          AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test ESM imports
+        working-directory: e2e/test-import-esm
+        run: npx yalc add @autoblocks/client && npm install && npm run start
+        env:
+          AUTOBLOCKS_INGESTION_KEY: test
+
+      - name: Test Prompt Manager
+        working-directory: e2e/test-prompt-manager-ts
         run: |
-          URL="https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd"
-          echo "Starting API test with curl..."
-          for i in {0..19}; do
-            echo "Request index: ${i}"
-            curl -v -s -w "\nHTTP_CODE: %{http_code}\n" \
-              -H "Content-Type: application/json" \
-              -H "Authorization: Bearer ${API_KEY}" \
-              --max-time 5 \
-              "${URL}?index=${i}" &
-          done
-          wait
-          echo "All requests completed."
+          npx yalc add @autoblocks/client && \
+          npm install && \
+          npm run gen && \
+          tsc --noEmit && \
+          npm run test
+        env:
+          # Org-scoped API key
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY }}
+          # User-scoped API key
+          AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
 
       - name: Test Prompt Manager V2
         working-directory: e2e/test-prompt-manager-v2-ts
