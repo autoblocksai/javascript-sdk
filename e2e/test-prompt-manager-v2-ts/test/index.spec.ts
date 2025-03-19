@@ -8,14 +8,18 @@ describe('Loop', () => {
   it('works', async () => {
     const iterations = Array.from({ length: 100 }).map(async (_, index) => {
       try {
-        const resp = await fetch('https://google.com', {
+        const resp = await fetch('https://dev-api.autoblocks.ai/apps/jqg74mpzzovssq38j055yien/prompts/prompt-basic/major/undeployed/minor/cm6grg7lk0003rc2qzr9okfcd', {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.AUTOBLOCKS_V2_API_KEY}`,
+          },
           signal: AbortSignal.timeout(5000),
         });
         if (!resp.ok) {
 
           throw new Error(`Failed to fetch: ${resp.status} ${resp.statusText}`);
         }
-        const data = await resp.text();
+        const data = await resp.json();
         return data;
       }
       catch (error) {
