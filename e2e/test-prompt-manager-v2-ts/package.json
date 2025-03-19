@@ -7,16 +7,16 @@
   },
   "type": "module",
   "scripts": {
-    "test": "jest",
+    "test": "vitest run",
     "gen:v2": "prompts generate-v2",
     "gen:v2:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen:v2\""
   },
   "dependencies": {
-    "@types/jest": "*",
-    "jest": "*",
+    "@autoblocks/client": "file:.yalc/@autoblocks/client",
     "nodemon": "*",
     "ts-jest": "*",
-    "typescript": "*"
+    "typescript": "*",
+    "vitest": "^3.0.9"
   },
   "jest": {
     "preset": "ts-jest",

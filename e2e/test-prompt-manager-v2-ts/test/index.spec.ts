@@ -1,6 +1,5 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
-
-jest.setTimeout(20000);
+import { describe, it, expect } from 'vitest';
 
 // Use a single app ID across all tests
 const APP_ID = 'jqg74mpzzovssq38j055yien';
