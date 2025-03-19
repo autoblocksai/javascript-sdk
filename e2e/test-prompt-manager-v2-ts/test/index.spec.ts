@@ -1,8 +1,7 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
 import { describe, it, expect,  } from 'vitest';
-import { Agent } from 'https';
 
-const agent = new Agent({ keepAlive: false });
+
 // Use a single app ID across all tests
 const APP_ID = 'jqg74mpzzovssq38j055yien';
 
@@ -16,7 +15,7 @@ describe('Loop', () => {
             Authorization: `Bearer ${process.env.AUTOBLOCKS_V2_API_KEY}`,
           },
           signal: AbortSignal.timeout(5000),
-          agent,
+          keepalive: false,
         });
         if (!resp.ok) {
 
