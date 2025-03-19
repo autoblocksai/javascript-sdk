@@ -110,7 +110,7 @@ jobs:
           echo "Starting API test with curl..."
           for i in {0..19}; do
             echo "Request index: ${i}"
-            curl -s -w "\nHTTP_CODE: %{http_code}\n" \
+            curl -v -s -w "\nHTTP_CODE: %{http_code}\n" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${API_KEY}" \
               --max-time 5 \
