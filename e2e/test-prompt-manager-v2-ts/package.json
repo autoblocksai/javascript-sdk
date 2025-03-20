@@ -1,0 +1,25 @@
+{
+  "name": "test-prompt-manager-v2-ts",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "jest",
+    "gen:v2": "prompts generate-v2",
+    "gen:v2:watch": "nodemon --quiet --watch prompt-templates --ext \"*\" --exec \"npm run gen:v2\""
+  },
+  "dependencies": {
+    "@types/jest": "*",
+    "jest": "*",
+    "nodemon": "*",
+    "ts-jest": "*",
+    "typescript": "*"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}

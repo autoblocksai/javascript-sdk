@@ -20,8 +20,10 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
-
+    runs-on:
+      - codebuild-autoblocksai-${{ github.run_id }}-${{ github.run_attempt }}
+      - instance-size:small
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +88,7 @@ jobs:
           npx yalc add @autoblocks/client && \
           npm install && \
           npm run gen && \
-          tsc --noEmit && \
+          npx tsc --noEmit && \
           npm run test
         env:
           # Org-scoped API key
@@ -94,12 +96,24 @@ jobs:
           # User-scoped API key
           AUTOBLOCKS_API_KEY_USER: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
 
+      - name: Test Prompt Manager V2
+        working-directory: e2e/test-prompt-manager-v2-ts
+        run: |
+          npx yalc add @autoblocks/client && \
+          npm install && \
+          npm run gen:v2 && \
+          npx tsc --noEmit && \
+          npm run test
+        env:
+          AUTOBLOCKS_V2_API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
+          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
+
       - name: Test Configs
         working-directory: e2e/test-configs-ts
         run: |
           npx yalc add @autoblocks/client && \
           npm install && \
-          tsc --noEmit && \
+          npx tsc --noEmit && \
           npm run test
         env:
           # Org-scoped API key

@@ -7,6 +7,8 @@ import {
   API_ENDPOINT,
 } from '../util';
 
+export { runV2 } from './prompts-cli-v2';
+
 interface ParsedTemplate {
   id: string;
   content: string;
@@ -274,6 +276,13 @@ async function getAllPromptsFromAPI(args: {
       Authorization: `Bearer ${args.apiKey}`,
     },
   });
+
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to fetch from V1 API: ${resp.status} ${resp.statusText}`,
+    );
+  }
+
   const data = await resp.json();
   return parseAndSortPrompts(data);
 }
@@ -360,30 +369,31 @@ export async function run(): Promise<void> {
   const startTime = performance.now();
 
   const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_API_KEY);
+
   if (!apiKey) {
     throw new Error(
       `You must set the ${AutoblocksEnvVar.AUTOBLOCKS_API_KEY} environment variable to generate types for your prompts.`,
     );
   }
 
-  const prompts = await getAllPromptsFromAPI({ apiKey });
+  // Fetch prompts from V1 API
+  const promptsV1 = await getAllPromptsFromAPI({ apiKey });
 
-  if (prompts.length === 0) {
-    console.log('No prompts found.');
+  if (promptsV1.length === 0) {
+    console.warn('No prompts found in V1 API. Check your API key permissions.');
     return;
   }
 
-  // NOTE: Do not run in Promise.all, these can't run
-  // concurrently because they modify the same files.
+  // Process V1 prompts
   for (const config of autogenerationConfigs) {
     await handleConfig({
       config,
-      prompts: prompts,
+      prompts: promptsV1,
     });
   }
 
   const duration = performance.now() - startTime;
   console.log(
-    `✓ Compiled in ${duration.toFixed(2)}ms (${prompts.length} prompts)`,
+    `✓ Compiled in ${duration.toFixed(2)}ms (${promptsV1.length} prompts from V1 API)`,
   );
 }
