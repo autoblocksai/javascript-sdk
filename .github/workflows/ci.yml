@@ -20,7 +20,9 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-autoblocksai-${{ github.run_id }}-${{ github.run_attempt }}
+      - instance-size:small
     timeout-minutes: 15
     strategy:
       fail-fast: false
