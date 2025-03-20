@@ -1,6 +1,5 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
 
-
 // Use a single app ID across all tests
 const APP_ID = 'jqg74mpzzovssq38j055yien';
 
@@ -14,15 +13,15 @@ describe('AutoblocksPromptManagerV2', () => {
         minor: '0',
       },
     });
-  
+
     beforeAll(async () => {
       await manager.init();
     });
-  
+
     afterAll(() => {
       manager.close();
     });
-  
+
     it('renders prompts', () => {
       manager.exec(({ prompt }) => {
         const rendered = prompt.renderTemplate({
@@ -35,7 +34,7 @@ describe('AutoblocksPromptManagerV2', () => {
         expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
       });
     });
-  
+
     it('handles async exec functions', async () => {
       const rendered = await manager.exec(async ({ prompt }) => {
         const rendered = prompt.renderTemplate({
@@ -48,10 +47,10 @@ describe('AutoblocksPromptManagerV2', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
         return rendered;
       });
-  
+
       expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
     });
-  
+
     it('provides params', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
@@ -65,7 +64,7 @@ describe('AutoblocksPromptManagerV2', () => {
         });
       });
     });
-  
+
     it('provides tracking info', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
@@ -97,8 +96,7 @@ describe('AutoblocksPromptManagerV2', () => {
       });
     });
   });
-  
-  
+
   describe('AutoblocksPromptManagerV2 v1 latest', () => {
     const manager = new AutoblocksPromptManagerV2({
       appId: APP_ID,
@@ -108,15 +106,15 @@ describe('AutoblocksPromptManagerV2', () => {
         minor: 'latest',
       },
     });
-  
+
     beforeAll(async () => {
       await manager.init();
     });
-  
+
     afterAll(() => {
       manager.close();
     });
-  
+
     it('renders prompts', () => {
       manager.exec(({ prompt }) => {
         const rendered = prompt.renderTemplate({
@@ -129,7 +127,7 @@ describe('AutoblocksPromptManagerV2', () => {
         expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
       });
     });
-  
+
     it('provides params', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
@@ -143,7 +141,7 @@ describe('AutoblocksPromptManagerV2', () => {
         });
       });
     });
-  
+
     it('provides tracking info', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
@@ -175,7 +173,7 @@ describe('AutoblocksPromptManagerV2', () => {
       });
     });
   });
-  
+
   describe('AutoblocksPromptManagerV2 v2.1', () => {
     const manager = new AutoblocksPromptManagerV2({
       appId: APP_ID,
@@ -185,15 +183,15 @@ describe('AutoblocksPromptManagerV2', () => {
         minor: '1',
       },
     });
-  
+
     beforeAll(async () => {
       await manager.init();
     });
-  
+
     afterAll(() => {
       manager.close();
     });
-  
+
     it('renders prompts', () => {
       manager.exec(({ prompt }) => {
         const rendered = prompt.renderTemplate({
@@ -205,7 +203,7 @@ describe('AutoblocksPromptManagerV2', () => {
         expect(rendered).toEqual('Hello, Alice!');
       });
     });
-  
+
     it('provides params', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
@@ -215,7 +213,7 @@ describe('AutoblocksPromptManagerV2', () => {
         });
       });
     });
-  
+
     it('provides tracking info', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
@@ -239,7 +237,7 @@ describe('AutoblocksPromptManagerV2', () => {
       });
     });
   });
-  
+
   describe('AutoblocksPromptManagerV2 v1 weighted', () => {
     const manager = new AutoblocksPromptManagerV2({
       appId: APP_ID,
@@ -258,15 +256,15 @@ describe('AutoblocksPromptManagerV2', () => {
         ],
       },
     });
-  
+
     beforeAll(async () => {
       await manager.init();
     });
-  
+
     afterAll(() => {
       manager.close();
     });
-  
+
     it('provides tracking info', () => {
       manager.exec(({ prompt }) => {
         const tracking = prompt.track();
@@ -275,7 +273,7 @@ describe('AutoblocksPromptManagerV2', () => {
       });
     });
   });
-  
+
   describe('Latest Undeployed V2', () => {
     const manager = new AutoblocksPromptManagerV2({
       appId: APP_ID,
@@ -286,15 +284,15 @@ describe('AutoblocksPromptManagerV2', () => {
       },
       initTimeout: { seconds: 5 },
     });
-  
+
     beforeAll(async () => {
       await manager.init();
     });
-  
+
     afterAll(() => {
       manager.close();
     });
-  
+
     it('works', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track().id).toEqual('prompt-basic');
@@ -302,7 +300,7 @@ describe('AutoblocksPromptManagerV2', () => {
       });
     });
   });
-  
+
   describe('Pinned Undeployed V2', () => {
     const manager = new AutoblocksPromptManagerV2({
       appId: APP_ID,
@@ -313,15 +311,15 @@ describe('AutoblocksPromptManagerV2', () => {
       },
       initTimeout: { seconds: 5 },
     });
-  
+
     beforeAll(async () => {
       await manager.init();
     });
-  
+
     afterAll(() => {
       manager.close();
     });
-  
+
     it('works', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
