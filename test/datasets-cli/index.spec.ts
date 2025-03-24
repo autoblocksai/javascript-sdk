@@ -16,24 +16,28 @@ describe('Datasets CLI', () => {
               schema: [
                 {
                   id: '1',
+                  revisionId: '1',
                   name: 'name',
                   type: PropertyTypesEnum.String,
                   required: true,
                 },
                 {
                   id: '2',
+                  revisionId: '2',
                   name: 'age',
                   type: PropertyTypesEnum.Number,
                   required: false,
                 },
                 {
                   id: '3',
+                  revisionId: '3',
                   name: 'transcript',
                   type: PropertyTypesEnum.ValidJSON,
                   required: true,
                 },
                 {
                   id: '4',
+                  revisionId: '4',
                   name: 'speciality',
                   type: PropertyTypesEnum.Select,
                   options: ['option1', 'option2', 'option3'],
@@ -51,6 +55,7 @@ describe('Datasets CLI', () => {
               schema: [
                 {
                   id: '1',
+                  revisionId: '1',
                   name: 'isActive',
                   type: PropertyTypesEnum.Boolean,
                   required: true,
@@ -62,12 +67,14 @@ describe('Datasets CLI', () => {
               schema: [
                 {
                   id: '1',
+                  revisionId: '1',
                   name: 'isActive',
                   type: PropertyTypesEnum.Boolean,
                   required: true,
                 },
                 {
                   id: '2',
+                  revisionId: '2',
                   name: 'tags',
                   type: PropertyTypesEnum.MultiSelect,
                   required: false,
@@ -85,6 +92,7 @@ describe('Datasets CLI', () => {
               schema: [
                 {
                   id: '1',
+                  revisionId: '1',
                   name: 'strings',
                   type: PropertyTypesEnum.ListOfStrings,
                   required: false,
