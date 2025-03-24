@@ -12,6 +12,7 @@ export enum PropertyTypesEnum {
 
 const zCommonFields = z.object({
   id: z.string().cuid2(),
+  revisionId: z.string().cuid2(),
   name: z.string().min(1),
   required: z.boolean().default(false),
 });
