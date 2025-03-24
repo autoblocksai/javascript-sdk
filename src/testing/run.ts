@@ -7,9 +7,11 @@ import {
   BaseTestEvaluator,
   BaseEvaluator,
   type HumanReviewField,
+  CreateHumanReviewJob,
 } from './models';
 import { Semaphore, makeTestCaseHash, makeGridSearchParamCombos } from './util';
 import {
+  sendCreateHumanReviewJob,
   sendEndRun,
   sendError,
   sendEvaluation,
@@ -258,6 +260,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
+  humanReviewJob?: CreateHumanReviewJob;
 }): Promise<void> {
   if (!isCLIRunning()) {
     console.log(`Running test suite '${args.testId}'`);
@@ -343,6 +346,18 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     testExternalId: args.testId,
     runId,
   });
+
+  if (args.humanReviewJob) {
+    try {
+      await sendCreateHumanReviewJob({
+        runId,
+        name: args.humanReviewJob.name,
+        assigneeEmailAddress: args.humanReviewJob.assigneeEmailAddress,
+      });
+    } catch (err) {
+      console.warn(`Failed to create human review job: ${err}`);
+    }
+  }
   await Promise.allSettled([
     sendSlackNotification({ runId }),
     sendGitHubComment(),
@@ -382,6 +397,7 @@ export async function runTestSuite<
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
   gridSearchParams?: Record<string, string[]>;
+  humanReviewJob?: CreateHumanReviewJob;
 }): Promise<void> {
   if (!isCLIRunning()) {
     console.log(`Running test suite '${args.id}'`);
@@ -495,6 +511,7 @@ export async function runTestSuite<
         serializeDatasetItemId: args.serializeDatasetItemId,
         serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
         serializeOutputForHumanReview: args.serializeOutputForHumanReview,
+        humanReviewJob: args.humanReviewJob,
       });
     } catch (err) {
       await sendError({
@@ -542,6 +559,7 @@ export async function runTestSuite<
           serializeOutputForHumanReview: args.serializeOutputForHumanReview,
           gridSearchRunGroupId,
           gridSearchParamsCombo: gridParamsCombo,
+          humanReviewJob: args.humanReviewJob,
         }),
       ),
     );

@@ -128,3 +128,8 @@ export interface EvaluationOverride {
   outputFields: EvaluationOverrideField[];
   comments: EvaluationOverrideComment[];
 }
+
+export interface CreateHumanReviewJob {
+  name: string;
+  assigneeEmailAddress: string;
+}

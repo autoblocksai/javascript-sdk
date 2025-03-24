@@ -12,6 +12,7 @@ export {
   type EvaluationOverrideField,
   type ScoreChoice,
   type HumanReviewField,
+  type CreateHumanReviewJob,
 } from './models';
 export { HumanReviewFieldContentType } from '../types';
 export { RunManager } from './run-manager';
