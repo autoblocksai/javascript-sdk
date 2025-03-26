@@ -16,6 +16,7 @@ interface ParsedTemplate {
 interface ParsedPromptV2 {
   id: string;
   appId: string;
+  appName: string;
   majorVersions: {
     majorVersion: string;
     minorVersions: string[];
@@ -40,20 +41,33 @@ export const autogenerationConfigsV2: AutogenerationConfigV2[] = [
     symbolType: 'interface',
     filesToModify: ['../prompts/index.d.ts', '../prompts/index.d.mts'],
     generate: (args) => {
-      // Group prompts by appId
+      // Group prompts by appId and get app names
       const promptsByApp: Record<string, ParsedPromptV2[]> = {};
+      const appNameToId: Record<string, string> = {};
+
       args.prompts.forEach((prompt) => {
         if (!promptsByApp[prompt.appId]) {
           promptsByApp[prompt.appId] = [];
         }
         promptsByApp[prompt.appId].push(prompt);
+
+        // Map app name to ID
+        appNameToId[prompt.appName] = prompt.appId;
       });
 
-      let generated = `interface ${args.symbolName} {`;
+      let generated = `// App name to ID mapping
+export const APP_NAME_TO_ID = ${JSON.stringify(appNameToId, null, 2)} as const;
 
-      // Generate app IDs
-      Object.keys(promptsByApp).forEach((appId) => {
-        generated += `\n  '${appId}': {`;
+// Type for app names
+export type AppName = keyof typeof APP_NAME_TO_ID;
+
+// Main prompts interface using app names
+interface ${args.symbolName} {
+`;
+
+      // Generate using app names instead of IDs
+      Object.entries(appNameToId).forEach(([appName, appId]) => {
+        generated += `\n  '${appName}': {`;
 
         // Generate prompt IDs for this app
         promptsByApp[appId].forEach((prompt) => {
@@ -78,10 +92,7 @@ export const autogenerationConfigsV2: AutogenerationConfigV2[] = [
                 generated += `\n          '${template.id}': {`;
                 template.placeholders.forEach((placeholder) => {
                   if (placeholder.endsWith('?')) {
-                    generated += `\n            '${placeholder.slice(
-                      0,
-                      -1,
-                    )}'?: string;`;
+                    generated += `\n            '${placeholder.slice(0, -1)}'?: string;`;
                   } else {
                     generated += `\n            '${placeholder}': string;`;
                   }
@@ -117,10 +128,7 @@ export const autogenerationConfigsV2: AutogenerationConfigV2[] = [
                   generated += `\n          '${tool.name}': {`;
                   tool.placeholders.forEach((placeholder) => {
                     if (placeholder.endsWith('?')) {
-                      generated += `\n            '${placeholder.slice(
-                        0,
-                        -1,
-                      )}'?: string;`;
+                      generated += `\n            '${placeholder.slice(0, -1)}'?: string;`;
                     } else {
                       generated += `\n            '${placeholder}': string;`;
                     }
@@ -271,8 +279,41 @@ function determineStartAndEndIdx(args: {
     };
   }
 
+  // If we can't find the empty interface, look for the interface declaration
+  const interfaceDeclaration = args.content.indexOf(
+    `interface ${args.symbolName}`,
+  );
+  if (interfaceDeclaration !== -1) {
+    // Find the end of the interface by looking for the next closing brace
+    // that's at the same indentation level as the interface declaration
+    let currentPos = interfaceDeclaration;
+    let braceCount = 0;
+    let foundEnd = false;
+
+    while (currentPos < args.content.length) {
+      const char = args.content[currentPos];
+      if (char === '{') {
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          foundEnd = true;
+          break;
+        }
+      }
+      currentPos++;
+    }
+
+    if (foundEnd) {
+      return {
+        startIdx: interfaceDeclaration,
+        endIdx: currentPos + 1,
+      };
+    }
+  }
+
   throw new Error(
-    `Couldn't find ${symbolAppearanceBeforeAutogeneration} in ${args.content}`,
+    `Couldn't find ${symbolAppearanceBeforeAutogeneration} or interface ${args.symbolName} in ${args.content}`,
   );
 }
 
@@ -298,12 +339,28 @@ export async function getAllPromptsFromV2API(args: {
 }
 
 /**
+ * Normalizes an app name by:
+ * 1. Converting to lowercase
+ * 2. Replacing special characters with spaces
+ * 3. Replacing multiple spaces with a single hyphen
+ * 4. Removing leading/trailing spaces
+ */
+function normalizeAppName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ') // Replace special chars with space
+    .replace(/\s+/g, '-') // Replace multiple spaces with hyphen
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+}
+
+/**
  * Sorts and parses the placeholders out of the prompts retrieved from the V2 API.
  */
 export function parseAndSortPromptsV2(
   promptTypes: {
     id: string;
     appId: string;
+    appName: string;
     majorVersions: {
       majorVersion: string;
       minorVersions: string[];
@@ -321,6 +378,7 @@ export function parseAndSortPromptsV2(
       return {
         id: prompt.id,
         appId: prompt.appId,
+        appName: normalizeAppName(prompt.appName),
         majorVersions: prompt.majorVersions.map((version) => {
           return {
             majorVersion: version.majorVersion,
