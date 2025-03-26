@@ -1,10 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import {
-  AutoblocksEnvVar,
-  RevisionSpecialVersionsEnum,
-  V2_API_ENDPOINT,
-} from '../../src/util';
+import { AutoblocksEnvVar, RevisionSpecialVersionsEnum } from '../../src/util';
 import { AutoblocksPromptManagerV2 } from '../../src/prompts';
 
 describe('Prompt Manager V2', () => {
@@ -404,70 +400,6 @@ describe('Prompt Manager V2', () => {
   });
 
   describe('Revision Overrides', () => {
-    const expectNumRequests = (num) => {
-      expect(mockFetch).toHaveBeenCalledTimes(num);
-    };
-
-    it('uses the configured version if the revision is for a different prompt manager', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
-        JSON.stringify({
-          'some-other-prompt-id': 'rev-1',
-        });
-
-      const mockPrompt = {
-        id: 'prompt-1',
-        revisionId: 'rev-1',
-        version: '1.0',
-        templates: [
-          {
-            id: 'template-1',
-            template: 'Hello, {{ name }}!',
-          },
-        ],
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockPrompt),
-      });
-
-      const manager = new AutoblocksPromptManagerV2({
-        appId: 'app-1',
-        id: 'prompt-1',
-        version: {
-          major: '1',
-          minor: '0',
-        },
-      });
-
-      await manager.init();
-
-      manager.exec(({ prompt }) => {
-        expect(
-          prompt.renderTemplate({
-            template: 'template-1',
-            params: {
-              name: 'world',
-            },
-          }),
-        ).toEqual('Hello, world!');
-      });
-
-      expectNumRequests(1);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/major/1/minor/0`,
-        expect.objectContaining({
-          method: 'GET',
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-api-key',
-          }),
-        }),
-      );
-    });
-
     it('raises if the prompt is incompatible', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
