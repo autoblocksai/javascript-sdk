@@ -341,15 +341,16 @@ export async function getAllPromptsFromV2API(args: {
 /**
  * Normalizes an app name by:
  * 1. Converting to lowercase
- * 2. Replacing special characters with spaces
+ * 2. Replacing special characters with spaces (except apostrophes)
  * 3. Replacing multiple spaces with a single hyphen
  * 4. Removing leading/trailing spaces
  */
 function normalizeAppName(name: string): string {
   return name
     .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ') // Replace special chars with space
+    .replace(/[^a-z0-9\s'-]/g, ' ') // Replace special chars with space, but keep apostrophes
     .replace(/\s+/g, '-') // Replace multiple spaces with hyphen
+    .replace(/'/g, '') // Remove apostrophes
     .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
 }
 
