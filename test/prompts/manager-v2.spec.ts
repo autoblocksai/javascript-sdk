@@ -1,10 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import {
-  AutoblocksEnvVar,
-  RevisionSpecialVersionsEnum,
-  V2_API_ENDPOINT,
-} from '../../src/util';
+import { AutoblocksEnvVar, RevisionSpecialVersionsEnum } from '../../src/util';
 import { AutoblocksPromptManagerV2 } from '../../src/prompts';
 
 describe('Prompt Manager V2', () => {
@@ -22,9 +18,9 @@ describe('Prompt Manager V2', () => {
     mockFetch.mockRestore();
   });
 
-  it('should construct with appId, id, and version', () => {
+  it('should construct with appName, id, and version', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appId: 'app-1',
+      appName: 'my-app',
       id: 'prompt-1',
       version: {
         major: '1',
@@ -40,7 +36,7 @@ describe('Prompt Manager V2', () => {
 
     expect(() => {
       new AutoblocksPromptManagerV2({
-        appId: 'app-1',
+        appName: 'my-app',
         id: 'prompt-1',
         version: {
           major: '1',
@@ -48,81 +44,6 @@ describe('Prompt Manager V2', () => {
         },
       });
     }).toThrow(/AUTOBLOCKS_V2_API_KEY/);
-  });
-
-  it('should construct URL with appId', async () => {
-    const mockResponse = {
-      id: 'prompt-1',
-      revisionId: 'rev-1',
-      version: '1.0',
-      templates: [
-        {
-          id: 'template-1',
-          template: 'Hello, {{ name }}!',
-        },
-      ],
-    };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
-
-    const manager = new AutoblocksPromptManagerV2({
-      appId: 'app-1',
-      id: 'prompt-1',
-      version: {
-        major: '1',
-        minor: '0',
-      },
-    });
-
-    await manager.init();
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/major/1/minor/0`,
-      expect.objectContaining({
-        method: 'GET',
-        headers: expect.objectContaining({
-          Authorization: 'Bearer test-api-key',
-        }),
-      }),
-    );
-  });
-
-  it('should support undeployed version', async () => {
-    const mockResponse = {
-      id: 'prompt-1',
-      revisionId: 'rev-1',
-      version: '1.0',
-      templates: [
-        {
-          id: 'template-1',
-          template: 'Hello, {{ name }}!',
-        },
-      ],
-    };
-
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
-
-    const manager = new AutoblocksPromptManagerV2({
-      appId: 'app-1',
-      id: 'prompt-1',
-      version: {
-        major: RevisionSpecialVersionsEnum.DANGEROUSLY_USE_UNDEPLOYED,
-        minor: '0',
-      },
-    });
-
-    await manager.init();
-
-    expect(mockFetch).toHaveBeenCalledWith(
-      `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/major/undeployed/minor/0`,
-      expect.anything(),
-    );
   });
 
   it('should render templates correctly', async () => {
@@ -479,196 +400,6 @@ describe('Prompt Manager V2', () => {
   });
 
   describe('Revision Overrides', () => {
-    const expectNumRequests = (num) => {
-      expect(mockFetch).toHaveBeenCalledTimes(num);
-    };
-
-    it('overrides with the prompt revisions when the minor version is hardcoded', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
-        JSON.stringify({
-          'prompt-1': 'rev-1',
-        });
-
-      const mockRevision = {
-        id: 'prompt-1',
-        revisionId: 'rev-1',
-        version: 'revision:rev-1',
-        templates: [
-          {
-            id: 'template-1',
-            template: 'Hello, {{ name }}!',
-          },
-        ],
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockRevision),
-      });
-
-      const manager = new AutoblocksPromptManagerV2({
-        appId: 'app-1',
-        id: 'prompt-1',
-        version: {
-          major: '1',
-          minor: '0',
-        },
-      });
-
-      await manager.init();
-
-      manager.exec(({ prompt }) => {
-        expect(
-          prompt.renderTemplate({
-            template: 'template-1',
-            params: {
-              name: 'world',
-            },
-          }),
-        ).toEqual('Hello, world!');
-      });
-
-      expectNumRequests(1);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/revisions/rev-1/validate`,
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            majorVersion: 1,
-          }),
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('overrides with the prompt revision when the minor version is latest', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
-        JSON.stringify({
-          'prompt-1': 'rev-1',
-        });
-
-      const mockRevision = {
-        id: 'prompt-1',
-        revisionId: 'rev-1',
-        version: 'revision:rev-1',
-        templates: [
-          {
-            id: 'template-1',
-            template: 'Hello, {{ name }}!',
-          },
-        ],
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockRevision),
-      });
-
-      const manager = new AutoblocksPromptManagerV2({
-        appId: 'app-1',
-        id: 'prompt-1',
-        version: {
-          major: '1',
-          minor: 'latest',
-        },
-      });
-
-      await manager.init();
-
-      manager.exec(({ prompt }) => {
-        expect(
-          prompt.renderTemplate({
-            template: 'template-1',
-            params: {
-              name: 'world',
-            },
-          }),
-        ).toEqual('Hello, world!');
-      });
-
-      expectNumRequests(1);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/revisions/rev-1/validate`,
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify({
-            majorVersion: 1,
-          }),
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-api-key',
-          }),
-        }),
-      );
-    });
-
-    it('uses the configured version if the revision is for a different prompt manager', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
-        JSON.stringify({
-          'some-other-prompt-id': 'rev-1',
-        });
-
-      const mockPrompt = {
-        id: 'prompt-1',
-        revisionId: 'rev-1',
-        version: '1.0',
-        templates: [
-          {
-            id: 'template-1',
-            template: 'Hello, {{ name }}!',
-          },
-        ],
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockPrompt),
-      });
-
-      const manager = new AutoblocksPromptManagerV2({
-        appId: 'app-1',
-        id: 'prompt-1',
-        version: {
-          major: '1',
-          minor: '0',
-        },
-      });
-
-      await manager.init();
-
-      manager.exec(({ prompt }) => {
-        expect(
-          prompt.renderTemplate({
-            template: 'template-1',
-            params: {
-              name: 'world',
-            },
-          }),
-        ).toEqual('Hello, world!');
-      });
-
-      expectNumRequests(1);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/major/1/minor/0`,
-        expect.objectContaining({
-          method: 'GET',
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-api-key',
-          }),
-        }),
-      );
-    });
-
     it('raises if the prompt is incompatible', async () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';
@@ -694,66 +425,6 @@ describe('Prompt Manager V2', () => {
 
       await expect(manager.init()).rejects.toThrow(
         "Can't override prompt 'prompt-1' with revision 'rev-1' because it is not compatible with major version '1'.",
-      );
-    });
-
-    it('uses the configured version if not in a testing context', async () => {
-      // CLI server address is not set, so we're not in a testing context
-      // process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] = 'http://localhost:3000';
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
-        JSON.stringify({
-          'prompt-1': 'rev-1',
-        });
-
-      const mockPrompt = {
-        id: 'prompt-1',
-        revisionId: 'rev-1',
-        version: '1.0',
-        templates: [
-          {
-            id: 'template-1',
-            template: 'Hello, {{ name }}!',
-          },
-        ],
-      };
-
-      mockFetch.mockResolvedValueOnce({
-        status: 200,
-        ok: true,
-        json: () => Promise.resolve(mockPrompt),
-      });
-
-      const manager = new AutoblocksPromptManagerV2({
-        appId: 'app-1',
-        id: 'prompt-1',
-        version: {
-          major: '1',
-          minor: '0',
-        },
-      });
-
-      await manager.init();
-
-      manager.exec(({ prompt }) => {
-        expect(
-          prompt.renderTemplate({
-            template: 'template-1',
-            params: {
-              name: 'world',
-            },
-          }),
-        ).toEqual('Hello, world!');
-      });
-
-      expectNumRequests(1);
-      expect(mockFetch).toHaveBeenCalledWith(
-        `${V2_API_ENDPOINT}/apps/app-1/prompts/prompt-1/major/1/minor/0`,
-        expect.objectContaining({
-          method: 'GET',
-          headers: expect.objectContaining({
-            Authorization: 'Bearer test-api-key',
-          }),
-        }),
       );
     });
 
