@@ -34,7 +34,14 @@ import path from 'path';
 import { readFileSync } from 'fs';
 
 const dataPath = path.resolve(__dirname, './app-mapping.json');
-const appMapping = JSON.parse(readFileSync(dataPath, 'utf-8'));
+
+const appMapping = (() => {
+  try {
+    return JSON.parse(readFileSync(dataPath, 'utf-8'));
+  } catch {
+    return {};
+  }
+})();
 
 /**
  * Note that we check for the presence of the CLI environment
