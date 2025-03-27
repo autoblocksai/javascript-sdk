@@ -56,7 +56,11 @@ export const autogenerationConfigsV2: AutogenerationConfigV2[] = [
       });
 
       let generated = `// App name to ID mapping
-export const APP_NAME_TO_ID = ${JSON.stringify(appNameToId, null, 2)} as const;
+declare const APP_NAME_TO_ID: {
+  readonly ${Object.entries(appNameToId)
+    .map(([name, id]) => `"${name}": "${id}"`)
+    .join(';\n  readonly ')};
+};
 
 // Type for app names
 export type AppName = keyof typeof APP_NAME_TO_ID;
@@ -345,7 +349,7 @@ export async function getAllPromptsFromV2API(args: {
  * 3. Replacing multiple spaces with a single hyphen
  * 4. Removing leading/trailing spaces
  */
-function normalizeAppName(name: string): string {
+export function normalizeAppName(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9\s'-]/g, ' ') // Replace special chars with space, but keep apostrophes
@@ -436,7 +440,17 @@ interface ${args.config.symbolName} {}\n`;
         await fs.writeFile(filepath, initialContent);
       }
 
-      const content = await fs.readFile(filepath, 'utf-8');
+      let content = await fs.readFile(filepath, 'utf-8');
+
+      // Remove any existing APP_NAME_TO_ID declarations that might cause conflicts
+      const appNameToIdPatterns = [
+        /declare const APP_NAME_TO_ID: Record<string, string>;/g,
+      ];
+
+      // Apply each removal pattern
+      for (const pattern of appNameToIdPatterns) {
+        content = content.replace(pattern, '');
+      }
 
       try {
         const { startIdx, endIdx } = determineStartAndEndIdx({
@@ -479,6 +493,23 @@ export async function runV2(): Promise<void> {
     console.warn('No prompts found in V2 API. Check your API key permissions.');
     return;
   }
+
+  // Create app mapping using same logic as APP_NAME_TO_ID
+  const appNameToId: Record<string, string> = {};
+  promptsV2.forEach((prompt) => {
+    appNameToId[prompt.appName] = prompt.appId;
+  });
+
+  // Write to app-mapping.json
+  const appMappingPath = `${__dirname}/../prompts/app-mapping.json`;
+
+  await fs.writeFile(
+    appMappingPath,
+    JSON.stringify(appNameToId, null, 2),
+    'utf-8',
+  );
+
+  console.log(`Generated app mapping at ${appMappingPath}`);
 
   // Process V2 prompts
   for (const config of autogenerationConfigsV2) {

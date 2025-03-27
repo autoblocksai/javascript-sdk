@@ -31,7 +31,7 @@ describe('AutoblocksPromptManagerV2', () => {
             weather: 'sunny',
           },
         });
-        expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
+        expect(rendered).toEqual('Hello,Alice! The weather is sunny today.');
       });
     });
 
@@ -48,7 +48,7 @@ describe('AutoblocksPromptManagerV2', () => {
         return rendered;
       });
 
-      expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
+      expect(rendered).toEqual('Hello,Alice! The weather is sunny today.');
     });
 
     it('provides params', () => {
@@ -73,11 +73,11 @@ describe('AutoblocksPromptManagerV2', () => {
           templates: [
             {
               id: 'template-a',
-              template: 'Hello, {{name}}! The weather is {{weather}} today.',
+              template: 'Hello,{{name}}! The weather is {{weather}} today.',
             },
             {
               id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{ name }}.',
+              template: 'Hello, {{ optional? }}! My name is {{name}}.',
             },
           ],
           params: {
@@ -124,7 +124,7 @@ describe('AutoblocksPromptManagerV2', () => {
             weather: 'sunny',
           },
         });
-        expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
+        expect(rendered).toEqual('Hello,Alice! The weather is sunny today.');
       });
     });
 
@@ -150,11 +150,11 @@ describe('AutoblocksPromptManagerV2', () => {
           templates: [
             {
               id: 'template-a',
-              template: 'Hello, {{name}}! The weather is {{weather}} today.',
+              template: 'Hello,{{name}}! The weather is {{weather}} today.',
             },
             {
               id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{ name }}.',
+              template: 'Hello, {{ optional? }}! My name is {{name}}.',
             },
           ],
           params: {
@@ -174,13 +174,13 @@ describe('AutoblocksPromptManagerV2', () => {
     });
   });
 
-  describe('AutoblocksPromptManagerV2 v2.1', () => {
+  describe('AutoblocksPromptManagerV2 v2.0', () => {
     const manager = new AutoblocksPromptManagerV2({
       appName: APP_NAME,
       id: 'prompt-basic',
       version: {
         major: '2',
-        minor: '1',
+        minor: '0',
       },
     });
 
@@ -208,7 +208,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
           model: 'gpt-4o',
-          seed: -7324655555050587,
+          seed: 4096,
           topK: 0,
         });
       });
@@ -218,17 +218,17 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: '2.1',
+          version: '2.0',
           templates: [
             {
               id: 'template-c',
-              template: 'Hello, {{ first_name }}!',
+              template: 'Hello, {{first_name}}!',
             },
           ],
           params: {
             params: {
               model: 'gpt-4o',
-              seed: -7324655555050587,
+              seed: 4096,
               topK: 0,
             },
           },
@@ -324,18 +324,26 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: 'revision:etv6z712691iu8qawrwnqnl9',
+          version: 'revision:p5lqn3gm2d4fddw1oa88vusl',
           templates: [
             {
-              id: 'template-c',
-              template: 'Hello, {{ first_name }}!',
+              id: 'template-a',
+              template: 'Hello, {{name}}! The weather is {{weather}} today.',
+            },
+            {
+              id: 'template-b',
+              template: 'Hello, {{ optional? }}! My name is {{name}}.',
             },
           ],
           params: {
             params: {
+              temperature: 0.7,
+              topP: 1,
+              frequencyPenalty: 0,
+              presencePenalty: 0,
+              maxTokens: 256,
+              stopSequences: [],
               model: 'gpt-4o',
-              seed: -7324655555050587,
-              topK: 0,
             },
           },
           tools: [],
