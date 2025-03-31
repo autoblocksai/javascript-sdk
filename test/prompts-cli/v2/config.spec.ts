@@ -9,7 +9,7 @@ describe('Config', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'customer-service',
+          slug: 'customer-service',
           majorVersions: [
             {
               majorVersion: '1',
@@ -81,7 +81,7 @@ describe('Config', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [],
         },
       ];
@@ -101,13 +101,13 @@ describe('Config', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [],
         },
         {
           id: 'prompt-b',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [],
         },
       ];

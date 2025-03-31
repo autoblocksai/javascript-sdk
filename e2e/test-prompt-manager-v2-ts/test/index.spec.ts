@@ -1,12 +1,12 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
 
 // Use a single app ID across all tests
-const APP_NAME = 'app-sdk-test';
+const APP_SLUG = 'app-sdk-test';
 
 describe('AutoblocksPromptManagerV2', () => {
   describe('AutoblocksPromptManagerV2 v1.0', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appName: APP_NAME,
+      appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
         major: '1',
@@ -99,7 +99,7 @@ describe('AutoblocksPromptManagerV2', () => {
 
   describe('AutoblocksPromptManagerV2 v1 latest', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appName: APP_NAME,
+      appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
         major: '1',
@@ -176,7 +176,7 @@ describe('AutoblocksPromptManagerV2', () => {
 
   describe('AutoblocksPromptManagerV2 v2.0', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appName: APP_NAME,
+      appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
         major: '2',
@@ -240,7 +240,7 @@ describe('AutoblocksPromptManagerV2', () => {
 
   describe('AutoblocksPromptManagerV2 v1 weighted', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appName: APP_NAME,
+      appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
         major: '1',
@@ -276,7 +276,7 @@ describe('AutoblocksPromptManagerV2', () => {
 
   describe('Latest Undeployed V2', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appName: APP_NAME,
+      appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
         major: 'dangerously-use-undeployed',
@@ -303,7 +303,7 @@ describe('AutoblocksPromptManagerV2', () => {
 
   describe('Pinned Undeployed V2', () => {
     const manager = new AutoblocksPromptManagerV2({
-      appName: APP_NAME,
+      appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
         major: 'dangerously-use-undeployed',

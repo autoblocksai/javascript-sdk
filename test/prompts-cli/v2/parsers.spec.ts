@@ -8,7 +8,7 @@ describe('Parsers', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'My App!',
+          slug: 'my-app',
           majorVersions: [
             {
               majorVersion: '1',
@@ -21,7 +21,7 @@ describe('Parsers', () => {
         {
           id: 'prompt-b',
           appId: 'app-2',
-          appName: "Her's App!!!",
+          slug: "her's-app",
           majorVersions: [
             {
               majorVersion: '1',
@@ -35,8 +35,8 @@ describe('Parsers', () => {
 
       const prompts = parseAndSortPromptsV2(mockPromptTypesV2Response);
 
-      expect(prompts[0].appName).toBe('my-app');
-      expect(prompts[1].appName).toBe('hers-app');
+      expect(prompts[0].slug).toBe('my-app');
+      expect(prompts[1].slug).toBe("her's-app");
     });
 
     it('should parse templates correctly', () => {
@@ -44,7 +44,7 @@ describe('Parsers', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [
             {
               majorVersion: '1',
@@ -74,7 +74,7 @@ describe('Parsers', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [
             {
               majorVersion: '1',
@@ -104,7 +104,7 @@ describe('Parsers', () => {
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [
             {
               majorVersion: '1',
@@ -137,13 +137,13 @@ describe('Parsers', () => {
         {
           id: 'prompt-b',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [],
         },
         {
           id: 'prompt-a',
           appId: 'app-1',
-          appName: 'test-app',
+          slug: 'test-app',
           majorVersions: [],
         },
       ];

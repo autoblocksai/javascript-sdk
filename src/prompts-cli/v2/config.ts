@@ -1,6 +1,6 @@
 import { AutogenerationConfigV2, ParsedPromptV2 } from './types';
-import { makeTypeScriptTypeFromValue, sortBy } from './utils';
 import { RevisionSpecialVersionsEnum } from '../../util';
+import { makeTypeScriptTypeFromValue, sortBy } from '../util';
 
 export const autogenerationConfigsV2: AutogenerationConfigV2[] = [
   {
@@ -19,7 +19,7 @@ export const autogenerationConfigsV2: AutogenerationConfigV2[] = [
         promptsByApp[prompt.appId].push(prompt);
 
         // Map app name to ID
-        appNameToId[prompt.appName] = prompt.appId;
+        appNameToId[prompt.slug] = prompt.appId;
       });
 
       let generated = `// App name to ID mapping
