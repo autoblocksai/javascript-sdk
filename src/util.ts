@@ -106,9 +106,6 @@ export function determineStartAndEndIdx(args: {
     symbolAppearanceBeforeAutogeneration,
   );
 
-  console.log(symbolAppearanceBeforeAutogeneration);
-  console.log(firstTimeAppearance);
-
   if (firstTimeAppearance !== -1) {
     return {
       startIdx: firstTimeAppearance,
@@ -116,7 +113,38 @@ export function determineStartAndEndIdx(args: {
     };
   }
 
+  const interfaceDeclaration = args.content.indexOf(
+    `interface ${args.symbolName}`,
+  );
+
+  if (interfaceDeclaration !== -1) {
+    let currentPos = interfaceDeclaration;
+    let braceCount = 0;
+    let foundEnd = false;
+
+    while (currentPos < args.content.length) {
+      const char = args.content[currentPos];
+      if (char === '{') {
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          foundEnd = true;
+          break;
+        }
+      }
+      currentPos++;
+    }
+
+    if (foundEnd) {
+      return {
+        startIdx: interfaceDeclaration,
+        endIdx: currentPos + 1,
+      };
+    }
+  }
+
   throw new Error(
-    `Couldn't find ${symbolAppearanceBeforeAutogeneration} or interface ${args.symbolName} in ${args.content}`,
+    `Couldn't find ${symbolAppearanceBeforeAutogeneration} or ${args.symbolType} ${args.symbolName} in ${args.content}`,
   );
 }

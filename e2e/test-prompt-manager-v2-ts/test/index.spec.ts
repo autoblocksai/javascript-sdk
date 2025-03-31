@@ -31,7 +31,7 @@ describe('AutoblocksPromptManagerV2', () => {
             weather: 'sunny',
           },
         });
-        expect(rendered).toEqual('Hello,Alice! The weather is sunny today.');
+        expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
       });
     });
 
@@ -48,19 +48,13 @@ describe('AutoblocksPromptManagerV2', () => {
         return rendered;
       });
 
-      expect(rendered).toEqual('Hello,Alice! The weather is sunny today.');
+      expect(rendered).toEqual('Hello, Alice! The weather is sunny today.');
     });
 
     it('provides params', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
-          frequencyPenalty: 0,
-          maxTokens: 256,
           model: 'gpt-4o',
-          presencePenalty: 0,
-          stopSequences: [],
-          temperature: 0.7,
-          topP: 1,
         });
       });
     });
@@ -73,22 +67,12 @@ describe('AutoblocksPromptManagerV2', () => {
           templates: [
             {
               id: 'template-a',
-              template: 'Hello,{{name}}! The weather is {{weather}} today.',
-            },
-            {
-              id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{name}}.',
+              template: 'Hello, {{name}}! The weather is {{ weather }} today.',
             },
           ],
           params: {
             params: {
-              frequencyPenalty: 0,
-              maxTokens: 256,
               model: 'gpt-4o',
-              presencePenalty: 0,
-              stopSequences: [],
-              temperature: 0.7,
-              topP: 1,
             },
           },
           tools: [],
@@ -97,7 +81,7 @@ describe('AutoblocksPromptManagerV2', () => {
     });
   });
 
-  describe('AutoblocksPromptManagerV2 v1 latest', () => {
+  describe('AutoblocksPromptManagerV2 v1.latest', () => {
     const manager = new AutoblocksPromptManagerV2({
       appName: APP_SLUG,
       id: 'prompt-basic',
@@ -124,20 +108,14 @@ describe('AutoblocksPromptManagerV2', () => {
             weather: 'sunny',
           },
         });
-        expect(rendered).toEqual('Hello,Alice! The weather is sunny today.');
+        expect(rendered).toEqual('Hey, Alice! The weather is sunny today.');
       });
     });
 
     it('provides params', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
-          frequencyPenalty: 0,
-          maxTokens: 256,
           model: 'gpt-4o',
-          presencePenalty: 0,
-          stopSequences: [],
-          temperature: 0.7,
-          topP: 1,
         });
       });
     });
@@ -146,26 +124,16 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: '1.0',
+          version: '1.1',
           templates: [
             {
               id: 'template-a',
-              template: 'Hello,{{name}}! The weather is {{weather}} today.',
-            },
-            {
-              id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{name}}.',
+              template: 'Hey, {{name}}! The weather is {{ weather }} today.',
             },
           ],
           params: {
             params: {
-              frequencyPenalty: 0,
-              maxTokens: 256,
               model: 'gpt-4o',
-              presencePenalty: 0,
-              stopSequences: [],
-              temperature: 0.7,
-              topP: 1,
             },
           },
           tools: [],
@@ -208,8 +176,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
           model: 'gpt-4o',
-          seed: 4096,
-          topK: 0,
+          maxTokens: 256,
         });
       });
     });
@@ -228,48 +195,11 @@ describe('AutoblocksPromptManagerV2', () => {
           params: {
             params: {
               model: 'gpt-4o',
-              seed: 4096,
-              topK: 0,
+              maxTokens: 256,
             },
           },
           tools: [],
         });
-      });
-    });
-  });
-
-  describe('AutoblocksPromptManagerV2 v1 weighted', () => {
-    const manager = new AutoblocksPromptManagerV2({
-      appName: APP_SLUG,
-      id: 'prompt-basic',
-      version: {
-        major: '1',
-        minor: [
-          {
-            version: 'latest',
-            weight: 10,
-          },
-          {
-            version: '0',
-            weight: 90,
-          },
-        ],
-      },
-    });
-
-    beforeAll(async () => {
-      await manager.init();
-    });
-
-    afterAll(() => {
-      manager.close();
-    });
-
-    it('provides tracking info', () => {
-      manager.exec(({ prompt }) => {
-        const tracking = prompt.track();
-        // Either 1.0 or 1.1 should be chosen based on their weights
-        expect(['1.0', '1.1'].includes(tracking.version)).toBe(true);
       });
     });
   });
@@ -307,7 +237,7 @@ describe('AutoblocksPromptManagerV2', () => {
       id: 'prompt-basic',
       version: {
         major: 'dangerously-use-undeployed',
-        minor: 'etv6z712691iu8qawrwnqnl9',
+        minor: 'uovqyxlvbmlkk4jypeusptcd',
       },
       initTimeout: { seconds: 5 },
     });
@@ -324,25 +254,16 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: 'revision:p5lqn3gm2d4fddw1oa88vusl',
+          version: 'revision:uovqyxlvbmlkk4jypeusptcd',
           templates: [
             {
-              id: 'template-a',
-              template: 'Hello, {{name}}! The weather is {{weather}} today.',
-            },
-            {
-              id: 'template-b',
-              template: 'Hello, {{ optional? }}! My name is {{name}}.',
+              id: 'template-c',
+              template: 'New Revision',
             },
           ],
           params: {
             params: {
-              temperature: 0.7,
-              topP: 1,
-              frequencyPenalty: 0,
-              presencePenalty: 0,
               maxTokens: 256,
-              stopSequences: [],
               model: 'gpt-4o',
             },
           },
