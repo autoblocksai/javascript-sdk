@@ -38,7 +38,7 @@ describe('Util', () => {
       expect(result.endIdx).toBe(content.length);
     });
 
-    it.skip('should find interface declaration', () => {
+    it('should find interface declaration', () => {
       const content = `interface test {
                         some content
                       }`;
