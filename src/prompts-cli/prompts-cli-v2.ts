@@ -1,8 +1,14 @@
 import fs from 'fs/promises';
-import { readEnv, AutoblocksEnvVar } from '../util';
+
+import {
+  readEnv,
+  AutoblocksEnvVar,
+  makeCommentsFor,
+  determineStartAndEndIdx,
+} from '../util';
+
 import { getAllPromptsFromV2API } from './v2/api';
 import { autogenerationConfigsV2 } from './v2/config';
-import { determineStartAndEndIdx, makeCommentsFor } from './v2/utils';
 import { ParsedPromptV2 } from './v2/types';
 
 export async function handleConfigV2(args: {
@@ -10,6 +16,7 @@ export async function handleConfigV2(args: {
   prompts: ParsedPromptV2[];
 }): Promise<void> {
   const { startComment, endComment } = makeCommentsFor(args.config.symbolName);
+
   const generated = args.config.generate({
     symbolName: args.config.symbolName,
     prompts: args.prompts,
@@ -95,7 +102,7 @@ export async function runV2(): Promise<void> {
   const appNameToId: Record<string, string> = {};
 
   promptsV2.forEach((prompt) => {
-    appNameToId[prompt.appName] = prompt.appId;
+    appNameToId[prompt.slug] = prompt.appId;
   });
 
   // Write to app-mapping.json

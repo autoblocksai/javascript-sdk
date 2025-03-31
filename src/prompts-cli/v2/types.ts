@@ -1,13 +1,10 @@
-export interface ParsedTemplate {
-  id: string;
-  content: string;
-  placeholders: string[];
-}
+import { SymbolType } from '../../types';
+import { ParsedTemplate } from '../types';
 
 export interface ParsedPromptV2 {
   id: string;
   appId: string;
-  appName: string;
+  slug: string;
   majorVersions: {
     majorVersion: string;
     minorVersions: string[];
@@ -16,8 +13,6 @@ export interface ParsedPromptV2 {
     tools: { name: string; placeholders: string[] }[];
   }[];
 }
-
-export type SymbolType = 'interface' | 'variable';
 
 export interface AutogenerationConfigV2 {
   symbolName: string;
@@ -29,7 +24,7 @@ export interface AutogenerationConfigV2 {
 export interface PromptTypeFromAPI {
   id: string;
   appId: string;
-  appName: string;
+  slug: string;
   majorVersions: {
     majorVersion: string;
     minorVersions: string[];

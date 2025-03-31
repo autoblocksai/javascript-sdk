@@ -50,3 +50,5 @@ export enum HumanReviewFieldContentType {
   HTML = 'html',
   LINK = 'link',
 }
+
+export type SymbolType = 'interface' | 'variable';

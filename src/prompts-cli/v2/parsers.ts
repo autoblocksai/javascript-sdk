@@ -1,5 +1,5 @@
+import { parseTemplate, sortBy } from '../util';
 import { ParsedPromptV2, PromptTypeFromAPI } from './types';
-import { parseTemplate, sortBy, normalizeAppName } from './utils';
 
 export function parseAndSortPromptsV2(
   promptTypes: PromptTypeFromAPI[],
@@ -9,7 +9,7 @@ export function parseAndSortPromptsV2(
       return {
         id: prompt.id,
         appId: prompt.appId,
-        appName: normalizeAppName(prompt.appName),
+        slug: prompt.slug,
         majorVersions: prompt.majorVersions.map((version) => {
           return {
             majorVersion: version.majorVersion,

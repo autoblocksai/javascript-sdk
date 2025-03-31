@@ -1,4 +1,4 @@
-import type { TimeDelta } from './types';
+import type { SymbolType, TimeDelta } from './types';
 import packageJson from '../package.json';
 
 export const INGESTION_ENDPOINT = 'https://ingest-event.autoblocks.ai';
@@ -68,4 +68,83 @@ export function isCLIRunning(): boolean {
 
 export function isGitHubCommentDisabled(): boolean {
   return readEnv(AutoblocksEnvVar.AUTOBLOCKS_DISABLE_GITHUB_COMMENT) === '1';
+}
+
+export function makeCommentsFor(name: string) {
+  return {
+    startComment: `// ${name} start`,
+    endComment: `// ${name} end`,
+  };
+}
+
+export function determineStartAndEndIdx(args: {
+  symbolName: string;
+  symbolType: SymbolType;
+  startComment: string;
+  endComment: string;
+  content: string;
+}): {
+  startIdx: number;
+  endIdx: number;
+} {
+  const startCommentIdx = args.content.indexOf(args.startComment);
+  const endCommentIdx = args.content.indexOf(args.endComment);
+
+  if (startCommentIdx !== -1 && endCommentIdx !== -1) {
+    return {
+      startIdx: startCommentIdx,
+      endIdx: endCommentIdx + args.endComment.length,
+    };
+  }
+
+  const symbolAppearanceBeforeAutogeneration =
+    args.symbolType === 'interface'
+      ? `interface ${args.symbolName} {\n}`
+      : `var ${args.symbolName} = {};`;
+
+  const firstTimeAppearance = args.content.indexOf(
+    symbolAppearanceBeforeAutogeneration,
+  );
+
+  if (firstTimeAppearance !== -1) {
+    return {
+      startIdx: firstTimeAppearance,
+      endIdx: firstTimeAppearance + symbolAppearanceBeforeAutogeneration.length,
+    };
+  }
+
+  const interfaceDeclaration = args.content.indexOf(
+    `interface ${args.symbolName}`,
+  );
+
+  if (interfaceDeclaration !== -1) {
+    let currentPos = interfaceDeclaration;
+    let braceCount = 0;
+    let foundEnd = false;
+
+    while (currentPos < args.content.length) {
+      const char = args.content[currentPos];
+      if (char === '{') {
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          foundEnd = true;
+          break;
+        }
+      }
+      currentPos++;
+    }
+
+    if (foundEnd) {
+      return {
+        startIdx: interfaceDeclaration,
+        endIdx: currentPos + 1,
+      };
+    }
+  }
+
+  throw new Error(
+    `Couldn't find ${symbolAppearanceBeforeAutogeneration} or ${args.symbolType} ${args.symbolName} in ${args.content}`,
+  );
 }
