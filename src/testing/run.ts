@@ -348,15 +348,25 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   });
 
   if (args.humanReviewJob) {
-    try {
-      await sendCreateHumanReviewJob({
-        runId,
-        name: args.humanReviewJob.name,
-        assigneeEmailAddress: args.humanReviewJob.assigneeEmailAddress,
-      });
-    } catch (err) {
-      console.warn(`Failed to create human review job: ${err}`);
-    }
+    const assigneeEmailAddresses = Array.isArray(
+      args.humanReviewJob.assigneeEmailAddress,
+    )
+      ? args.humanReviewJob.assigneeEmailAddress
+      : [args.humanReviewJob.assigneeEmailAddress];
+    const results = await Promise.allSettled(
+      assigneeEmailAddresses.map((assigneeEmailAddress) =>
+        sendCreateHumanReviewJob({
+          runId,
+          name: args.humanReviewJob!.name,
+          assigneeEmailAddress,
+        }),
+      ),
+    );
+    results.forEach((result) => {
+      if (result.status === 'rejected') {
+        console.warn(`Failed to create human review job: ${result.reason}`);
+      }
+    });
   }
   await Promise.allSettled([
     sendSlackNotification({ runId }),

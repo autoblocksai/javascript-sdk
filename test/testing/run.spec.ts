@@ -958,6 +958,80 @@ describe('Testing SDK', () => {
     });
   });
 
+  it('creates a human review jobs', async () => {
+    await runTestSuite<MyTestCase, string>({
+      id: 'my-test-id',
+      testCases: [
+        { x: 1, y: 2 },
+        { x: 3, y: 4 },
+      ],
+      testCaseHash: ['x', 'y'],
+      evaluators: [],
+      fn: async ({ testCase }: { testCase: MyTestCase }) => {
+        return new Promise<string>((resolve) => {
+          setTimeout(() => {
+            resolve(
+              `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+            );
+          }, 100);
+        });
+      },
+      humanReviewJob: {
+        name: 'my-human-review-job',
+        assigneeEmailAddress: ['test@test.com', 'test2@test.com'],
+      },
+    });
+
+    expectNumPosts(6);
+    expectPostRequest({
+      path: '/start',
+      body: {
+        testExternalId: 'my-test-id',
+      },
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: mockRunId,
+        testCaseHash: md5(`12`),
+        testCaseBody: { x: 1, y: 2 },
+        testCaseOutput: '1 + 2 = 3',
+      },
+    });
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: mockRunId,
+        testCaseHash: md5(`34`),
+        testCaseBody: { x: 3, y: 4 },
+        testCaseOutput: '3 + 4 = 7',
+      },
+    });
+    expectPostRequest({
+      path: '/end',
+      body: {
+        testExternalId: 'my-test-id',
+        runId: mockRunId,
+      },
+    });
+    expectPublicAPIPostRequest({
+      path: `/runs/${mockRunId}/human-review-job`,
+      body: {
+        name: 'my-human-review-job',
+        assigneeEmailAddress: 'test@test.com',
+      },
+    });
+    expectPublicAPIPostRequest({
+      path: `/runs/${mockRunId}/human-review-job`,
+      body: {
+        name: 'my-human-review-job',
+        assigneeEmailAddress: 'test2@test.com',
+      },
+    });
+  });
+
   it('allows specifying a custom hash function', async () => {
     await runTestSuite<MyTestCase, string>({
       id: 'my-test-id',
