@@ -982,7 +982,7 @@ describe('Testing SDK', () => {
       },
     });
 
-    expectNumPosts(5);
+    expectNumPosts(6);
     expectPostRequest({
       path: '/start',
       body: {
