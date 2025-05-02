@@ -26,6 +26,10 @@
       "require": "./dist/prompts/index.js",
       "import": "./dist/prompts/index.mjs"
     },
+    "./datasets-v2": {
+      "require": "./dist/datasets-v2/index.js",
+      "import": "./dist/datasets-v2/index.mjs"
+    },
     "./testing": {
       "require": "./dist/testing/index.js",
       "import": "./dist/testing/index.mjs"
@@ -41,6 +45,9 @@
       ],
       "prompts": [
         "./dist/prompts/index.d.ts"
+      ],
+      "datasets-v2": [
+        "./dist/datasets-v2/index.d.ts"
       ],
       "testing": [
         "./dist/testing/index.d.ts"
