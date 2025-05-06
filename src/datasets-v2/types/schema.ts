@@ -2,14 +2,14 @@
  * Schema property types enum
  */
 export enum SchemaPropertyTypesEnum {
-  String = 'string',
-  Number = 'number',
-  Boolean = 'boolean',
-  ListOfStrings = 'list_of_strings',
-  Select = 'select',
-  MultiSelect = 'multi_select',
-  ValidJSON = 'valid_json',
-  Conversation = 'conversation',
+  String = 'String',
+  Number = 'Number',
+  Boolean = 'Boolean',
+  Select = 'Select',
+  MultiSelect = 'Multi-Select',
+  ValidJSON = 'Valid JSON',
+  ListOfStrings = 'List of Strings',
+  Conversation = 'Conversation',
 }
 
 /**

@@ -1,7 +1,7 @@
 import { AutoblocksPromptManagerV2 } from '@autoblocks/client/prompts';
 
 // Use a single app ID across all tests
-const APP_SLUG = 'app-sdk-test';
+const APP_SLUG = 'ci-app';
 
 describe('AutoblocksPromptManagerV2', () => {
   describe('AutoblocksPromptManagerV2 v1.0', () => {
@@ -254,11 +254,11 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: 'revision:uovqyxlvbmlkk4jypeusptcd',
+          version: 'revision:lo63upk5z5xih4xo4jigkayv',
           templates: [
             {
               id: 'template-c',
-              template: 'New Revision',
+              template: 'New Revision!',
             },
           ],
           params: {

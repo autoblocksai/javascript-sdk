@@ -1,12 +1,13 @@
-import { V2_API_ENDPOINT } from '../util';
+import { AUTOBLOCKS_HEADERS, V2_API_ENDPOINT } from '../util';
+import { formatErrorResponse } from './errors';
 import type {
   DatasetV2,
   DatasetListItemV2,
   DatasetSchemaV2,
-  DatasetItemsResponseV2,
   CreateDatasetV2Request,
   CreateDatasetItemsV2Request,
   UpdateItemV2Request,
+  DatasetItemV2,
 } from './types';
 
 export class DatasetsV2Client {
@@ -25,17 +26,14 @@ export class DatasetsV2Client {
     const resp = await fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
-        'X-Autoblocks-SDK': 'javascript-datasets-v2',
       },
       signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!resp.ok) {
-      throw new Error(
-        `HTTP Request Error: GET ${url} "${resp.status} ${resp.statusText}"`,
-      );
+      return formatErrorResponse(resp, url, 'GET');
     }
 
     return resp.json();
@@ -46,18 +44,15 @@ export class DatasetsV2Client {
     const resp = await fetch(url, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
-        'X-Autoblocks-SDK': 'javascript-datasets-v2',
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!resp.ok) {
-      throw new Error(
-        `HTTP Request Error: POST ${url} "${resp.status} ${resp.statusText}"`,
-      );
+      return formatErrorResponse(resp, url, 'POST');
     }
 
     return resp.json();
@@ -68,18 +63,15 @@ export class DatasetsV2Client {
     const resp = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
-        'X-Autoblocks-SDK': 'javascript-datasets-v2',
       },
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!resp.ok) {
-      throw new Error(
-        `HTTP Request Error: PUT ${url} "${resp.status} ${resp.statusText}"`,
-      );
+      return formatErrorResponse(resp, url, 'PUT');
     }
 
     return resp.json();
@@ -90,17 +82,14 @@ export class DatasetsV2Client {
     const resp = await fetch(url, {
       method: 'DELETE',
       headers: {
-        'Content-Type': 'application/json',
+        ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
-        'X-Autoblocks-SDK': 'javascript-datasets-v2',
       },
       signal: AbortSignal.timeout(this.timeoutMs),
     });
 
     if (!resp.ok) {
-      throw new Error(
-        `HTTP Request Error: DELETE ${url} "${resp.status} ${resp.statusText}"`,
-      );
+      return formatErrorResponse(resp, url, 'DELETE');
     }
 
     return resp.json();
@@ -132,8 +121,8 @@ export class DatasetsV2Client {
   /**
    * Get all items for a dataset
    */
-  async getItems(externalId: string): Promise<DatasetItemsResponseV2> {
-    return this.get<DatasetItemsResponseV2>(
+  async getItems(externalId: string): Promise<DatasetItemV2[]> {
+    return this.get<DatasetItemV2[]>(
       `/apps/${this.appSlug}/datasets/${externalId}/items`,
     );
   }
@@ -170,10 +159,10 @@ export class DatasetsV2Client {
     externalId: string,
     revisionId: string,
     splits?: string[],
-  ): Promise<DatasetItemsResponseV2> {
+  ): Promise<DatasetItemV2[]> {
     const queryString = splits?.length ? `?splits=${splits.join(',')}` : '';
-    return this.get<DatasetItemsResponseV2>(
-      `/apps/${this.appSlug}/datasets/${externalId}/revisions/${revisionId}${queryString}`,
+    return this.get<DatasetItemV2[]>(
+      `/apps/${this.appSlug}/datasets/${externalId}/revisions/${revisionId}/items${queryString}`,
     );
   }
 
@@ -184,9 +173,9 @@ export class DatasetsV2Client {
     externalId: string,
     schemaVersion: number,
     splits?: string[],
-  ): Promise<DatasetItemsResponseV2> {
+  ): Promise<DatasetItemV2[]> {
     const queryString = splits?.length ? `?splits=${splits.join(',')}` : '';
-    return this.get<DatasetItemsResponseV2>(
+    return this.get<DatasetItemV2[]>(
       `/apps/${this.appSlug}/datasets/${externalId}/schema-versions/${schemaVersion}/items${queryString}`,
     );
   }

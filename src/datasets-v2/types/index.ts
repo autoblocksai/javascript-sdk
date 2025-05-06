@@ -46,17 +46,6 @@ export interface DatasetItemV2 {
 }
 
 /**
- * Dataset items response
- */
-export interface DatasetItemsResponseV2 {
-  datasetId: string;
-  externalId: string;
-  revisionId: string;
-  schemaVersion: number;
-  items: DatasetItemV2[];
-}
-
-/**
  * Create dataset request
  */
 export interface CreateDatasetV2Request {
