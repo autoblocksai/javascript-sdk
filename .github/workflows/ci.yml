@@ -108,7 +108,7 @@ jobs:
           AUTOBLOCKS_V2_API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
 
       - name: Test Dataset V2
-        working-directory: e2e/test-dataset-v2-ts
+        working-directory: e2e/test-datasets-v2-ts
         run: |
           npx yalc add @autoblocks/client && \
           npm install && \
