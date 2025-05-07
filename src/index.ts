@@ -2,7 +2,7 @@ export { AutoblocksTracer, flush } from './tracer';
 export { AutoblocksAPIClient, SystemEventFilterKey } from './client';
 export { AutoblocksAppClient } from './app-client';
 export { dedent } from './util';
-export { ApiError } from './datasets-v2/errors';
+
 export type {
   View,
   Event,
