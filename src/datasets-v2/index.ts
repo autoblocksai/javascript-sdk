@@ -2,7 +2,7 @@
 export * from './types';
 
 // Export client
-export { DatasetsV2Client, createDatasetsV2Client } from './client';
+export { DatasetsV2Client } from './client';
 
 // Export validation
 export {
