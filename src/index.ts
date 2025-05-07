@@ -20,8 +20,6 @@ export type {
   DatasetItem,
 } from './datasets';
 
-export { DatasetsV2Client } from './datasets-v2/client';
-
 // Export dataset V2 types
 export { SchemaPropertyTypesEnum } from './datasets-v2/types/schema';
 

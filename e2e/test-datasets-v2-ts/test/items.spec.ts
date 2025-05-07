@@ -36,9 +36,12 @@ describe('Dataset Items Operations', () => {
       },
     ];
 
-    const createItemsResult = await client.createItems(testDatasetId, {
-      items,
-      splitNames: ['train', 'test'],
+    const createItemsResult = await client.createItems({
+      externalId: testDatasetId,
+      data: {
+        items,
+        splitNames: ['train', 'test'],
+      },
     });
 
     expect(createItemsResult.count).toBe(2);
@@ -56,20 +59,20 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should retrieve items by revision ID', async () => {
-    const itemsByRevision = await client.getItemsByRevision(
-      testDatasetId,
-      testRevisionId,
-    );
+    const itemsByRevision = await client.getItemsByRevision({
+      externalId: testDatasetId,
+      revisionId: testRevisionId,
+    });
 
     expect(itemsByRevision.length).toBe(2);
   });
 
   it('should retrieve items by revision ID with split filter', async () => {
-    const trainItems = await client.getItemsByRevision(
-      testDatasetId,
-      testRevisionId,
-      ['train'],
-    );
+    const trainItems = await client.getItemsByRevision({
+      externalId: testDatasetId,
+      revisionId: testRevisionId,
+      splits: ['train'],
+    });
 
     expect(trainItems.length).toBe(2);
     expect(trainItems[0].splits).toContain('train');
@@ -77,12 +80,16 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should update an item in the dataset', async () => {
-    const updateResult = await client.updateItem(testDatasetId, testItemId, {
+    const updateResult = await client.updateItem({
+      externalId: testDatasetId,
+      itemId: testItemId,
       data: {
-        'Text Field': 'Updated sample text',
-        'Number Field': 100,
+        data: {
+          'Text Field': 'Updated sample text',
+          'Number Field': 100,
+        },
+        splitNames: ['validation'],
       },
-      splitNames: ['validation'],
     });
 
     expect(updateResult.success).toBe(true);
@@ -98,7 +105,10 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should delete an item from the dataset', async () => {
-    const deleteResult = await client.deleteItem(testDatasetId, testItemId);
+    const deleteResult = await client.deleteItem({
+      externalId: testDatasetId,
+      itemId: testItemId,
+    });
 
     expect(deleteResult.success).toBe(true);
 

@@ -68,13 +68,16 @@ describe('Conversation Schema Type', () => {
       ],
     };
 
-    const createResult = await client.createItems(conversationDatasetId, {
-      items: [
-        {
-          title: 'Sample conversation',
-          conversation: conversationData,
-        },
-      ],
+    const createResult = await client.createItems({
+      externalId: conversationDatasetId,
+      data: {
+        items: [
+          {
+            title: 'Sample conversation',
+            conversation: conversationData,
+          },
+        ],
+      },
     });
 
     expect(createResult.count).toBe(1);

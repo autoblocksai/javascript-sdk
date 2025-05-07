@@ -161,79 +161,83 @@ export class DatasetsV2Client {
   /**
    * Add items to a dataset
    */
-  async createItems(
-    externalId: string,
-    request: CreateDatasetItemsV2Request,
-  ): Promise<{ count: number; revisionId: string }> {
+  async createItems(params: {
+    externalId: string;
+    data: CreateDatasetItemsV2Request;
+  }): Promise<{ count: number; revisionId: string }> {
     return this.post<{ count: number; revisionId: string }>(
-      `/apps/${this.appSlug}/datasets/${externalId}/items`,
-      request,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/items`,
+      params.data,
     );
   }
 
   /**
    * Get schema for a specific version
    */
-  async getSchemaByVersion(
-    externalId: string,
-    schemaVersion: number,
-  ): Promise<DatasetSchemaV2> {
+  async getSchemaByVersion(params: {
+    externalId: string;
+    schemaVersion: number;
+  }): Promise<DatasetSchemaV2> {
     return this.get<DatasetSchemaV2>(
-      `/apps/${this.appSlug}/datasets/${externalId}/schema-versions/${schemaVersion}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/schema-versions/${params.schemaVersion}`,
     );
   }
 
   /**
    * Get items by revision ID
    */
-  async getItemsByRevision(
-    externalId: string,
-    revisionId: string,
-    splits?: string[],
-  ): Promise<DatasetItemV2[]> {
-    const queryString = splits?.length ? `?splits=${splits.join(',')}` : '';
+  async getItemsByRevision(params: {
+    externalId: string;
+    revisionId: string;
+    splits?: string[];
+  }): Promise<DatasetItemV2[]> {
+    const queryString = params.splits?.length
+      ? `?splits=${params.splits.join(',')}`
+      : '';
     return this.get<DatasetItemV2[]>(
-      `/apps/${this.appSlug}/datasets/${externalId}/revisions/${revisionId}/items${queryString}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/revisions/${params.revisionId}/items${queryString}`,
     );
   }
 
   /**
    * Get items by schema version
    */
-  async getItemsBySchemaVersion(
-    externalId: string,
-    schemaVersion: number,
-    splits?: string[],
-  ): Promise<DatasetItemV2[]> {
-    const queryString = splits?.length ? `?splits=${splits.join(',')}` : '';
+  async getItemsBySchemaVersion(params: {
+    externalId: string;
+    schemaVersion: number;
+    splits?: string[];
+  }): Promise<DatasetItemV2[]> {
+    const queryString = params.splits?.length
+      ? `?splits=${params.splits.join(',')}`
+      : '';
     return this.get<DatasetItemV2[]>(
-      `/apps/${this.appSlug}/datasets/${externalId}/schema-versions/${schemaVersion}/items${queryString}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/schema-versions/${params.schemaVersion}/items${queryString}`,
     );
   }
 
   /**
    * Update a dataset item
    */
-  async updateItem(
-    externalId: string,
-    itemId: string,
-    request: UpdateItemV2Request,
-  ): Promise<{ success: boolean }> {
+  async updateItem(params: {
+    externalId: string;
+    itemId: string;
+    data: UpdateItemV2Request;
+  }): Promise<{ success: boolean }> {
     return this.put<{ success: boolean }>(
-      `/apps/${this.appSlug}/datasets/${externalId}/items/${itemId}`,
-      request,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/items/${params.itemId}`,
+      params.data,
     );
   }
 
   /**
    * Delete a dataset item
    */
-  async deleteItem(
-    externalId: string,
-    itemId: string,
-  ): Promise<{ success: boolean }> {
+  async deleteItem(params: {
+    externalId: string;
+    itemId: string;
+  }): Promise<{ success: boolean }> {
     return this.delete<{ success: boolean }>(
-      `/apps/${this.appSlug}/datasets/${externalId}/items/${itemId}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/items/${params.itemId}`,
     );
   }
 }

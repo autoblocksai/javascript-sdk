@@ -9,7 +9,6 @@ export interface DatasetV2 {
   id: string;
   externalId: string;
   name: string;
-  description: string | null;
   createdAt: string;
 }
 
@@ -20,7 +19,6 @@ export interface DatasetListItemV2 {
   id: string;
   externalId: string;
   name: string;
-  description: string | null;
   latestRevisionId: string | null;
 }
 
@@ -30,7 +28,6 @@ export interface DatasetListItemV2 {
 export interface DatasetSchemaV2 {
   id: string;
   externalId: string;
-  description: string | null;
   schema: SchemaProperty[] | null;
   schemaVersion: number;
 }
@@ -50,7 +47,6 @@ export interface DatasetItemV2 {
  */
 export interface CreateDatasetV2Request {
   name: string;
-  description?: string;
   schema: SchemaProperty[];
 }
 

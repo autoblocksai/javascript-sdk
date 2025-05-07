@@ -1,8 +1,7 @@
 import {
-  AutoblocksAppClient,
   DatasetsV2Client,
-  SchemaProperty,
-  SchemaPropertyTypesEnum,
+  DatasetSchemaProperty,
+  DatasetSchemaPropertyType,
 } from '@autoblocks/client';
 
 import {} from '@autoblocks/client/prompts';
@@ -12,27 +11,27 @@ export const APP_SLUG = 'ci-app';
 export const TEST_TIMEOUT = 30000;
 
 // Common schema definitions
-export const basicSchema: SchemaProperty[] = [
+export const basicSchema: DatasetSchemaProperty[] = [
   {
     name: 'Text Field',
-    type: SchemaPropertyTypesEnum.String,
+    type: DatasetSchemaPropertyType.String,
     required: true,
   },
   {
     name: 'Number Field',
-    type: SchemaPropertyTypesEnum.Number,
+    type: DatasetSchemaPropertyType.Number,
     required: false,
   },
 ];
 
 // Helper for creating a client
-export function createTestClient(): DatasetsV2Client {
-  const appClient = new AutoblocksAppClient({
+export function createTestClient() {
+  const appClient = new DatasetsV2Client({
     apiKey: process.env.AUTOBLOCKS_V2_API_KEY,
     appSlug: APP_SLUG,
     timeout: { milliseconds: TEST_TIMEOUT },
   });
-  return appClient.datasets;
+  return appClient;
 }
 
 // Helper for creating a unique dataset name

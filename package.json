@@ -42,9 +42,6 @@
       "prompts": [
         "./dist/prompts/index.d.ts"
       ],
-      "datasets-v2": [
-        "./dist/datasets-v2/index.d.ts"
-      ],
       "testing": [
         "./dist/testing/index.d.ts"
       ]
