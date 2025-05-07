@@ -13,7 +13,6 @@ export type {
   HumanReviewTestCaseStatus,
 } from './client';
 export type { TimeDelta, HumanReviewFieldContentType } from './types';
-export type { ApiErrorResponse, ValidationIssue } from './datasets-v2/errors';
 
 export type {
   DatasetName,
