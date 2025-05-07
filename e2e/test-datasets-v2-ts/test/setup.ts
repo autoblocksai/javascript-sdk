@@ -12,7 +12,7 @@ export const APP_SLUG = 'ci-app';
 export const TEST_TIMEOUT = 30000;
 
 // Common schema definitions
-export const basicSchema: Omit<SchemaProperty, 'id'>[] = [
+export const basicSchema: SchemaProperty[] = [
   {
     name: 'Text Field',
     type: SchemaPropertyTypesEnum.String,
