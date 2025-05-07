@@ -101,6 +101,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^2.2.2",
     "openai": "^4.52.0",
     "zod": "^3.21.4"
   }

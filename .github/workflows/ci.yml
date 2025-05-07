@@ -106,7 +106,16 @@ jobs:
           npm run test
         env:
           AUTOBLOCKS_V2_API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
-          AUTOBLOCKS_API_KEY: ${{ secrets.CI_AUTOBLOCKS_API_KEY_USER_NICOLE }}
+
+      - name: Test Dataset V2
+        working-directory: e2e/test-datasets-v2-ts
+        run: |
+          npx yalc add @autoblocks/client && \
+          npm install && \
+          npx tsc --noEmit && \
+          npm run test
+        env:
+          AUTOBLOCKS_V2_API_KEY: ${{ secrets.CI_AUTOBLOCKS_V2_API_KEY }}
 
       - name: Test Configs
         working-directory: e2e/test-configs-ts
