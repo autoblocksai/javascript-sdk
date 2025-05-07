@@ -8,7 +8,7 @@ describe('Conversation Schema Type', () => {
   const client = createTestClient();
   let conversationDatasetId: string;
 
-  const conversationSchema: Omit<SchemaProperty, 'id'>[] = [
+  const conversationSchema: SchemaProperty[] = [
     {
       name: 'title',
       type: SchemaPropertyTypesEnum.String,
