@@ -10,7 +10,7 @@ describe('Dataset Basic CRUD Operations', () => {
   let testDatasetId: string;
 
   beforeAll(async () => {
-    const dataset = await client.create({
+    const dataset = await client.datasets.create({
       name: createUniqueName('Basic Dataset'),
       schema: basicSchema,
     });
@@ -23,7 +23,7 @@ describe('Dataset Basic CRUD Operations', () => {
   });
 
   it('should list datasets and include the test dataset', async () => {
-    const datasets = await client.list();
+    const datasets = await client.datasets.list();
 
     expect(datasets.length).toBeGreaterThan(0);
     const testDataset = datasets.find((d) => d.externalId === testDatasetId);
@@ -31,18 +31,18 @@ describe('Dataset Basic CRUD Operations', () => {
   });
 
   it('should create and delete a temporary dataset', async () => {
-    const tempDataset = await client.create({
+    const tempDataset = await client.datasets.create({
       name: createUniqueName('Temp Dataset'),
       schema: basicSchema,
     });
 
     expect(tempDataset.externalId).toBeDefined();
 
-    const deleteResult = await client.destroy(tempDataset.externalId);
+    const deleteResult = await client.datasets.destroy(tempDataset.externalId);
 
     expect(deleteResult.success).toBe(true);
 
-    const datasets = await client.list();
+    const datasets = await client.datasets.list();
 
     const deletedDataset = datasets.find(
       (d) => d.externalId === tempDataset.externalId,

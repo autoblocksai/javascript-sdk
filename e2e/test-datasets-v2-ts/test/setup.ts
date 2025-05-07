@@ -25,13 +25,13 @@ export const basicSchema: SchemaProperty[] = [
 ];
 
 // Helper for creating a client
-export function createTestClient() {
+export function createTestClient(): AutoblocksAppClient {
   const appClient = new AutoblocksAppClient({
     apiKey: process.env.AUTOBLOCKS_V2_API_KEY,
     appSlug: APP_SLUG,
     timeout: { milliseconds: TEST_TIMEOUT },
   });
-  return appClient.datasets;
+  return appClient;
 }
 
 // Helper for creating a unique dataset name

@@ -12,7 +12,7 @@ describe('Dataset Items Operations', () => {
   let testRevisionId: string;
 
   beforeAll(async () => {
-    const dataset = await client.create({
+    const dataset = await client.datasets.create({
       name: createUniqueName('Basic Dataset'),
       schema: basicSchema,
     });
@@ -36,7 +36,7 @@ describe('Dataset Items Operations', () => {
       },
     ];
 
-    const createItemsResult = await client.createItems({
+    const createItemsResult = await client.datasets.createItems({
       externalId: testDatasetId,
       data: {
         items,
@@ -51,7 +51,7 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should retrieve items from the dataset', async () => {
-    const items = await client.getItems(testDatasetId);
+    const items = await client.datasets.getItems(testDatasetId);
 
     expect(items.length).toBe(2);
 
@@ -59,7 +59,7 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should retrieve items by revision ID', async () => {
-    const itemsByRevision = await client.getItemsByRevision({
+    const itemsByRevision = await client.datasets.getItemsByRevision({
       externalId: testDatasetId,
       revisionId: testRevisionId,
     });
@@ -68,7 +68,7 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should retrieve items by revision ID with split filter', async () => {
-    const trainItems = await client.getItemsByRevision({
+    const trainItems = await client.datasets.getItemsByRevision({
       externalId: testDatasetId,
       revisionId: testRevisionId,
       splits: ['train'],
@@ -80,7 +80,7 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should update an item in the dataset', async () => {
-    const updateResult = await client.updateItem({
+    const updateResult = await client.datasets.updateItem({
       externalId: testDatasetId,
       itemId: testItemId,
       data: {
@@ -95,7 +95,7 @@ describe('Dataset Items Operations', () => {
     expect(updateResult.success).toBe(true);
 
     // Verify the update
-    const items = await client.getItems(testDatasetId);
+    const items = await client.datasets.getItems(testDatasetId);
     const updatedItem = items.find((item) => item.id === testItemId);
 
     expect(updatedItem).toBeDefined();
@@ -105,7 +105,7 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should delete an item from the dataset', async () => {
-    const deleteResult = await client.deleteItem({
+    const deleteResult = await client.datasets.deleteItem({
       externalId: testDatasetId,
       itemId: testItemId,
     });
@@ -113,7 +113,7 @@ describe('Dataset Items Operations', () => {
     expect(deleteResult.success).toBe(true);
 
     // Verify the item is deleted
-    const items = await client.getItems(testDatasetId);
+    const items = await client.datasets.getItems(testDatasetId);
     const deletedItem = items.find((item) => item.id === testItemId);
 
     expect(deletedItem).toBeUndefined();

@@ -23,7 +23,7 @@ describe('Conversation Schema Type', () => {
   ];
 
   beforeAll(async () => {
-    const dataset = await client.create({
+    const dataset = await client.datasets.create({
       name: createUniqueName('Conversation Dataset'),
       schema: conversationSchema,
     });
@@ -67,7 +67,7 @@ describe('Conversation Schema Type', () => {
       ],
     };
 
-    const createResult = await client.createItems({
+    const createResult = await client.datasets.createItems({
       externalId: conversationDatasetId,
       data: {
         items: [
@@ -81,7 +81,7 @@ describe('Conversation Schema Type', () => {
 
     expect(createResult.count).toBe(1);
 
-    const items = await client.getItems(conversationDatasetId);
+    const items = await client.datasets.getItems(conversationDatasetId);
 
     expect(items.length).toBe(1);
     expect(items[0].data.title).toBe('Sample conversation');
