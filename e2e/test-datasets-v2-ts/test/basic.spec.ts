@@ -33,7 +33,6 @@ describe('Dataset Basic CRUD Operations', () => {
   it('should create and delete a temporary dataset', async () => {
     const tempDataset = await client.create({
       name: createUniqueName('Temp Dataset'),
-      description: 'Temporary dataset for deletion test',
       schema: basicSchema,
     });
 

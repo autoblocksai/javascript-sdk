@@ -41,11 +41,11 @@ export function createUniqueName(prefix: string): string {
 
 // Helper for cleaning up a dataset
 export async function cleanupDataset(
-  client: DatasetsV2Client,
+  client: AutoblocksAppClient,
   datasetId: string,
 ): Promise<void> {
   if (datasetId) {
-    await client.destroy(datasetId);
+    await client.datasets.destroy(datasetId);
     console.log(`Cleaned up dataset: ${datasetId}`);
   }
 }

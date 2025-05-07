@@ -25,7 +25,6 @@ describe('Conversation Schema Type', () => {
   beforeAll(async () => {
     const dataset = await client.create({
       name: createUniqueName('Conversation Dataset'),
-      description: 'Dataset with conversation type for testing',
       schema: conversationSchema,
     });
 
