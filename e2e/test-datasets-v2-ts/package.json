@@ -10,8 +10,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@autoblocks/client": "file:.yalc/@autoblocks/client",
-    "@paralleldrive/cuid2": "^2.2.2",
     "@types/jest": "*",
     "jest": "*",
     "ts-jest": "*",

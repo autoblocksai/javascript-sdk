@@ -16,7 +16,7 @@ export enum SchemaPropertyTypesEnum {
  * Base property interface
  */
 export interface BaseSchemaProperty {
-  id: string;
+  id?: string;
   name: string;
   required: boolean;
 }

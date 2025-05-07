@@ -2,22 +2,19 @@ import { createTestClient, createUniqueName, cleanupDataset } from './setup';
 import {
   SchemaPropertyTypesEnum,
   type SchemaProperty,
-} from '@autoblocks/client/datasets-v2';
-import * as cuid2 from '@paralleldrive/cuid2';
+} from '@autoblocks/client';
 
 describe('Conversation Schema Type', () => {
   const client = createTestClient();
   let conversationDatasetId: string;
 
-  const conversationSchema: SchemaProperty[] = [
+  const conversationSchema: Omit<SchemaProperty, 'id'>[] = [
     {
-      id: cuid2.createId(),
       name: 'title',
       type: SchemaPropertyTypesEnum.String,
       required: true,
     },
     {
-      id: cuid2.createId(),
       name: 'conversation',
       type: SchemaPropertyTypesEnum.Conversation,
       roles: ['user', 'assistant'],

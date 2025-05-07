@@ -1,5 +1,14 @@
-import { AUTOBLOCKS_HEADERS, V2_API_ENDPOINT } from '../util';
-import { formatErrorResponse } from './errors';
+import {
+  AUTOBLOCKS_HEADERS,
+  AutoblocksEnvVar,
+  V2_API_ENDPOINT,
+  convertTimeDeltaToMilliSeconds,
+  readEnv,
+} from '../util';
+
+import * as cuid2 from '@paralleldrive/cuid2';
+
+import type { TimeDelta } from '../types';
 import type {
   DatasetV2,
   DatasetListItemV2,
@@ -11,14 +20,22 @@ import type {
 } from './types';
 
 export class DatasetsV2Client {
-  private readonly apiKey: string;
+  private readonly apiKey: string | undefined;
   private readonly appSlug: string;
-  private readonly timeoutMs: number;
+  private readonly timeout: number;
 
-  constructor(config: { apiKey: string; appSlug: string; timeoutMs?: number }) {
-    this.apiKey = config.apiKey;
+  constructor(config: {
+    apiKey?: string;
+    appSlug: string;
+    timeout?: TimeDelta;
+  }) {
+    this.apiKey =
+      config.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_API_KEY);
+
     this.appSlug = config.appSlug;
-    this.timeoutMs = config.timeoutMs || 60000;
+    this.timeout = convertTimeDeltaToMilliSeconds(
+      config.timeout || { seconds: 60 },
+    );
   }
 
   private async get<T>(path: string): Promise<T> {
@@ -29,11 +46,11 @@ export class DatasetsV2Client {
         ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
       },
-      signal: AbortSignal.timeout(this.timeoutMs),
+      signal: AbortSignal.timeout(this.timeout),
     });
 
     if (!resp.ok) {
-      return formatErrorResponse(resp, url, 'GET');
+      return resp.json();
     }
 
     return resp.json();
@@ -48,11 +65,11 @@ export class DatasetsV2Client {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.timeoutMs),
+      signal: AbortSignal.timeout(this.timeout),
     });
 
     if (!resp.ok) {
-      return formatErrorResponse(resp, url, 'POST');
+      return resp.json();
     }
 
     return resp.json();
@@ -67,11 +84,11 @@ export class DatasetsV2Client {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.timeoutMs),
+      signal: AbortSignal.timeout(this.timeout),
     });
 
     if (!resp.ok) {
-      return formatErrorResponse(resp, url, 'PUT');
+      return resp.json();
     }
 
     return resp.json();
@@ -85,11 +102,11 @@ export class DatasetsV2Client {
         ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
       },
-      signal: AbortSignal.timeout(this.timeoutMs),
+      signal: AbortSignal.timeout(this.timeout),
     });
 
     if (!resp.ok) {
-      return formatErrorResponse(resp, url, 'DELETE');
+      return resp.json();
     }
 
     return resp.json();
@@ -104,9 +121,23 @@ export class DatasetsV2Client {
 
   /**
    * Create a new dataset
+   *
+   * Schema property IDs will be automatically generated.
    */
   async create(dataset: CreateDatasetV2Request): Promise<DatasetV2> {
-    return this.post<DatasetV2>(`/apps/${this.appSlug}/datasets`, dataset);
+    // Clone the dataset and assign IDs to schema properties
+    const datasetWithIds = {
+      ...dataset,
+      schema: dataset.schema.map((property) => ({
+        ...property,
+        id: cuid2.createId(), // Generate a new ID for each property
+      })),
+    };
+
+    return this.post<DatasetV2>(
+      `/apps/${this.appSlug}/datasets`,
+      datasetWithIds,
+    );
   }
 
   /**
@@ -205,15 +236,4 @@ export class DatasetsV2Client {
       `/apps/${this.appSlug}/datasets/${externalId}/items/${itemId}`,
     );
   }
-}
-
-/**
- * Create a new datasets v2 client
- */
-export function createDatasetsV2Client(config: {
-  apiKey: string;
-  appSlug: string;
-  timeoutMs?: number;
-}): DatasetsV2Client {
-  return new DatasetsV2Client(config);
 }

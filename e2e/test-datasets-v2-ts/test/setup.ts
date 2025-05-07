@@ -1,10 +1,9 @@
 import {
-  createDatasetsV2Client,
+  AutoblocksAppClient,
   DatasetsV2Client,
   SchemaProperty,
   SchemaPropertyTypesEnum,
-} from '@autoblocks/client/datasets-v2';
-import * as cuid2 from '@paralleldrive/cuid2';
+} from '@autoblocks/client';
 
 import {} from '@autoblocks/client/prompts';
 
@@ -13,15 +12,13 @@ export const APP_SLUG = 'ci-app';
 export const TEST_TIMEOUT = 30000;
 
 // Common schema definitions
-export const basicSchema: SchemaProperty[] = [
+export const basicSchema: Omit<SchemaProperty, 'id'>[] = [
   {
-    id: cuid2.createId(),
     name: 'Text Field',
     type: SchemaPropertyTypesEnum.String,
     required: true,
   },
   {
-    id: cuid2.createId(),
     name: 'Number Field',
     type: SchemaPropertyTypesEnum.Number,
     required: false,
@@ -30,11 +27,12 @@ export const basicSchema: SchemaProperty[] = [
 
 // Helper for creating a client
 export function createTestClient(): DatasetsV2Client {
-  return createDatasetsV2Client({
+  const appClient = new AutoblocksAppClient({
     apiKey: process.env.AUTOBLOCKS_V2_API_KEY,
     appSlug: APP_SLUG,
-    timeoutMs: TEST_TIMEOUT,
+    timeout: { milliseconds: TEST_TIMEOUT },
   });
+  return appClient.datasets;
 }
 
 // Helper for creating a unique dataset name
