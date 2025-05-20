@@ -27,12 +27,12 @@ export class HumanReviewClient extends BaseAppResourceClient {
   /**
    * Get a specific job item by ID
    */
-  async getJobItem(
-    jobId: string,
-    itemId: string,
-  ): Promise<HumanReviewJobItemDetail> {
+  async getJobItem(args: {
+    jobId: string;
+    itemId: string;
+  }): Promise<HumanReviewJobItemDetail> {
     return this.get<HumanReviewJobItemDetail>(
-      `/apps/${this.appSlug}/human-review/jobs/${jobId}/items/${itemId}`,
+      `/apps/${this.appSlug}/human-review/jobs/${args.jobId}/items/${args.itemId}`,
     );
   }
 }

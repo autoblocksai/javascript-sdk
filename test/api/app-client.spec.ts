@@ -317,7 +317,10 @@ describe('AutoblocksAppClient (v2)', () => {
         json: () => Promise.resolve({ id: 'item2' }),
       });
       const client = new AutoblocksAppClient({ appSlug, apiKey });
-      const item = await client.humanReview.getJobItem('job2', 'item2');
+      const item = await client.humanReview.getJobItem({
+        jobId: 'job2',
+        itemId: 'item2',
+      });
       expect(item.id).toBe('item2');
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(
