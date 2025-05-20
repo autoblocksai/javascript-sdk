@@ -9,20 +9,26 @@ import {
 import type { TimeDelta } from '../types';
 
 export abstract class BaseAppResourceClient {
-  protected readonly apiKey: string | undefined;
+  protected readonly apiKey: string;
   protected readonly appSlug: string;
-  protected readonly timeout: number;
+  protected readonly timeoutMS: number;
 
   constructor(config: {
     apiKey?: string;
     appSlug: string;
     timeout?: TimeDelta;
   }) {
-    this.apiKey =
+    const key =
       config.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_API_KEY);
+    if (!key) {
+      throw new Error(
+        `You must either pass in the API key via 'apiKey' or set the '${AutoblocksEnvVar.AUTOBLOCKS_V2_API_KEY}' environment variable.`,
+      );
+    }
+    this.apiKey = key;
 
     this.appSlug = config.appSlug;
-    this.timeout = convertTimeDeltaToMilliSeconds(
+    this.timeoutMS = convertTimeDeltaToMilliSeconds(
       config.timeout || { seconds: 60 },
     );
   }
@@ -35,7 +41,7 @@ export abstract class BaseAppResourceClient {
         ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
       },
-      signal: AbortSignal.timeout(this.timeout),
+      signal: AbortSignal.timeout(this.timeoutMS),
     });
 
     if (!resp.ok) {
@@ -54,7 +60,7 @@ export abstract class BaseAppResourceClient {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.timeout),
+      signal: AbortSignal.timeout(this.timeoutMS),
     });
 
     if (!resp.ok) {
@@ -73,7 +79,7 @@ export abstract class BaseAppResourceClient {
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.timeout),
+      signal: AbortSignal.timeout(this.timeoutMS),
     });
 
     if (!resp.ok) {
@@ -91,7 +97,7 @@ export abstract class BaseAppResourceClient {
         ...AUTOBLOCKS_HEADERS,
         Authorization: `Bearer ${this.apiKey}`,
       },
-      signal: AbortSignal.timeout(this.timeout),
+      signal: AbortSignal.timeout(this.timeoutMS),
     });
 
     if (!resp.ok) {
