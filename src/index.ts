@@ -44,3 +44,12 @@ export type {
   CreateDatasetItemsV2Request,
   UpdateItemV2Request,
 } from './datasets-v2/types';
+
+export type {
+  HumanReviewJobListResponse,
+  HumanReviewJobSummary,
+  HumanReviewUser,
+  HumanReviewJobDetail,
+  HumanReviewScore,
+  HumanReviewScoreOptions,
+} from './human-review/models';
