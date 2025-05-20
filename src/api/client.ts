@@ -2,15 +2,15 @@ import type {
   DatasetItem,
   DatasetName,
   DatasetSchemaVersion,
-} from './datasets';
-import type { HumanReviewFieldContentType, TimeDelta } from './types';
+} from '../datasets';
+import type { HumanReviewFieldContentType, TimeDelta } from '../types';
 import {
   convertTimeDeltaToMilliSeconds,
   readEnv,
   AutoblocksEnvVar,
   AUTOBLOCKS_HEADERS,
   API_ENDPOINT,
-} from './util';
+} from '../util';
 
 export interface View {
   id: string;

@@ -1,10 +1,10 @@
-import { DatasetsV2Client } from './datasets-v2/client';
-import { TimeDelta } from './types';
+import { DatasetsV2Client } from '../datasets-v2/client';
+import { TimeDelta } from '../types';
 import {
   AutoblocksEnvVar,
   convertTimeDeltaToMilliSeconds,
   readEnv,
-} from './util';
+} from '../util';
 
 /**
  * Client for interacting with Autoblocks App API
