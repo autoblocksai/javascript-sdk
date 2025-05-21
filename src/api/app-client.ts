@@ -1,10 +1,11 @@
-import { DatasetsV2Client } from './datasets-v2/client';
-import { TimeDelta } from './types';
+import { DatasetsV2Client } from '../datasets-v2/client';
+import { HumanReviewClient } from '../human-review/client';
+import { TimeDelta } from '../types';
 import {
   AutoblocksEnvVar,
   convertTimeDeltaToMilliSeconds,
   readEnv,
-} from './util';
+} from '../util';
 
 /**
  * Client for interacting with Autoblocks App API
@@ -23,6 +24,7 @@ export class AutoblocksAppClient {
   private readonly appSlug: string;
   private readonly timeoutMs: number;
   private readonly _datasets: DatasetsV2Client;
+  private readonly _humanReview: HumanReviewClient;
 
   constructor(args: { appSlug: string; apiKey?: string; timeout?: TimeDelta }) {
     const key = args.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_API_KEY);
@@ -43,6 +45,12 @@ export class AutoblocksAppClient {
       appSlug: this.appSlug,
       timeout: { milliseconds: this.timeoutMs },
     });
+
+    this._humanReview = new HumanReviewClient({
+      apiKey: this.apiKey,
+      appSlug: this.appSlug,
+      timeout: { milliseconds: this.timeoutMs },
+    });
   }
 
   /**
@@ -50,5 +58,12 @@ export class AutoblocksAppClient {
    */
   get datasets(): DatasetsV2Client {
     return this._datasets;
+  }
+
+  /**
+   * Access the human review API client
+   */
+  get humanReview(): HumanReviewClient {
+    return this._humanReview;
   }
 }

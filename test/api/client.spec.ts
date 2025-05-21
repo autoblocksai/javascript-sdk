@@ -1,5 +1,5 @@
-import { AutoblocksAPIClient } from '../src/index';
-import { API_ENDPOINT, AutoblocksEnvVar } from '../src/util';
+import { AutoblocksAPIClient } from '../../src/index';
+import { API_ENDPOINT, AutoblocksEnvVar } from '../../src/util';
 
 describe('Autoblocks Client', () => {
   let mockFetch: jest.SpyInstance;

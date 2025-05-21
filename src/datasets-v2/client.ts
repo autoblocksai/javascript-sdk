@@ -1,117 +1,16 @@
+import { BaseAppResourceClient } from '../api/base-app-resource-client';
 import {
-  AUTOBLOCKS_HEADERS,
-  AutoblocksEnvVar,
-  V2_API_ENDPOINT,
-  convertTimeDeltaToMilliSeconds,
-  readEnv,
-} from '../util';
-
-import * as cuid2 from '@paralleldrive/cuid2';
-
-import type { TimeDelta } from '../types';
-import type {
-  DatasetV2,
   DatasetListItemV2,
-  DatasetSchemaV2,
+  DatasetV2,
   CreateDatasetV2Request,
   CreateDatasetItemsV2Request,
   UpdateItemV2Request,
   DatasetItemV2,
+  DatasetSchemaV2,
 } from './types';
+import * as cuid2 from '@paralleldrive/cuid2';
 
-export class DatasetsV2Client {
-  private readonly apiKey: string | undefined;
-  private readonly appSlug: string;
-  private readonly timeout: number;
-
-  constructor(config: {
-    apiKey?: string;
-    appSlug: string;
-    timeout?: TimeDelta;
-  }) {
-    this.apiKey =
-      config.apiKey || readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_API_KEY);
-
-    this.appSlug = config.appSlug;
-    this.timeout = convertTimeDeltaToMilliSeconds(
-      config.timeout || { seconds: 60 },
-    );
-  }
-
-  private async get<T>(path: string): Promise<T> {
-    const url = `${V2_API_ENDPOINT}${path}`;
-    const resp = await fetch(url, {
-      method: 'GET',
-      headers: {
-        ...AUTOBLOCKS_HEADERS,
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      signal: AbortSignal.timeout(this.timeout),
-    });
-
-    if (!resp.ok) {
-      return resp.json();
-    }
-
-    return resp.json();
-  }
-
-  private async post<T>(path: string, body: unknown): Promise<T> {
-    const url = `${V2_API_ENDPOINT}${path}`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: {
-        ...AUTOBLOCKS_HEADERS,
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.timeout),
-    });
-
-    if (!resp.ok) {
-      return resp.json();
-    }
-
-    return resp.json();
-  }
-
-  private async put<T>(path: string, body: unknown): Promise<T> {
-    const url = `${V2_API_ENDPOINT}${path}`;
-    const resp = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        ...AUTOBLOCKS_HEADERS,
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.timeout),
-    });
-
-    if (!resp.ok) {
-      return resp.json();
-    }
-
-    return resp.json();
-  }
-
-  private async delete<T>(path: string): Promise<T> {
-    const url = `${V2_API_ENDPOINT}${path}`;
-    const resp = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        ...AUTOBLOCKS_HEADERS,
-        Authorization: `Bearer ${this.apiKey}`,
-      },
-      signal: AbortSignal.timeout(this.timeout),
-    });
-
-    if (!resp.ok) {
-      return resp.json();
-    }
-
-    return resp.json();
-  }
-
+export class DatasetsV2Client extends BaseAppResourceClient {
   /**
    * List all datasets in the app
    */

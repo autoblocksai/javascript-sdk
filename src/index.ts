@@ -1,6 +1,6 @@
 export { AutoblocksTracer, flush } from './tracer';
-export { AutoblocksAPIClient, SystemEventFilterKey } from './client';
-export { AutoblocksAppClient } from './app-client';
+export { AutoblocksAPIClient, SystemEventFilterKey } from './api/client';
+export { AutoblocksAppClient } from './api/app-client';
 export { dedent } from './util';
 
 export type {
@@ -11,7 +11,7 @@ export type {
   HumanReviewJobWithTestCases,
   HumanReviewJobTestCaseResult,
   HumanReviewTestCaseStatus,
-} from './client';
+} from './api/client';
 export type { TimeDelta, HumanReviewFieldContentType } from './types';
 
 export type {
@@ -44,3 +44,12 @@ export type {
   CreateDatasetItemsV2Request,
   UpdateItemV2Request,
 } from './datasets-v2/types';
+
+export type {
+  HumanReviewJobListResponse,
+  HumanReviewJobSummary,
+  HumanReviewUser,
+  HumanReviewJobDetail,
+  HumanReviewScore,
+  HumanReviewScoreOptions,
+} from './human-review/models';
