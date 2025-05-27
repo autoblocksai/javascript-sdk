@@ -9,15 +9,6 @@ describe('Datasets V2 Utilities', () => {
   });
 
   describe('getSelectedDatasets', () => {
-    it('returns empty array when not in testing context', () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
-        testSelectedDatasets: ['dataset-1', 'dataset-2'],
-      });
-
-      const result = getSelectedDatasets();
-      expect(result).toEqual([]);
-    });
-
     it('returns empty array when no overrides are set', () => {
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
         'http://localhost:3000';

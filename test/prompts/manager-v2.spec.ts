@@ -1,7 +1,22 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import { AutoblocksEnvVar, RevisionSpecialVersionsEnum } from '../../src/util';
+import {
+  AutoblocksEnvVar,
+  RevisionSpecialVersionsEnum,
+  V2_API_ENDPOINT,
+} from '../../src/util';
 import { AutoblocksPromptManagerV2 } from '../../src/prompts';
+
+// Mock fs to provide app mapping for test-app
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  readFileSync: jest.fn((path, encoding) => {
+    if (path.includes('app-mapping.json')) {
+      return JSON.stringify({ 'test-app': 'test-app-id' });
+    }
+    return jest.requireActual('fs').readFileSync(path, encoding);
+  }),
+}));
 
 describe('Prompt Manager V2', () => {
   let mockFetch;
@@ -507,7 +522,7 @@ describe('Prompt Manager V2', () => {
         ).toEqual('Hello from unified v2, world!');
       });
 
-      expectNumRequests(1);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
         `${V2_API_ENDPOINT}/apps/test-app-id/prompts/my-prompt-id/revisions/unified-revision-id/validate`,
         {
