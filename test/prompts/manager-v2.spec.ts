@@ -493,7 +493,7 @@ describe('Prompt Manager V2', () => {
         ],
       };
 
-      mockFetch = jest.spyOn(global, 'fetch').mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         status: 200,
         ok: true,
         json: () => Promise.resolve(mockRevision),
