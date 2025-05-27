@@ -63,6 +63,8 @@ describe('Testing SDK', () => {
     // Make CI and local consistent
     process.env['CI'] = 'true';
     process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY] = mockAPIKey;
+    process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
+      MOCK_CLI_SERVER_ADDRESS;
   });
 
   afterEach(() => {
@@ -136,11 +138,11 @@ describe('Testing SDK', () => {
   };
 
   beforeAll(() => {
-    process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS = MOCK_CLI_SERVER_ADDRESS;
+    // Remove this since we're setting it in beforeEach now
   });
 
   afterAll(() => {
-    delete process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS;
+    // Remove this since we're cleaning it up in afterEach now
   });
 
   it('sends an error if there are no test cases', async () => {
@@ -1671,8 +1673,9 @@ describe('Testing SDK', () => {
     });
 
     it('uses unified AUTOBLOCKS_OVERRIDES format for test run message', async () => {
+      const customCliServerAddress = 'http://localhost:3000';
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
+        customCliServerAddress;
       process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
         testRunMessage: 'Unified message',
       });
@@ -1686,17 +1689,26 @@ describe('Testing SDK', () => {
       });
 
       expectNumPosts(3);
-      expectPostRequest({
-        path: '/start',
-        body: {
-          testExternalId: 'my-test-id',
-        },
-      });
+      // Use custom expectation for this test since it uses a different CLI server address
+      for (const call of mockFetch.mock.calls) {
+        const [callUrl, callArgs] = call;
+        if (callUrl === `${customCliServerAddress}/start`) {
+          expect(callArgs.method).toEqual('POST');
+          expect(callArgs.headers).toEqual({
+            'Content-Type': 'application/json',
+          });
+          const parsedBody = JSON.parse(callArgs.body);
+          expect(parsedBody.testExternalId).toEqual('my-test-id');
+          return;
+        }
+      }
+      throw new Error('Expected /start request not found');
     });
 
     it('unified format takes precedence over legacy format for test run message', async () => {
+      const customCliServerAddress = 'http://localhost:3000';
       process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
+        customCliServerAddress;
       // Set both formats - unified should take precedence
       process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
         testRunMessage: 'Unified message',
@@ -1713,12 +1725,20 @@ describe('Testing SDK', () => {
       });
 
       expectNumPosts(3);
-      expectPostRequest({
-        path: '/start',
-        body: {
-          testExternalId: 'my-test-id',
-        },
-      });
+      // Use custom expectation for this test since it uses a different CLI server address
+      for (const call of mockFetch.mock.calls) {
+        const [callUrl, callArgs] = call;
+        if (callUrl === `${customCliServerAddress}/start`) {
+          expect(callArgs.method).toEqual('POST');
+          expect(callArgs.headers).toEqual({
+            'Content-Type': 'application/json',
+          });
+          const parsedBody = JSON.parse(callArgs.body);
+          expect(parsedBody.testExternalId).toEqual('my-test-id');
+          return;
+        }
+      }
+      throw new Error('Expected /start request not found');
     });
   });
 });
