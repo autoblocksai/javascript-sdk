@@ -37,6 +37,7 @@ const configRevisionsMap = (): Record<string, string> => {
   const configRevisionsRaw = readEnv(
     AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS,
   );
+
   if (!configRevisionsRaw) {
     return {};
   }

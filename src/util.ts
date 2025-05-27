@@ -12,6 +12,7 @@ export enum AutoblocksEnvVar {
   AUTOBLOCKS_TRACER_THROW_ON_ERROR = 'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
   AUTOBLOCKS_CLI_SERVER_ADDRESS = 'AUTOBLOCKS_CLI_SERVER_ADDRESS',
   AUTOBLOCKS_FILTERS_TEST_SUITES = 'AUTOBLOCKS_FILTERS_TEST_SUITES',
+  AUTOBLOCKS_OVERRIDES = 'AUTOBLOCKS_OVERRIDES',
   AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS = 'AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS',
   AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS = 'AUTOBLOCKS_OVERRIDES_CONFIG_REVISIONS',
   AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES = 'AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES',
@@ -148,3 +149,24 @@ export function determineStartAndEndIdx(args: {
     `Couldn't find ${symbolAppearanceBeforeAutogeneration} or ${args.symbolType} ${args.symbolName} in ${args.content}`,
   );
 }
+
+export interface AutoblocksOverrides {
+  promptRevisions?: Record<string, string>;
+  testRunMessage?: string;
+  testSelectedDatasets?: string[];
+}
+
+export const parseAutoblocksOverrides = (): AutoblocksOverrides => {
+  const overrides = readEnv(AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES);
+
+  if (!overrides) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(overrides);
+  } catch (err) {
+    console.warn(`Failed to parse AUTOBLOCKS_OVERRIDES: ${err}`);
+    return {};
+  }
+};

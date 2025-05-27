@@ -66,8 +66,14 @@ describe('Testing SDK', () => {
   });
 
   afterEach(() => {
+    if (mockFetch) {
+      mockFetch.mockRestore();
+    }
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_FILTERS_TEST_SUITES];
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE];
     delete process.env['CI'];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_API_KEY];
   });
@@ -1637,6 +1643,80 @@ describe('Testing SDK', () => {
         body: {
           testExternalId: 'my-test-id',
           runId: mockRunId,
+        },
+      });
+    });
+  });
+
+  describe('Test Run Message Overrides', () => {
+    it('uses legacy AUTOBLOCKS_TEST_RUN_MESSAGE when no unified format is set', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE] =
+        'Legacy message';
+
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+    });
+
+    it('uses unified AUTOBLOCKS_OVERRIDES format for test run message', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
+        'http://localhost:3000';
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
+        testRunMessage: 'Unified message',
+      });
+
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
+        },
+      });
+    });
+
+    it('unified format takes precedence over legacy format for test run message', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
+        'http://localhost:3000';
+      // Set both formats - unified should take precedence
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
+        testRunMessage: 'Unified message',
+      });
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE] =
+        'Legacy message';
+
+      await runTestSuite<MyTestCase, string>({
+        id: 'my-test-id',
+        testCases: [{ x: 1, y: 2 }],
+        testCaseHash: ['x', 'y'],
+        fn: ({ testCase }: { testCase: MyTestCase }) =>
+          `${testCase.x} + ${testCase.y} = ${testCase.x + testCase.y}`,
+      });
+
+      expectNumPosts(3);
+      expectPostRequest({
+        path: '/start',
+        body: {
+          testExternalId: 'my-test-id',
         },
       });
     });
