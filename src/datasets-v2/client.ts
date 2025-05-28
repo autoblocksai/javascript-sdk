@@ -51,9 +51,13 @@ export class DatasetsV2Client extends BaseAppResourceClient {
   /**
    * Get all items for a dataset
    */
-  async getItems(externalId: string): Promise<DatasetItemV2[]> {
+  async getItems(
+    externalId: string,
+    splits?: string[],
+  ): Promise<DatasetItemV2[]> {
+    const queryString = splits?.length ? `?splits=${splits.join(',')}` : '';
     return this.get<DatasetItemV2[]>(
-      `/apps/${this.appSlug}/datasets/${externalId}/items`,
+      `/apps/${this.appSlug}/datasets/${externalId}/items${queryString}`,
     );
   }
 
@@ -78,7 +82,7 @@ export class DatasetsV2Client extends BaseAppResourceClient {
     schemaVersion: number;
   }): Promise<DatasetSchemaV2> {
     return this.get<DatasetSchemaV2>(
-      `/apps/${this.appSlug}/datasets/${params.externalId}/schema-versions/${params.schemaVersion}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/schema/${params.schemaVersion}`,
     );
   }
 
@@ -110,7 +114,7 @@ export class DatasetsV2Client extends BaseAppResourceClient {
       ? `?splits=${params.splits.join(',')}`
       : '';
     return this.get<DatasetItemV2[]>(
-      `/apps/${this.appSlug}/datasets/${params.externalId}/schema-versions/${params.schemaVersion}/items${queryString}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}/schema/${params.schemaVersion}/items${queryString}`,
     );
   }
 

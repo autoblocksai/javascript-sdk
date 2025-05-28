@@ -58,6 +58,14 @@ describe('Dataset Items Operations', () => {
     testItemId = items[0].id;
   });
 
+  it('should retrieve items from the dataset with split filter', async () => {
+    const trainItems = await client.datasets.getItems(testDatasetId, ['train']);
+
+    expect(trainItems.length).toBe(2);
+    expect(trainItems[0].splits).toContain('train');
+    expect(trainItems[1].splits).toContain('train');
+  });
+
   it('should retrieve items by revision ID', async () => {
     const itemsByRevision = await client.datasets.getItemsByRevision({
       externalId: testDatasetId,
