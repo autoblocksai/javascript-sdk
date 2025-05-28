@@ -23,6 +23,7 @@ import {
   AUTOBLOCKS_HEADERS,
   API_ENDPOINT,
   REVISION_UNDEPLOYED_VERSION,
+  parseAutoblocksOverrides,
 } from '../util';
 import { renderTemplateWithParams, renderToolWithParams } from './util';
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
@@ -48,6 +49,14 @@ const promptRevisionsMap = (): Record<string, string> => {
     return {};
   }
 
+  // Try new unified format first
+  const overrides = parseAutoblocksOverrides();
+
+  if (overrides.promptRevisions) {
+    return overrides.promptRevisions;
+  }
+
+  // Fallback to legacy format
   const promptRevisionsRaw = readEnv(
     AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS,
   );

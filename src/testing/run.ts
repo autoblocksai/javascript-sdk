@@ -2,7 +2,13 @@ import {
   gridSearchAsyncLocalStorage,
   testCaseRunAsyncLocalStorage,
 } from '../asyncLocalStorage';
-import { AutoblocksEnvVar, isCI, isCLIRunning, readEnv } from '../util';
+import {
+  AutoblocksEnvVar,
+  isCI,
+  isCLIRunning,
+  readEnv,
+  parseAutoblocksOverrides,
+} from '../util';
 import {
   BaseTestEvaluator,
   BaseEvaluator,
@@ -29,6 +35,22 @@ const evaluatorSemaphoreRegistry: Record<
   string,
   Record<string, Semaphore>
 > = {}; // testId -> evaluatorId -> Semaphore
+
+/**
+ * Gets the test run message from overrides, checking unified format first,
+ * then falling back to legacy format.
+ */
+function getTestRunMessage(): string | undefined {
+  // Try new unified format first
+  const overrides = parseAutoblocksOverrides();
+
+  if (overrides.testRunMessage) {
+    return overrides.testRunMessage;
+  }
+
+  // Fallback to legacy format
+  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE);
+}
 
 /**
  * AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES environment variable is a JSON string
@@ -276,7 +298,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
       testExternalId: args.testId,
       gridSearchRunGroupId: args.gridSearchRunGroupId,
       gridSearchParamsCombo: args.gridSearchParamsCombo,
-      message: readEnv(AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE),
+      message: getTestRunMessage(),
     });
   } catch (err) {
     // Don't allow the run to continue if /start failed, since all subsequent

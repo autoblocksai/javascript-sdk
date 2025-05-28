@@ -10,3 +10,6 @@ export {
   validateConversation,
   type ValidatedConversation,
 } from './validation';
+
+// Export utilities
+export { getSelectedDatasets } from './util';

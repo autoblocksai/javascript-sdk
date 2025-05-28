@@ -1,7 +1,22 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
-import { AutoblocksEnvVar, RevisionSpecialVersionsEnum } from '../../src/util';
+import {
+  AutoblocksEnvVar,
+  RevisionSpecialVersionsEnum,
+  V2_API_ENDPOINT,
+} from '../../src/util';
 import { AutoblocksPromptManagerV2 } from '../../src/prompts';
+
+// Mock fs to provide app mapping for test-app
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  readFileSync: jest.fn((path, encoding) => {
+    if (path.includes('app-mapping.json')) {
+      return JSON.stringify({ 'test-app': 'test-app-id' });
+    }
+    return jest.requireActual('fs').readFileSync(path, encoding);
+  }),
+}));
 
 describe('Prompt Manager V2', () => {
   let mockFetch;
@@ -12,10 +27,12 @@ describe('Prompt Manager V2', () => {
   });
 
   afterEach(() => {
-    delete process.env.AUTOBLOCKS_V2_API_KEY;
+    if (mockFetch) {
+      mockFetch.mockRestore();
+    }
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
+    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS];
-    mockFetch.mockRestore();
   });
 
   it('should construct with appName, id, and version', () => {
@@ -447,6 +464,79 @@ describe('Prompt Manager V2', () => {
 
       await expect(manager.init()).rejects.toThrow(
         /Prompt revision overrides are not yet supported for prompt managers using 'dangerously-use-undeployed'/,
+      );
+    });
+
+    it('uses unified AUTOBLOCKS_OVERRIDES format and takes precedence over legacy format', async () => {
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
+        'http://localhost:3000';
+      // Set both new and legacy formats - new should take precedence
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
+        promptRevisions: {
+          'my-prompt-id': 'unified-revision-id',
+        },
+      });
+      process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
+        JSON.stringify({
+          'my-prompt-id': 'legacy-revision-id',
+        });
+
+      const mockRevision = {
+        id: 'my-prompt-id',
+        revisionId: 'unified-revision-id',
+        version: 'revision:unified-revision-id',
+        templates: [
+          {
+            id: 'my-template-id',
+            template: 'Hello from unified v2, {{ name }}!',
+          },
+        ],
+      };
+
+      mockFetch.mockResolvedValueOnce({
+        status: 200,
+        ok: true,
+        json: () => Promise.resolve(mockRevision),
+      });
+
+      const mgr = new AutoblocksPromptManagerV2({
+        appName: 'test-app',
+        id: 'my-prompt-id',
+        version: {
+          major: '1',
+          minor: '0',
+        },
+        apiKey: 'mock-api-key',
+      });
+
+      await mgr.init();
+
+      mgr.exec(({ prompt }) => {
+        expect(
+          prompt.renderTemplate({
+            template: 'my-template-id',
+            params: {
+              name: 'world',
+            },
+          }),
+        ).toEqual('Hello from unified v2, world!');
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${V2_API_ENDPOINT}/apps/test-app-id/prompts/my-prompt-id/revisions/unified-revision-id/validate`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            majorVersion: 1,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer mock-api-key',
+            'X-Autoblocks-SDK': 'javascript-0.0.0-automated',
+          },
+          signal: AbortSignal.timeout(5_000),
+        },
       );
     });
   });

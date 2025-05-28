@@ -1,5 +1,5 @@
 import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
-import { AutoblocksEnvVar, readEnv } from '../util';
+import { AutoblocksEnvVar, readEnv, parseAutoblocksOverrides } from '../util';
 import {
   sendEndRun,
   sendEvaluation,
@@ -59,8 +59,7 @@ export class RunManager<
   public async start() {
     const runId = await sendStartRun({
       testExternalId: this.testExternalId,
-      message:
-        this.message || readEnv(AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE),
+      message: this.message || getTestRunMessage(),
     });
     this.runId = runId;
   }
@@ -196,4 +195,20 @@ export class RunManager<
     });
     this.ended = true;
   }
+}
+
+/**
+ * Gets the test run message from overrides, checking unified format first,
+ * then falling back to legacy format.
+ */
+function getTestRunMessage(): string | undefined {
+  // Try new unified format first
+  const overrides = parseAutoblocksOverrides();
+
+  if (overrides.testRunMessage) {
+    return overrides.testRunMessage;
+  }
+
+  // Fallback to legacy format
+  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_TEST_RUN_MESSAGE);
 }
