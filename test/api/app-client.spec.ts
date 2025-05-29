@@ -160,9 +160,7 @@ describe('AutoblocksAppClient (v2)', () => {
       });
       expect(schema.schemaVersion).toBe(1);
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining(
-          `/apps/${appSlug}/datasets/ds2/schema-versions/1`,
-        ),
+        expect.stringContaining(`/apps/${appSlug}/datasets/ds2/schema/1`),
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
@@ -211,7 +209,7 @@ describe('AutoblocksAppClient (v2)', () => {
       expect(items[0].id).toBe('item3');
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(
-          `/apps/${appSlug}/datasets/ds2/schema-versions/1/items?splits=split1`,
+          `/apps/${appSlug}/datasets/ds2/schema/1/items?splits=split1`,
         ),
         expect.objectContaining({
           method: 'GET',
