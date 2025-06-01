@@ -38,7 +38,9 @@ describe('Dataset Basic CRUD Operations', () => {
 
     expect(tempDataset.externalId).toBeDefined();
 
-    const deleteResult = await client.datasets.destroy(tempDataset.externalId);
+    const deleteResult = await client.datasets.destroy({
+      externalId: tempDataset.externalId,
+    });
 
     expect(deleteResult.success).toBe(true);
 

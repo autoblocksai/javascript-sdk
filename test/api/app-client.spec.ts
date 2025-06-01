@@ -93,7 +93,7 @@ describe('AutoblocksAppClient (v2)', () => {
         json: () => Promise.resolve({ success: true }),
       });
       const client = new AutoblocksAppClient({ appSlug, apiKey });
-      const result = await client.datasets.destroy('ds2');
+      const result = await client.datasets.destroy({ externalId: 'ds2' });
       expect(result.success).toBe(true);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(`/apps/${appSlug}/datasets/ds2`),

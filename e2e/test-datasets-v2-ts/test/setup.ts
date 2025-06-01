@@ -45,7 +45,7 @@ export async function cleanupDataset(
   datasetId: string,
 ): Promise<void> {
   if (datasetId) {
-    await client.datasets.destroy(datasetId);
+    await client.datasets.destroy({ externalId: datasetId });
     console.log(`Cleaned up dataset: ${datasetId}`);
   }
 }
