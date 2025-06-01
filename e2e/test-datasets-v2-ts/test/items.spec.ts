@@ -51,7 +51,9 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should retrieve items from the dataset', async () => {
-    const items = await client.datasets.getItems(testDatasetId);
+    const items = await client.datasets.getItems({
+      externalId: testDatasetId,
+    });
 
     expect(items.length).toBe(2);
 
@@ -59,7 +61,10 @@ describe('Dataset Items Operations', () => {
   });
 
   it('should retrieve items from the dataset with split filter', async () => {
-    const trainItems = await client.datasets.getItems(testDatasetId, ['train']);
+    const trainItems = await client.datasets.getItems({
+      externalId: testDatasetId,
+      splits: ['train'],
+    });
 
     expect(trainItems.length).toBe(2);
     expect(trainItems[0].splits).toContain('train');
@@ -103,7 +108,9 @@ describe('Dataset Items Operations', () => {
     expect(updateResult.success).toBe(true);
 
     // Verify the update
-    const items = await client.datasets.getItems(testDatasetId);
+    const items = await client.datasets.getItems({
+      externalId: testDatasetId,
+    });
     const updatedItem = items.find((item) => item.id === testItemId);
 
     expect(updatedItem).toBeDefined();
@@ -121,7 +128,9 @@ describe('Dataset Items Operations', () => {
     expect(deleteResult.success).toBe(true);
 
     // Verify the item is deleted
-    const items = await client.datasets.getItems(testDatasetId);
+    const items = await client.datasets.getItems({
+      externalId: testDatasetId,
+    });
     const deletedItem = items.find((item) => item.id === testItemId);
 
     expect(deletedItem).toBeUndefined();

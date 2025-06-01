@@ -81,7 +81,9 @@ describe('Conversation Schema Type', () => {
 
     expect(createResult.count).toBe(1);
 
-    const items = await client.datasets.getItems(conversationDatasetId);
+    const items = await client.datasets.getItems({
+      externalId: conversationDatasetId,
+    });
 
     expect(items.length).toBe(1);
     expect(items[0].data.title).toBe('Sample conversation');
