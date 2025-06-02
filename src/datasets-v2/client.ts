@@ -42,19 +42,20 @@ export class DatasetsV2Client extends BaseAppResourceClient {
   /**
    * Delete a dataset
    */
-  async destroy(externalId: string): Promise<{ success: boolean }> {
+  async destroy(params: { externalId: string }): Promise<{ success: boolean }> {
     return this.delete<{ success: boolean }>(
-      `/apps/${this.appSlug}/datasets/${externalId}`,
+      `/apps/${this.appSlug}/datasets/${params.externalId}`,
     );
   }
 
   /**
    * Get all items for a dataset
    */
-  async getItems(
-    externalId: string,
-    splits?: string[],
-  ): Promise<DatasetItemV2[]> {
+  async getItems(params: {
+    externalId: string;
+    splits?: string[];
+  }): Promise<DatasetItemV2[]> {
+    const { externalId, splits } = params;
     const queryString = splits?.length ? `?splits=${splits.join(',')}` : '';
     return this.get<DatasetItemV2[]>(
       `/apps/${this.appSlug}/datasets/${externalId}/items${queryString}`,
