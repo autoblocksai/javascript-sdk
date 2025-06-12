@@ -37,7 +37,6 @@ export type {
 
 export type {
   DatasetV2,
-  DatasetListItemV2,
   DatasetSchemaV2,
   DatasetItemV2,
   CreateDatasetV2Request,

@@ -1,6 +1,5 @@
 import { BaseAppResourceClient } from '../api/base-app-resource-client';
 import {
-  DatasetListItemV2,
   DatasetV2,
   CreateDatasetV2Request,
   CreateDatasetItemsV2Request,
@@ -14,8 +13,8 @@ export class DatasetsV2Client extends BaseAppResourceClient {
   /**
    * List all datasets in the app
    */
-  async list(): Promise<DatasetListItemV2[]> {
-    return this.get<DatasetListItemV2[]>(`/apps/${this.appSlug}/datasets`);
+  async list(): Promise<DatasetV2[]> {
+    return this.get<DatasetV2[]>(`/apps/${this.appSlug}/datasets`);
   }
 
   /**

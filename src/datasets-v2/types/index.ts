@@ -9,17 +9,8 @@ export interface DatasetV2 {
   id: string;
   externalId: string;
   name: string;
-  createdAt: string;
-}
-
-/**
- * Dataset list item
- */
-export interface DatasetListItemV2 {
-  id: string;
-  externalId: string;
-  name: string;
-  latestRevisionId: string | null;
+  createdAt?: string;
+  latestRevisionId?: string;
 }
 
 /**
