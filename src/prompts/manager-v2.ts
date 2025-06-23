@@ -45,14 +45,10 @@ const appMapping = (() => {
 })();
 
 /**
- * Note that we check for the presence of the CLI environment
- * variable and not the test case local storage because the
- * local storage vars aren't set until runTestSuite is called,
- * whereas a prompt manager might have already been imported
- * and initialized by the time runTestSuite is called.
+ * Note that we check for the presence of V2_CI_TEST_RUN_BUILD_ID
  */
 const isTestingContext = (): boolean => {
-  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS) !== undefined;
+  return readEnv(AutoblocksEnvVar.V2_CI_TEST_RUN_BUILD_ID) !== undefined;
 };
 
 /**
