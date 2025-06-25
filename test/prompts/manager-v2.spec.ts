@@ -30,7 +30,7 @@ describe('Prompt Manager V2', () => {
     if (mockFetch) {
       mockFetch.mockRestore();
     }
-    delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
+    delete process.env[AutoblocksEnvVar.V2_CI_TEST_RUN_BUILD_ID];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS];
   });
@@ -418,8 +418,7 @@ describe('Prompt Manager V2', () => {
 
   describe('Revision Overrides', () => {
     it('raises if the prompt is incompatible', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
+      process.env[AutoblocksEnvVar.V2_CI_TEST_RUN_BUILD_ID] = 'test-build-id';
       process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'prompt-1': 'rev-1',
@@ -446,8 +445,7 @@ describe('Prompt Manager V2', () => {
     });
 
     it('throws when trying to override with a revision when using dangerously-use-undeployed', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
+      process.env[AutoblocksEnvVar.V2_CI_TEST_RUN_BUILD_ID] = 'test-build-id';
       process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_PROMPT_REVISIONS] =
         JSON.stringify({
           'prompt-1': 'rev-1',
@@ -468,8 +466,7 @@ describe('Prompt Manager V2', () => {
     });
 
     it('uses unified AUTOBLOCKS_OVERRIDES format and takes precedence over legacy format', async () => {
-      process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS] =
-        'http://localhost:3000';
+      process.env[AutoblocksEnvVar.V2_CI_TEST_RUN_BUILD_ID] = 'test-build-id';
       // Set both new and legacy formats - new should take precedence
       process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES] = JSON.stringify({
         promptRevisions: {
