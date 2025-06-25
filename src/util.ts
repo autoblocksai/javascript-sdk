@@ -1,13 +1,10 @@
 import type { SymbolType, TimeDelta } from './types';
 import packageJson from '../package.json';
 
-export const INGESTION_ENDPOINT = 'https://ingest-event.autoblocks.ai';
-export const API_ENDPOINT = 'https://api.autoblocks.ai';
-export const V2_API_ENDPOINT = 'https://api-v2.autoblocks.ai';
-
 export enum AutoblocksEnvVar {
   AUTOBLOCKS_API_KEY = 'AUTOBLOCKS_API_KEY',
   AUTOBLOCKS_V2_API_KEY = 'AUTOBLOCKS_V2_API_KEY',
+  AUTOBLOCKS_V2_API_ENDPOINT = 'AUTOBLOCKS_V2_API_ENDPOINT',
   AUTOBLOCKS_INGESTION_KEY = 'AUTOBLOCKS_INGESTION_KEY',
   AUTOBLOCKS_TRACER_THROW_ON_ERROR = 'AUTOBLOCKS_TRACER_THROW_ON_ERROR',
   AUTOBLOCKS_CLI_SERVER_ADDRESS = 'AUTOBLOCKS_CLI_SERVER_ADDRESS',
@@ -22,6 +19,12 @@ export enum AutoblocksEnvVar {
   AUTOBLOCKS_DISABLE_GITHUB_COMMENT = 'AUTOBLOCKS_DISABLE_GITHUB_COMMENT',
   V2_CI_TEST_RUN_BUILD_ID = 'AUTOBLOCKS_V2_CI_TEST_RUN_BUILD_ID',
 }
+
+export const INGESTION_ENDPOINT = 'https://ingest-event.autoblocks.ai';
+export const API_ENDPOINT = 'https://api.autoblocks.ai';
+export const V2_API_ENDPOINT =
+  process.env[AutoblocksEnvVar.AUTOBLOCKS_V2_API_ENDPOINT] ||
+  'https://api-v2.autoblocks.ai';
 
 export enum ThirdPartyEnvVar {
   OPENAI_API_KEY = 'OPENAI_API_KEY',
