@@ -26,7 +26,7 @@ export const initAutoTracer = (args: {
   const otlpExporter = new OTLPTraceExporter({
     url: `${V2_API_ENDPOINT}/otel/v1/traces`, // Make sure the endpoint path is correct
     headers: {
-      Authorization: `Bearer ${args?.apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
   });
 

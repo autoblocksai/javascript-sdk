@@ -57,7 +57,7 @@ export function traceApp<
         return res.then((r) => {
           try {
             span.setAttributes({
-              autoblocksOutput: serialize(r),
+              [SpanAttributesEnum.OUTPUT]: serialize(r),
             });
           } finally {
             span.end();
