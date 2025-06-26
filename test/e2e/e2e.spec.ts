@@ -58,29 +58,72 @@ describe('E2E', () => {
         stdio: 'inherit',
       });
 
-      // Give it a sec to start up
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
+      let serverReady = false;
+      let serverStartupError: Error | undefined;
 
-      // Send POST request to the server
-      const traceId = crypto.randomUUID();
-
-      const resp = await fetch('http://localhost:8000', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ traceId }),
-      });
-      if (!resp.ok) {
-        throw new Error(`Request failed: ${resp.status} ${resp.statusText}`);
+      // Wait for server to be ready by checking the port
+      const maxRetries = 30; // 30 seconds max
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          await fetch('http://localhost:8000', {
+            method: 'GET',
+          });
+          // If we get any response (even 404), the server is running
+          serverReady = true;
+          break;
+        } catch (error) {
+          if (i === maxRetries - 1) {
+            serverStartupError = error as Error;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1_000));
+        }
       }
 
-      // Send TERM
-      if (server.pid) {
-        process.kill(server.pid, 'SIGTERM');
+      if (!serverReady) {
+        // Clean up the process before failing
+        if (server.pid) {
+          try {
+            process.kill(server.pid, 'SIGKILL');
+          } catch {
+            // Ignore kill errors
+          }
+        }
+        throw new Error(
+          `Server failed to start: ${serverStartupError?.message}`,
+        );
       }
 
-      await waitForTraceToExist(traceId);
+      try {
+        // Send POST request to the server
+        const traceId = crypto.randomUUID();
+
+        const resp = await fetch('http://localhost:8000', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ traceId }),
+        });
+        if (!resp.ok) {
+          throw new Error(`Request failed: ${resp.status} ${resp.statusText}`);
+        }
+
+        // Send TERM
+        if (server.pid) {
+          process.kill(server.pid, 'SIGTERM');
+        }
+
+        await waitForTraceToExist(traceId);
+      } finally {
+        // Ensure the server process is cleaned up
+        if (server.pid) {
+          try {
+            process.kill(server.pid, 'SIGKILL');
+          } catch {
+            // Process might already be dead, ignore the error
+          }
+        }
+      }
     });
   });
 
