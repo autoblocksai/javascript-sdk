@@ -1,4 +1,4 @@
-export { AutoblocksTracer, flush } from './tracer';
+export { AutoblocksTracer, flush, initAutoTracer, traceApp } from './tracer';
 export { AutoblocksAPIClient, SystemEventFilterKey } from './api/client';
 export { AutoblocksAppClient } from './api/app-client';
 export { dedent } from './util';
