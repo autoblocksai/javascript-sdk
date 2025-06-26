@@ -101,6 +101,13 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.57.0",
+    "@opentelemetry/instrumentation": "^0.202.0",
+    "@opentelemetry/resources": "^2.0.1",
+    "@opentelemetry/sdk-node": "^0.57.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.34.0",
     "@paralleldrive/cuid2": "^2.2.2",
     "openai": "^4.52.0",
     "zod": "^3.21.4"
