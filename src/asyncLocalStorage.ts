@@ -15,6 +15,8 @@ export const testCaseRunAsyncLocalStorage = new AsyncLocalStorage<{
     };
   }[];
   revisionUsage: RevisionUsage[];
+  runMessage?: string;
+  buildId?: string;
 }>();
 
 // This gets exported from the testing package since it is testing related.
