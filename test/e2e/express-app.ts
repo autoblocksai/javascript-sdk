@@ -67,7 +67,7 @@ function onSignal() {
   return Promise.all([flush()]);
 }
 
-// // Start the server
+// Start the server
 const server = http.createServer(app);
 
 createTerminus(server, {
@@ -75,4 +75,6 @@ createTerminus(server, {
   onSignal,
 });
 
-server.listen(8000);
+server.listen(8000, () => {
+  console.log('Express server listening on port 8000');
+});
