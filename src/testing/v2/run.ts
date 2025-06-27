@@ -232,9 +232,8 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
 }): Promise<void> {
-  let output: OutputType | undefined = undefined;
   try {
-    const res = await runTestCaseUnsafe({
+    await runTestCaseUnsafe({
       testId: args.testId,
       runId: args.runId,
       testCase: args.testCase,
@@ -244,13 +243,10 @@ async function runTestCase<TestCaseType, OutputType>(args: {
       evaluators: args.evaluators,
       fn: args.fn,
     });
-    output = res.output;
   } catch (err) {
     console.log(err);
     return;
   }
-
-  if (output === undefined) return;
 }
 
 async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
