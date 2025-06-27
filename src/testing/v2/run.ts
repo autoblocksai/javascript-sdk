@@ -285,7 +285,9 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
             testEvents: [],
             revisionUsage: [],
             runMessage: getTestRunMessage(),
-            buildId: readEnv(AutoblocksEnvVar.AUTOBLOCKS_CI_TEST_RUN_BUILD_ID),
+            buildId: readEnv(
+              AutoblocksEnvVar.AUTOBLOCKS_V2_CI_TEST_RUN_BUILD_ID,
+            ),
           },
           async () => {
             // gridSearchAsyncLocalStorage is exported and used in the consuming app
