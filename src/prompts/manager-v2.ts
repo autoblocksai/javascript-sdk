@@ -48,7 +48,9 @@ const appMapping = (() => {
  * Note that we check for the presence of V2_CI_TEST_RUN_BUILD_ID
  */
 const isTestingContext = (): boolean => {
-  return readEnv(AutoblocksEnvVar.V2_CI_TEST_RUN_BUILD_ID) !== undefined;
+  return (
+    readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_CI_TEST_RUN_BUILD_ID) !== undefined
+  );
 };
 
 /**
