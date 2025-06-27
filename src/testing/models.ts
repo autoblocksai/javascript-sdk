@@ -132,4 +132,5 @@ export interface EvaluationOverride {
 export interface CreateHumanReviewJob {
   name: string;
   assigneeEmailAddress: string | string[];
+  rubricId?: string;
 }

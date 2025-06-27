@@ -2,6 +2,7 @@ import { Span } from '@opentelemetry/sdk-trace-base';
 import { SpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { propagation, Context } from '@opentelemetry/api';
 import { SpanAttributesEnum } from './util';
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 
 export class ExecutionIdSpanProcessor implements SpanProcessor {
   onStart(span: Span, parentContext: Context): void {
@@ -23,6 +24,21 @@ export class ExecutionIdSpanProcessor implements SpanProcessor {
     }
     if (appSlug) {
       span.setAttribute(SpanAttributesEnum.APP_SLUG, appSlug);
+    }
+
+    const testRunContext = testCaseRunAsyncLocalStorage.getStore();
+    if (testRunContext) {
+      span.setAttribute(SpanAttributesEnum.TEST_ID, testRunContext.testId);
+      span.setAttribute(SpanAttributesEnum.RUN_ID, testRunContext.runId);
+      if (testRunContext.buildId) {
+        span.setAttribute(SpanAttributesEnum.BUILD_ID, testRunContext.buildId);
+      }
+      if (testRunContext.runMessage) {
+        span.setAttribute(
+          SpanAttributesEnum.RUN_MESSAGE,
+          testRunContext.runMessage,
+        );
+      }
     }
   }
 

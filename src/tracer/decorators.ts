@@ -1,21 +1,8 @@
 import { trace, context, propagation } from '@opentelemetry/api';
 
 import { createId } from '@paralleldrive/cuid2';
-import { SpanAttributesEnum } from './util';
-
-function serialize(input: unknown): string {
-  try {
-    if (input === undefined) {
-      return '{}';
-    }
-    if (typeof input === 'string') {
-      return JSON.stringify({ value: input });
-    }
-    return JSON.stringify(input);
-  } catch {
-    return '{}';
-  }
-}
+import { SpanAttributesEnum, serialize } from './util';
+import { testCaseRunAsyncLocalStorage } from '../asyncLocalStorage';
 
 export function traceApp<
   A extends unknown[],
@@ -27,6 +14,12 @@ export function traceApp<
   thisArg?: ThisParameterType<F>,
   ...args: A
 ) {
+  const testRunContext = testCaseRunAsyncLocalStorage.getStore();
+
+  // In a test case context, the span attributes are handled in runTestSuite
+  if (testRunContext) {
+    return fn.apply(thisArg, args);
+  }
   const executionId = createId();
   const activeContext = propagation.setBaggage(
     context.active(),

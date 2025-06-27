@@ -9,6 +9,7 @@ export default defineConfig({
     'src/configs/index.ts',
     'src/datasets/index.ts',
     'src/datasets-cli/index.ts',
+    'src/testing/v2/index.ts',
   ],
   format: ['cjs', 'esm'],
   sourcemap: true,
