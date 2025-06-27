@@ -49,5 +49,4 @@ export const initAutoTracer = (args: {
   });
 
   sdk.start();
-  console.log('AutoTracer initialized');
 };
