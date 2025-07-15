@@ -34,7 +34,6 @@ Create a single app with ID `jqg74mpzzovssq38j055yien`.
 ### Prompts
 
 1. **prompt-basic**
-
    - Major version 1 with minor 0
    - Major version 2 with minor 1
    - Templates:
@@ -71,10 +70,8 @@ Create a single app with ID `jqg74mpzzovssq38j055yien`.
      ```
 
 2. **prompt-brackets**
-
    - Major version 1 with minors 1 and 2
    - Templates:
-
      - `brackets-nested` (v1.1):
 
        ```
