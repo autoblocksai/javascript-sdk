@@ -18,6 +18,7 @@ import {
   Semaphore,
   makeTestCaseHash,
   makeGridSearchParamCombos,
+  withRetry,
 } from '../util';
 import { trace, context, propagation } from '@opentelemetry/api';
 import { SpanAttributesEnum, serialize } from '../../tracer/util';
@@ -231,18 +232,23 @@ async function runTestCase<TestCaseType, OutputType>(args: {
   environment: string;
   evaluators: BaseTestEvaluator<TestCaseType, OutputType>[];
   fn: (args: { testCase: TestCaseType }) => OutputType | Promise<OutputType>;
+  retryCount?: number;
 }): Promise<void> {
   try {
-    await runTestCaseUnsafe({
-      testId: args.testId,
-      runId: args.runId,
-      testCase: args.testCase,
-      testCaseHash: args.testCaseHash,
-      appSlug: args.appSlug,
-      environment: args.environment,
-      evaluators: args.evaluators,
-      fn: args.fn,
-    });
+    await withRetry(
+      () =>
+        runTestCaseUnsafe({
+          testId: args.testId,
+          runId: args.runId,
+          testCase: args.testCase,
+          testCaseHash: args.testCaseHash,
+          appSlug: args.appSlug,
+          environment: args.environment,
+          evaluators: args.evaluators,
+          fn: args.fn,
+        }),
+      args.retryCount ?? 0,
+    );
   } catch (err) {
     console.log(err);
     return;
@@ -262,6 +268,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
   humanReviewJob?: CreateHumanReviewJob;
+  retryCount?: number;
 }): Promise<void> {
   if (args.gridSearchParamsCombo) {
     console.log(
@@ -303,6 +310,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
                   appSlug: args.appSlug,
                   environment: args.environment,
                   fn: args.fn,
+                  retryCount: args.retryCount,
                 });
               },
             );
@@ -360,6 +368,7 @@ export async function runTestSuite<
   gridSearchParams?: Record<string, string[]>;
   humanReviewJob?: CreateHumanReviewJob;
   environment?: string;
+  retryCount?: number;
 }): Promise<void> {
   console.log(`Running test suite '${args.id}'`);
   const apiKey = readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_API_KEY);
@@ -467,6 +476,7 @@ export async function runTestSuite<
         humanReviewJob: args.humanReviewJob,
         appSlug: args.appSlug,
         environment,
+        retryCount: args.retryCount,
       });
     } catch (err) {
       console.log(err);
@@ -490,6 +500,7 @@ export async function runTestSuite<
           humanReviewJob: args.humanReviewJob,
           appSlug: args.appSlug,
           environment,
+          retryCount: args.retryCount,
         }),
       ),
     );

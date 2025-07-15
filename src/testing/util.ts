@@ -183,3 +183,62 @@ export function determineIfEvaluationPassed(args: {
   }
   return results.every((r) => r);
 }
+
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  retryCount: number = 0,
+): Promise<T> {
+  if (retryCount <= 0) {
+    return await fn();
+  }
+
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retryCount; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === retryCount) {
+        throw error; // Final attempt failed
+      }
+
+      // Only retry on network/timeout errors
+      if (!isRetryableError(error)) {
+        throw error;
+      }
+
+      // Simple exponential backoff: 1s, 2s, 4s, 8s...
+      const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
+
+function isRetryableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const err = error as { code?: string; status?: number; name?: string };
+
+  // Node.js timeout/connection errors
+  if (
+    err.code &&
+    ['ETIMEDOUT', 'ECONNRESET', 'ECONNREFUSED', 'ENOTFOUND'].includes(err.code)
+  ) {
+    return true;
+  }
+
+  // HTTP 5xx errors
+  if (err.status && err.status >= 500 && err.status < 600) {
+    return true;
+  }
+
+  // AbortError from fetch timeouts
+  if (err.name === 'AbortError') {
+    return true;
+  }
+
+  return false;
+}
