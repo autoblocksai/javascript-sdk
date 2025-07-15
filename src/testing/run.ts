@@ -15,7 +15,12 @@ import {
   type HumanReviewField,
   CreateHumanReviewJob,
 } from './models';
-import { Semaphore, makeTestCaseHash, makeGridSearchParamCombos } from './util';
+import {
+  Semaphore,
+  makeTestCaseHash,
+  makeGridSearchParamCombos,
+  withRetry,
+} from './util';
 import {
   sendCreateHumanReviewJob,
   sendEndRun,
@@ -213,20 +218,25 @@ async function runTestCase<TestCaseType, OutputType>(args: {
     testCase: TestCaseType,
   ) => HumanReviewField[];
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
+  retryCount?: number;
 }): Promise<void> {
   let output: OutputType | undefined = undefined;
   let testCaseResultId: string;
   try {
-    const res = await runTestCaseUnsafe({
-      testId: args.testId,
-      runId: args.runId,
-      testCase: args.testCase,
-      testCaseHash: args.testCaseHash,
-      fn: args.fn,
-      serializeDatasetItemId: args.serializeDatasetItemId,
-      serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
-      serializeOutputForHumanReview: args.serializeOutputForHumanReview,
-    });
+    const res = await withRetry(
+      () =>
+        runTestCaseUnsafe({
+          testId: args.testId,
+          runId: args.runId,
+          testCase: args.testCase,
+          testCaseHash: args.testCaseHash,
+          fn: args.fn,
+          serializeDatasetItemId: args.serializeDatasetItemId,
+          serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
+          serializeOutputForHumanReview: args.serializeOutputForHumanReview,
+        }),
+      args.retryCount ?? 0,
+    );
     output = res.output;
     testCaseResultId = res.testCaseResultId;
   } catch (err) {
@@ -283,6 +293,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
   gridSearchRunGroupId?: string;
   gridSearchParamsCombo?: Record<string, string>;
   humanReviewJob?: CreateHumanReviewJob;
+  retryCount?: number;
 }): Promise<void> {
   if (!isCLIRunning()) {
     console.log(`Running test suite '${args.testId}'`);
@@ -347,6 +358,7 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
                     args.serializeTestCaseForHumanReview,
                   serializeOutputForHumanReview:
                     args.serializeOutputForHumanReview,
+                  retryCount: args.retryCount,
                 });
               },
             );
@@ -430,6 +442,7 @@ export async function runTestSuite<
   serializeOutputForHumanReview?: (output: OutputType) => HumanReviewField[];
   gridSearchParams?: Record<string, string[]>;
   humanReviewJob?: CreateHumanReviewJob;
+  retryCount?: number;
 }): Promise<void> {
   if (!isCLIRunning()) {
     console.log(`Running test suite '${args.id}'`);
@@ -544,6 +557,7 @@ export async function runTestSuite<
         serializeTestCaseForHumanReview: args.serializeTestCaseForHumanReview,
         serializeOutputForHumanReview: args.serializeOutputForHumanReview,
         humanReviewJob: args.humanReviewJob,
+        retryCount: args.retryCount,
       });
     } catch (err) {
       await sendError({
@@ -592,6 +606,7 @@ export async function runTestSuite<
           gridSearchRunGroupId,
           gridSearchParamsCombo: gridParamsCombo,
           humanReviewJob: args.humanReviewJob,
+          retryCount: args.retryCount,
         }),
       ),
     );

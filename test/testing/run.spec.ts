@@ -13,7 +13,12 @@ import crypto from 'crypto';
 import { isMatch, omit } from 'lodash';
 import { API_ENDPOINT, AutoblocksEnvVar } from '../../src/util';
 import { AutoblocksPromptManager } from '../../src/prompts';
+
 const MOCK_CLI_SERVER_ADDRESS = 'http://localhost:8000';
+
+const mockRunId = 'mock-run-id';
+const mockAPIKey = 'mock-api-key';
+const mockTestCaseResultId = 'mock-test-case-result-id';
 
 interface MyTestCase {
   x: number;
@@ -26,9 +31,7 @@ const md5 = (str: string) => {
 
 describe('Testing SDK', () => {
   let mockFetch: jest.SpyInstance;
-  const mockRunId = 'mock-run-id';
-  const mockTestCaseResultId = 'mock-test-case-result-id';
-  const mockAPIKey = 'mock-api-key';
+
   const mockPrompt = {
     id: 'my-prompt-id',
     revisionId: 'my-revision-id',
@@ -71,6 +74,7 @@ describe('Testing SDK', () => {
     if (mockFetch) {
       mockFetch.mockRestore();
     }
+
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_CLI_SERVER_ADDRESS];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES];
     delete process.env[AutoblocksEnvVar.AUTOBLOCKS_OVERRIDES_TESTS_AND_HASHES];
@@ -1790,12 +1794,21 @@ describe('Testing SDK with HTTP Errors', () => {
  * requests for grid search
  */
 describe('Testing Grid Search', () => {
+  let mockFetch: jest.SpyInstance;
+
   beforeAll(() => {
     process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS = MOCK_CLI_SERVER_ADDRESS;
+    process.env.AUTOBLOCKS_API_KEY = mockAPIKey;
   });
 
   afterAll(() => {
     delete process.env.AUTOBLOCKS_CLI_SERVER_ADDRESS;
+    delete process.env.AUTOBLOCKS_API_KEY;
+
+    // @ts-expect-error - mock clean up
+    if (mockFetch) {
+      mockFetch.mockRestore();
+    }
   });
 
   const expectPostRequest = (args: {
@@ -1823,6 +1836,7 @@ describe('Testing Grid Search', () => {
 
   it('runs grid search', async () => {
     const runIds = ['run-1', 'run-2', 'run-3', 'run-4'];
+
     const mockFetch = jest.spyOn(global, 'fetch').mockImplementation((url) => {
       const response = {
         json: () =>
@@ -1857,6 +1871,7 @@ describe('Testing Grid Search', () => {
     // 4 calls to /results
     // 4 calls to /end
     expect(mockFetch).toHaveBeenCalledTimes(13);
+
     expectPostRequest({
       path: '/grids',
       body: {
@@ -1867,6 +1882,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/start',
       body: {
@@ -1878,6 +1894,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/start',
       body: {
@@ -1889,6 +1906,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/start',
       body: {
@@ -1900,6 +1918,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/start',
       body: {
@@ -1911,6 +1930,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/results',
       body: {
@@ -1922,6 +1942,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/results',
       body: {
@@ -1933,6 +1954,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/results',
       body: {
@@ -1944,6 +1966,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/results',
       body: {
@@ -1955,6 +1978,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/end',
       body: {
@@ -1963,6 +1987,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/end',
       body: {
@@ -1971,6 +1996,7 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/end',
       body: {
@@ -1979,11 +2005,67 @@ describe('Testing Grid Search', () => {
       },
       mockFetch,
     });
+
     expectPostRequest({
       path: '/end',
       body: {
         testExternalId: 'my-test-id',
         runId: 'run-4',
+      },
+      mockFetch,
+    });
+  });
+
+  it('retries failed test cases when retryCount is specified', async () => {
+    const mockFetch = jest.spyOn(global, 'fetch').mockImplementation((url) => {
+      const response = {
+        json: () => {
+          if (url.toString().endsWith('/start')) {
+            return Promise.resolve({ id: mockRunId });
+          }
+          if (url.toString().endsWith('/results')) {
+            return Promise.resolve({ id: mockTestCaseResultId });
+          }
+          return Promise.resolve({});
+        },
+        ok: true,
+      } as Response;
+
+      return Promise.resolve(response);
+    });
+
+    let fnCallCount = 0;
+
+    const testCases: MyTestCase[] = [{ x: 1, y: 2 }];
+
+    await runTestSuite<MyTestCase, number>({
+      id: 'my-test-id',
+      testCases,
+      testCaseHash: ['x', 'y'],
+      fn: ({ testCase }) => {
+        fnCallCount++;
+        if (fnCallCount <= 2) {
+          // First two attempts fail with timeout error
+          const error = new Error('Request timeout');
+          (error as Error & { code: string }).code = 'ETIMEDOUT';
+          throw error;
+        }
+        // Third attempt succeeds
+        return testCase.x + testCase.y;
+      },
+      retryCount: 3,
+    });
+
+    // Verify the function was called 3 times (2 failures + 1 success)
+    expect(fnCallCount).toBe(3);
+
+    // Verify the test case result was sent (meaning it eventually succeeded)
+    expectPostRequest({
+      path: '/results',
+      body: {
+        testExternalId: 'my-test-id',
+        testCaseHash: 'c20ad4d76fe97759aa27a0c99bff6710',
+        testCaseOutput: 3,
       },
       mockFetch,
     });
