@@ -176,7 +176,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
           model: 'gpt-4o',
-          maxTokens: 256,
+          maxCompletionTokens: 256,
         });
       });
     });
@@ -195,7 +195,7 @@ describe('AutoblocksPromptManagerV2', () => {
           params: {
             params: {
               model: 'gpt-4o',
-              maxTokens: 256,
+              maxCompletionTokens: 256,
             },
           },
           tools: [],
@@ -263,7 +263,7 @@ describe('AutoblocksPromptManagerV2', () => {
           ],
           params: {
             params: {
-              maxTokens: 256,
+              maxCompletionTokens: 256,
               model: 'gpt-4o',
             },
           },
