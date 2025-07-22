@@ -47,7 +47,7 @@ const configRevisionsMap = (): Record<string, string> => {
 
 export class AutoblocksConfig<T> {
   private _value: T;
-  private refreshIntervalTimer: NodeJS.Timer | undefined;
+  private refreshIntervalTimer: ReturnType<typeof setInterval> | undefined;
 
   constructor(value: T) {
     this._value = value;
