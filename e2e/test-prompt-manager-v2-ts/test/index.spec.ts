@@ -142,12 +142,12 @@ describe('AutoblocksPromptManagerV2', () => {
     });
   });
 
-  describe('AutoblocksPromptManagerV2 v2.0', () => {
+  describe('AutoblocksPromptManagerV2 v4.0', () => {
     const manager = new AutoblocksPromptManagerV2({
       appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
-        major: '2',
+        major: '4',
         minor: '0',
       },
     });
@@ -185,7 +185,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: '2.0',
+          version: '4.0',
           templates: [
             {
               id: 'template-c',
@@ -254,7 +254,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: 'revision:lo63upk5z5xih4xo4jigkayv',
+          version: 'revision:kaqp7i3mnq5ra21km8cs8two',
           templates: [
             {
               id: 'template-c',
