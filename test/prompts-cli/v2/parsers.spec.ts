@@ -114,7 +114,7 @@ describe('Parsers', () => {
               params: {
                 params: {
                   frequencyPenalty: 0,
-                  maxTokens: 256,
+                  maxCompletionTokens: 256,
                   model: 'gpt-4',
                 },
               },
@@ -127,7 +127,7 @@ describe('Parsers', () => {
 
       expect(prompts[0].majorVersions[0].params).toEqual({
         frequencyPenalty: 0,
-        maxTokens: 256,
+        maxCompletionTokens: 256,
         model: 'gpt-4',
       });
     });

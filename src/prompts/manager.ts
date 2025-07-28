@@ -217,7 +217,7 @@ export class AutoblocksPromptManager<
         signal: AbortSignal.timeout(args.timeoutMs),
       });
       const data = await resp.json();
-      return zPromptSchema.parse(data);
+      return parsePromptData(data);
     } catch (err) {
       this.logger.error(
         `Failed to fetch version v${this.majorVersion}.${args.minorVersion}: ${err}`,
@@ -298,7 +298,7 @@ export class AutoblocksPromptManager<
     this.logger.warn(
       `Overriding prompt '${this.id}' with revision '${args.revisionId}'!`,
     );
-    this.promptRevisionOverride = zPromptSchema.parse(data);
+    this.promptRevisionOverride = parsePromptData(data);
   }
 
   private async refreshLatest(): Promise<void> {
@@ -553,4 +553,19 @@ function makeMinorVersionsToRequest(args: {
     versions.add(args.minorVersion);
   }
   return Array.from(versions);
+}
+
+function parsePromptData(data: unknown): Prompt {
+  const prompt = zPromptSchema.parse(data);
+  if (prompt.params && prompt.params.params) {
+    const params = prompt.params.params as Record<string, unknown>;
+    if (
+      params.maxCompletionTokens === undefined &&
+      params.maxTokens !== undefined
+    ) {
+      params.maxCompletionTokens = params.maxTokens;
+      delete params.maxTokens;
+    }
+  }
+  return prompt;
 }

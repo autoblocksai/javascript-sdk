@@ -28,7 +28,7 @@ describe('Prompts CLI', () => {
               params: {
                 params: {
                   frequencyPenalty: 0,
-                  maxTokens: 256,
+                  maxCompletionTokens: 256,
                   model: 'gpt-4',
                   presencePenalty: 0.3,
                   stopSequences: [],
@@ -63,7 +63,7 @@ describe('Prompts CLI', () => {
               params: {
                 params: {
                   frequencyPenalty: 0,
-                  maxTokens: 256,
+                  maxCompletionTokens: 256,
                   model: 'gpt-4',
                   presencePenalty: -0.3,
                   stopSequences: [],
@@ -129,7 +129,7 @@ describe('Prompts CLI', () => {
       };
       params: {
         'frequencyPenalty': number;
-        'maxTokens': number;
+        'maxCompletionTokens': number;
         'model': string;
         'presencePenalty': number;
         'responseFormat': {
@@ -160,7 +160,7 @@ describe('Prompts CLI', () => {
       };
       params: {
         'frequencyPenalty': number;
-        'maxTokens': number;
+        'maxCompletionTokens': number;
         'model': string;
         'presencePenalty': number;
         'responseFormat': {
