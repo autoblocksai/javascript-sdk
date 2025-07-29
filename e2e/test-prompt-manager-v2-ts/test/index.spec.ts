@@ -142,12 +142,12 @@ describe('AutoblocksPromptManagerV2', () => {
     });
   });
 
-  describe('AutoblocksPromptManagerV2 v4.0', () => {
+  describe('AutoblocksPromptManagerV2 v2.0', () => {
     const manager = new AutoblocksPromptManagerV2({
       appName: APP_SLUG,
       id: 'prompt-basic',
       version: {
-        major: '4',
+        major: '2',
         minor: '0',
       },
     });
@@ -176,7 +176,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.params).toEqual({
           model: 'gpt-4o',
-          maxCompletionTokens: 256,
+          maxTokens: 256,
         });
       });
     });
@@ -185,7 +185,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: '4.0',
+          version: '2.0',
           templates: [
             {
               id: 'template-c',
@@ -195,7 +195,7 @@ describe('AutoblocksPromptManagerV2', () => {
           params: {
             params: {
               model: 'gpt-4o',
-              maxCompletionTokens: 256,
+              maxTokens: 256,
             },
           },
           tools: [],
@@ -254,7 +254,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: 'revision:kaqp7i3mnq5ra21km8cs8two',
+          version: 'revision:lo63upk5z5xih4xo4jigkayv',
           templates: [
             {
               id: 'template-c',
@@ -263,7 +263,7 @@ describe('AutoblocksPromptManagerV2', () => {
           ],
           params: {
             params: {
-              maxCompletionTokens: 256,
+              maxTokens: 256,
               model: 'gpt-4o',
             },
           },

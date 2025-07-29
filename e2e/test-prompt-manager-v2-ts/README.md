@@ -44,7 +44,7 @@ Create a single app with ID `jqg74mpzzovssq38j055yien`.
      ```json
      {
        "frequencyPenalty": 0,
-       "maxCompletionTokens": 256,
+       "maxTokens": 256,
        "model": "gpt-4o",
        "presencePenalty": 0,
        "stopSequences": [],
