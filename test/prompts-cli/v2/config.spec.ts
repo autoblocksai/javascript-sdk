@@ -23,7 +23,7 @@ describe('Config', () => {
               ],
               params: {
                 frequencyPenalty: 0,
-                maxCompletionTokens: 256,
+                maxTokens: 256,
                 model: 'gpt-4',
               },
               tools: [
@@ -67,7 +67,7 @@ describe('Config', () => {
 
       // Check for params
       expect(generated).toContain("'frequencyPenalty': number;");
-      expect(generated).toContain("'maxCompletionTokens': number;");
+      expect(generated).toContain("'maxTokens': number;");
       expect(generated).toContain("'model': string;");
 
       // Check for minorVersions

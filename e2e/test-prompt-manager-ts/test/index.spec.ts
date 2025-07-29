@@ -50,7 +50,7 @@ describe('AutoblocksPromptManager v1.0', () => {
     manager.exec(({ prompt }) => {
       expect(prompt.params).toEqual({
         frequencyPenalty: 0,
-        maxCompletionTokens: 256,
+        maxTokens: 256,
         model: 'gpt-4',
         presencePenalty: 0.3,
         stopSequences: [],
@@ -78,7 +78,7 @@ describe('AutoblocksPromptManager v1.0', () => {
         params: {
           params: {
             frequencyPenalty: 0,
-            maxCompletionTokens: 256,
+            maxTokens: 256,
             model: 'gpt-4',
             presencePenalty: 0.3,
             stopSequences: [],
@@ -126,7 +126,7 @@ describe('AutoblocksPromptManager v1 latest', () => {
     manager.exec(({ prompt }) => {
       expect(prompt.params).toEqual({
         frequencyPenalty: 0,
-        maxCompletionTokens: 256,
+        maxTokens: 256,
         model: 'gpt-4',
         presencePenalty: -0.3,
         stopSequences: [],
@@ -154,7 +154,7 @@ describe('AutoblocksPromptManager v1 latest', () => {
         params: {
           params: {
             frequencyPenalty: 0,
-            maxCompletionTokens: 256,
+            maxTokens: 256,
             model: 'gpt-4',
             presencePenalty: -0.3,
             stopSequences: [],
@@ -212,7 +212,7 @@ describe('AutoblocksPromptManager v2.1', () => {
     manager.exec(({ prompt }) => {
       expect(prompt.params).toEqual({
         frequencyPenalty: 0,
-        maxCompletionTokens: 256,
+        maxTokens: 256,
         model: 'gpt-4',
         presencePenalty: -0.3,
         stopSequences: [],
@@ -244,7 +244,7 @@ describe('AutoblocksPromptManager v2.1', () => {
         params: {
           params: {
             frequencyPenalty: 0,
-            maxCompletionTokens: 256,
+            maxTokens: 256,
             model: 'gpt-4',
             presencePenalty: -0.3,
             stopSequences: [],
@@ -360,7 +360,7 @@ describe('Pinned Undeployed', () => {
           params: {
             model: 'llama7b-v2-chat',
             topK: 0,
-            maxCompletionTokens: 256,
+            maxTokens: 256,
             temperature: 0.3,
             topP: 1,
             stopSequences: [],
