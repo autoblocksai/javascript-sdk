@@ -263,7 +263,7 @@ describe('AutoblocksPromptManagerV2', () => {
           ],
           params: {
             params: {
-              maxTokens: 256,
+              maxCompletionTokens: 256,
               model: 'gpt-4o',
             },
           },
