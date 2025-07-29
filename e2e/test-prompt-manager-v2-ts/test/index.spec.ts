@@ -254,7 +254,7 @@ describe('AutoblocksPromptManagerV2', () => {
       manager.exec(({ prompt }) => {
         expect(prompt.track()).toEqual({
           id: 'prompt-basic',
-          version: 'revision:lo63upk5z5xih4xo4jigkayv',
+          version: 'revision:kaqp7i3mnq5ra21km8cs8two',
           templates: [
             {
               id: 'template-c',
