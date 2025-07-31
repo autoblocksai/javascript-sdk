@@ -3,6 +3,10 @@ import {
   HumanReviewJobListResponse,
   HumanReviewJobDetail,
   HumanReviewJobItemDetail,
+  GetJobTestCasesResponse,
+  GetJobTestCaseResultResponse,
+  GetJobPairsResponse,
+  GetJobPairResponse,
 } from './models';
 
 export class HumanReviewClient extends BaseAppResourceClient {
@@ -33,6 +37,48 @@ export class HumanReviewClient extends BaseAppResourceClient {
   }): Promise<HumanReviewJobItemDetail> {
     return this.get<HumanReviewJobItemDetail>(
       `/apps/${this.appSlug}/human-review/jobs/${args.jobId}/items/${args.itemId}`,
+    );
+  }
+
+  /**
+   * Get all test cases for a job
+   */
+  async getJobTestCases(jobId: string): Promise<GetJobTestCasesResponse> {
+    return this.get<GetJobTestCasesResponse>(
+      `/apps/${this.appSlug}/human-review/jobs/${jobId}/test_cases`,
+    );
+  }
+
+  /**
+   * Get the result for a specific test case
+   */
+  async getJobTestCaseResult(args: {
+    jobId: string;
+    testCaseId: string;
+  }): Promise<GetJobTestCaseResultResponse> {
+    return this.get<GetJobTestCaseResultResponse>(
+      `/apps/${this.appSlug}/human-review/jobs/${args.jobId}/test_cases/${args.testCaseId}/result`,
+    );
+  }
+
+  /**
+   * Get all comparison pairs for a job
+   */
+  async getJobPairs(jobId: string): Promise<GetJobPairsResponse> {
+    return this.get<GetJobPairsResponse>(
+      `/apps/${this.appSlug}/human-review/jobs/${jobId}/pairs`,
+    );
+  }
+
+  /**
+   * Get a specific comparison pair
+   */
+  async getJobPair(args: {
+    jobId: string;
+    pairId: string;
+  }): Promise<GetJobPairResponse> {
+    return this.get<GetJobPairResponse>(
+      `/apps/${this.appSlug}/human-review/jobs/${args.jobId}/pairs/${args.pairId}`,
     );
   }
 }

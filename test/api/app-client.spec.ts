@@ -332,5 +332,107 @@ describe('AutoblocksAppClient (v2)', () => {
         }),
       );
     });
+
+    it('calls humanReview.getJobTestCases()', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            testCases: [{ id: 'tc1', input: { a: 'b' }, output: { c: 'd' } }],
+          }),
+      });
+      const client = new AutoblocksAppClient({ appSlug, apiKey });
+      const result = await client.humanReview.getJobTestCases('job2');
+      expect(result.testCases[0].id).toBe('tc1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `/apps/${appSlug}/human-review/jobs/job2/test_cases`,
+        ),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${apiKey}`,
+          }),
+        }),
+      );
+    });
+
+    it('calls humanReview.getJobTestCaseResult()', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: 'tc1', result: { foo: 'bar' } }),
+      });
+      const client = new AutoblocksAppClient({ appSlug, apiKey });
+      const result = await client.humanReview.getJobTestCaseResult({
+        jobId: 'job2',
+        testCaseId: 'tc1',
+      });
+      expect(result.id).toBe('tc1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `/apps/${appSlug}/human-review/jobs/job2/test_cases/tc1/result`,
+        ),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${apiKey}`,
+          }),
+        }),
+      );
+    });
+
+    it('calls humanReview.getJobPairs()', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            pairs: [{ id: 'pair1', leftOutput: 'l', rightOutput: 'r' }],
+          }),
+      });
+      const client = new AutoblocksAppClient({ appSlug, apiKey });
+      const result = await client.humanReview.getJobPairs('job2');
+      expect(result.pairs[0].id).toBe('pair1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `/apps/${appSlug}/human-review/jobs/job2/pairs`,
+        ),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${apiKey}`,
+          }),
+        }),
+      );
+    });
+
+    it('calls humanReview.getJobPair()', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            id: 'pair1',
+            leftOutput: 'l',
+            rightOutput: 'r',
+            winner: 'l',
+          }),
+      });
+      const client = new AutoblocksAppClient({ appSlug, apiKey });
+      const result = await client.humanReview.getJobPair({
+        jobId: 'job2',
+        pairId: 'pair1',
+      });
+      expect(result.id).toBe('pair1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `/apps/${appSlug}/human-review/jobs/job2/pairs/pair1`,
+        ),
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: `Bearer ${apiKey}`,
+          }),
+        }),
+      );
+    });
   });
 });
