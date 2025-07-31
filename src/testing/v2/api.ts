@@ -1,8 +1,18 @@
 import { Semaphore } from '../util';
-import { V2_API_ENDPOINT, AutoblocksEnvVar, readEnv } from '../../util';
+import {
+  V2_API_ENDPOINT,
+  AutoblocksEnvVar,
+  ThirdPartyEnvVar,
+  readEnv,
+  isV2CI,
+  isGitHubCommentDisabled,
+} from '../../util';
 
 // Limit the number of concurrent requests to the CLI and API
 const apiSemaphore = new Semaphore(10);
+
+// We want to try to avoid race conditions with creating the comment if multiple tests are running in parallel
+const githubSemaphore = new Semaphore(1);
 
 const client = {
   postToAPI: async <T>(args: {
@@ -57,4 +67,65 @@ export async function sendCreateHumanReviewJob(args: {
       name: args.name,
     },
   });
+}
+
+export async function sendV2SlackNotification(args: {
+  runId: string;
+  appSlug: string;
+  buildId: string;
+  useSimpleFormat?: boolean;
+}) {
+  const slackWebhookUrl = readEnv(
+    AutoblocksEnvVar.AUTOBLOCKS_SLACK_WEBHOOK_URL,
+  );
+
+  if (!slackWebhookUrl || !isV2CI()) {
+    return;
+  }
+
+  console.log(`Sending Slack notification for run ${args.runId}`);
+  try {
+    const queryParams = new URLSearchParams({ buildId: args.buildId });
+    if (args.useSimpleFormat) {
+      queryParams.append('useSimpleFormat', 'true');
+    }
+
+    await client.postToAPI({
+      path: `/runs/${args.runId}/slack-notification?${queryParams.toString()}`,
+      body: {
+        webhookUrl: slackWebhookUrl,
+        appSlug: args.appSlug,
+      },
+    });
+  } catch (e) {
+    console.warn(`Failed to send Slack notification: ${e}`);
+  }
+}
+
+export async function sendV2GitHubComment(args: {
+  runId: string;
+  appSlug: string;
+  buildId: string;
+}) {
+  const githubToken = readEnv(ThirdPartyEnvVar.GITHUB_TOKEN);
+
+  if (!githubToken || !isV2CI() || isGitHubCommentDisabled()) {
+    return;
+  }
+
+  console.log(`Creating GitHub comment for build ${args.buildId}`);
+  try {
+    await githubSemaphore.run(async () => {
+      const queryParams = new URLSearchParams({ buildId: args.buildId });
+      await client.postToAPI({
+        path: `/runs/${args.runId}/github-comment?${queryParams.toString()}`,
+        body: {
+          githubToken,
+          appSlug: args.appSlug,
+        },
+      });
+    });
+  } catch (e) {
+    console.warn(`Failed to create GitHub comment: ${e}`);
+  }
 }
