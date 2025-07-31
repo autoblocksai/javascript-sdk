@@ -22,7 +22,11 @@ import {
 } from '../util';
 import { trace, context, propagation } from '@opentelemetry/api';
 import { SpanAttributesEnum, serialize } from '../../tracer/util';
-import { sendCreateHumanReviewJob } from './api';
+import {
+  sendCreateHumanReviewJob,
+  sendV2SlackNotification,
+  sendV2GitHubComment,
+} from './api';
 
 const DEFAULT_MAX_TEST_CASE_CONCURRENCY = 10;
 
@@ -341,6 +345,23 @@ async function runTestSuiteForGridCombo<TestCaseType, OutputType>(args: {
     } catch (err) {
       console.log(`Failed to create human review job: ${err}`);
     }
+  }
+
+  // Send notifications (Slack and GitHub comment)
+  const buildId = readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_CI_TEST_RUN_BUILD_ID);
+  if (buildId) {
+    await Promise.allSettled([
+      sendV2SlackNotification({
+        runId,
+        appSlug: args.appSlug,
+        buildId,
+      }),
+      sendV2GitHubComment({
+        runId,
+        appSlug: args.appSlug,
+        buildId,
+      }),
+    ]);
   }
 
   console.log(`Finished running test suite '${args.testId}'.`);
