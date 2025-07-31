@@ -18,8 +18,6 @@ export enum AutoblocksEnvVar {
   AUTOBLOCKS_SLACK_WEBHOOK_URL = 'AUTOBLOCKS_SLACK_WEBHOOK_URL',
   AUTOBLOCKS_TEST_RUN_MESSAGE = 'AUTOBLOCKS_TEST_RUN_MESSAGE',
   AUTOBLOCKS_DISABLE_GITHUB_COMMENT = 'AUTOBLOCKS_DISABLE_GITHUB_COMMENT',
-  AUTOBLOCKS_V2_SLACK_WEBHOOK_URL = 'AUTOBLOCKS_V2_SLACK_WEBHOOK_URL',
-  AUTOBLOCKS_V2_DISABLE_GITHUB_COMMENT = 'AUTOBLOCKS_V2_DISABLE_GITHUB_COMMENT',
 }
 
 export const INGESTION_ENDPOINT = 'https://ingest-event.autoblocks.ai';
@@ -75,10 +73,6 @@ export function isCLIRunning(): boolean {
 
 export function isGitHubCommentDisabled(): boolean {
   return readEnv(AutoblocksEnvVar.AUTOBLOCKS_DISABLE_GITHUB_COMMENT) === '1';
-}
-
-export function isV2GitHubCommentDisabled(): boolean {
-  return readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_DISABLE_GITHUB_COMMENT) === '1';
 }
 
 export function isV2CI(): boolean {

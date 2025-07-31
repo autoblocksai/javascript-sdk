@@ -5,7 +5,7 @@ import {
   ThirdPartyEnvVar,
   readEnv,
   isV2CI,
-  isV2GitHubCommentDisabled,
+  isGitHubCommentDisabled,
 } from '../../util';
 
 // Limit the number of concurrent requests to the CLI and API
@@ -76,7 +76,7 @@ export async function sendV2SlackNotification(args: {
   useSimpleFormat?: boolean;
 }) {
   const slackWebhookUrl = readEnv(
-    AutoblocksEnvVar.AUTOBLOCKS_V2_SLACK_WEBHOOK_URL,
+    AutoblocksEnvVar.AUTOBLOCKS_SLACK_WEBHOOK_URL,
   );
 
   if (!slackWebhookUrl || !isV2CI()) {
@@ -109,7 +109,7 @@ export async function sendV2GitHubComment(args: {
 }) {
   const githubToken = readEnv(ThirdPartyEnvVar.GITHUB_TOKEN);
 
-  if (!githubToken || !isV2CI() || isV2GitHubCommentDisabled()) {
+  if (!githubToken || !isV2CI() || isGitHubCommentDisabled()) {
     return;
   }
 
