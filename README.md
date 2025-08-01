@@ -54,3 +54,13 @@ See [the full documentation](https://docs.autoblocks.ai).
 ## Issues / Questions
 
 Please [open an issue](https://github.com/autoblocksai/javascript-sdk/issues/new) if you encounter any bugs, have any questions, or have any feature requests.
+
+## Human Review Client
+
+The `HumanReviewClient` now exposes helpers for working with job test cases and
+comparison pairs:
+
+- `getJobTestCases(jobId)` – list all test cases for a job
+- `getJobTestCaseResult({ jobId, testCaseId })` – fetch a test case result
+- `getJobPairs(jobId)` – list comparison pairs for a job
+- `getJobPair({ jobId, pairId })` – fetch a specific pair

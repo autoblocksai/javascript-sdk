@@ -81,3 +81,35 @@ export interface HumanReviewGeneralComment {
   inRelationToScoreName?: string;
   user: HumanReviewUser;
 }
+
+// Job test cases response
+export interface GetJobTestCasesResponse {
+  testCases: {
+    id: string;
+    input: Record<string, string>;
+    output: Record<string, string>;
+  }[];
+}
+
+// Job test case result response
+export interface GetJobTestCaseResultResponse {
+  id: string;
+  result: Record<string, unknown>;
+}
+
+// Job pairs response
+export interface GetJobPairsResponse {
+  pairs: {
+    id: string;
+    leftOutput: string;
+    rightOutput: string;
+  }[];
+}
+
+// Job pair response
+export interface GetJobPairResponse {
+  id: string;
+  leftOutput: string;
+  rightOutput: string;
+  winner?: string;
+}
