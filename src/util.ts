@@ -75,6 +75,12 @@ export function isGitHubCommentDisabled(): boolean {
   return readEnv(AutoblocksEnvVar.AUTOBLOCKS_DISABLE_GITHUB_COMMENT) === '1';
 }
 
+export function isV2CI(): boolean {
+  return (
+    readEnv(AutoblocksEnvVar.AUTOBLOCKS_V2_CI_TEST_RUN_BUILD_ID) !== undefined
+  );
+}
+
 export function makeCommentsFor(name: string) {
   return {
     startComment: `// ${name} start`,
