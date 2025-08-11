@@ -54,7 +54,12 @@ export type {
   HumanReviewScore,
   HumanReviewScoreOptions,
   GetJobTestCasesResponse,
+  TestCaseResult,
   GetJobTestCaseResultResponse,
+  OutputField,
+  PairItem,
+  Pair,
+  PairDetail,
   GetJobPairsResponse,
   GetJobPairResponse,
 } from './human-review/models';

@@ -41,6 +41,8 @@ export type HumanReviewScoreOptions =
 
 export interface HumanReviewJobItemSummary {
   id: string;
+  executionId?: string;
+  executionTimestamp?: string;
 }
 
 // Job item detail response
@@ -52,6 +54,8 @@ export interface HumanReviewJobItemDetail {
   fieldComments: HumanReviewFieldComment[];
   inputComments: HumanReviewGeneralComment[];
   outputComments: HumanReviewGeneralComment[];
+  executionId?: string;
+  executionTimestamp?: string;
 }
 
 export interface HumanReviewGrade {
@@ -92,24 +96,38 @@ export interface GetJobTestCasesResponse {
 }
 
 // Job test case result response
-export interface GetJobTestCaseResultResponse {
+export interface TestCaseResult {
   id: string;
   result: Record<string, unknown>;
 }
 
+export type GetJobTestCaseResultResponse = TestCaseResult;
+
 // Job pairs response
-export interface GetJobPairsResponse {
-  pairs: {
-    id: string;
-    leftOutput: string;
-    rightOutput: string;
-  }[];
+export interface OutputField {
+  name: string;
+  value: string;
+  idx?: number;
+  contentType?: string;
+}
+
+export interface PairItem {
+  itemId: string;
+  outputFields: OutputField[];
 }
 
 // Job pair response
-export interface GetJobPairResponse {
+export interface Pair {
   id: string;
-  leftOutput: string;
-  rightOutput: string;
-  winner?: string;
+  items: PairItem[]; // always 2
 }
+
+export interface PairDetail extends Pair {
+  chosenItemId?: string | null;
+}
+
+export interface GetJobPairsResponse {
+  pairs: Pair[];
+}
+
+export type GetJobPairResponse = PairDetail;
