@@ -312,7 +312,12 @@ describe('AutoblocksAppClient (v2)', () => {
     it('calls humanReview.getJobItem()', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: 'item2' }),
+        json: () =>
+          Promise.resolve({
+            id: 'item2',
+            executionId: 'exec1',
+            executionTimestamp: '2024-01-01T00:00:00Z',
+          }),
       });
       const client = new AutoblocksAppClient({ appSlug, apiKey });
       const item = await client.humanReview.getJobItem({
@@ -320,6 +325,7 @@ describe('AutoblocksAppClient (v2)', () => {
         itemId: 'item2',
       });
       expect(item.id).toBe('item2');
+      expect(item.executionId).toBe('exec1');
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(
           `/apps/${appSlug}/human-review/jobs/job2/items/item2`,
@@ -386,12 +392,24 @@ describe('AutoblocksAppClient (v2)', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            pairs: [{ id: 'pair1', leftOutput: 'l', rightOutput: 'r' }],
+            pairs: [
+              {
+                id: 'pair1',
+                items: [
+                  { itemId: 'b', outputFields: [{ name: 'o', value: 'B' }] },
+                  { itemId: 'a', outputFields: [{ name: 'o', value: 'A' }] },
+                ],
+              },
+            ],
           }),
       });
       const client = new AutoblocksAppClient({ appSlug, apiKey });
       const result = await client.humanReview.getJobPairs('job2');
-      expect(result.pairs[0].id).toBe('pair1');
+      expect(result.pairs[0].items).toHaveLength(2);
+      expect(result.pairs[0].items.map((i) => i.itemId).sort()).toEqual([
+        'a',
+        'b',
+      ]);
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(
           `/apps/${appSlug}/human-review/jobs/job2/pairs`,
@@ -411,9 +429,23 @@ describe('AutoblocksAppClient (v2)', () => {
         json: () =>
           Promise.resolve({
             id: 'pair1',
-            leftOutput: 'l',
-            rightOutput: 'r',
-            winner: 'l',
+            chosenItemId: 'a',
+            items: [
+              {
+                itemId: 'b',
+                outputFields: [
+                  { name: 'o', value: 'B1' },
+                  { name: 'o', value: 'B2' },
+                ],
+              },
+              {
+                itemId: 'a',
+                outputFields: [
+                  { name: 'o', value: 'A1' },
+                  { name: 'o', value: 'A2' },
+                ],
+              },
+            ],
           }),
       });
       const client = new AutoblocksAppClient({ appSlug, apiKey });
@@ -421,7 +453,14 @@ describe('AutoblocksAppClient (v2)', () => {
         jobId: 'job2',
         pairId: 'pair1',
       });
-      expect(result.id).toBe('pair1');
+      expect(result.chosenItemId).toBe('a');
+      const sorted = [...result.items].sort((a, b) =>
+        a.itemId.localeCompare(b.itemId),
+      );
+      const firstText = sorted[0].outputFields.map((f) => f.value).join('\n');
+      const secondText = sorted[1].outputFields.map((f) => f.value).join('\n');
+      expect(firstText).toBe('A1\nA2');
+      expect(secondText).toBe('B1\nB2');
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining(
           `/apps/${appSlug}/human-review/jobs/job2/pairs/pair1`,
