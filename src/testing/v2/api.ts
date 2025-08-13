@@ -69,6 +69,44 @@ export async function sendCreateHumanReviewJob(args: {
   });
 }
 
+export async function sendCreateResult(args: {
+  appSlug: string;
+  runId: string;
+  environment: string;
+  runMessage?: string;
+  startedAt: string;
+  durationMS: number;
+  status: 'SUCCESS' | 'FAILED';
+  inputRaw: string;
+  outputRaw: string;
+  input: unknown;
+  output: unknown;
+  evaluatorIdToResult: Record<string, boolean>;
+  evaluatorIdToReason: Record<string, string>;
+  evaluatorIdToScore: Record<string, number>;
+}): Promise<{ executionId: string }> {
+  const { data } = await client.postToAPI<{ executionId: string }>({
+    path: `/testing/results`,
+    body: {
+      appSlug: args.appSlug,
+      runId: args.runId,
+      environment: args.environment,
+      runMessage: args.runMessage ?? null,
+      startedAt: args.startedAt,
+      durationMS: args.durationMS,
+      status: args.status,
+      inputRaw: args.inputRaw,
+      outputRaw: args.outputRaw,
+      input: args.input,
+      output: args.output,
+      evaluatorIdToResult: args.evaluatorIdToResult,
+      evaluatorIdToReason: args.evaluatorIdToReason,
+      evaluatorIdToScore: args.evaluatorIdToScore,
+    },
+  });
+  return data;
+}
+
 export async function sendV2SlackNotification(args: {
   runId: string;
   appSlug: string;
@@ -91,7 +129,7 @@ export async function sendV2SlackNotification(args: {
     }
 
     await client.postToAPI({
-      path: `/runs/${args.runId}/slack-notification?${queryParams.toString()}`,
+      path: `/testing/runs/${args.runId}/slack-notification?${queryParams.toString()}`,
       body: {
         webhookUrl: slackWebhookUrl,
         appSlug: args.appSlug,
@@ -118,7 +156,7 @@ export async function sendV2GitHubComment(args: {
     await githubSemaphore.run(async () => {
       const queryParams = new URLSearchParams({ buildId: args.buildId });
       await client.postToAPI({
-        path: `/runs/${args.runId}/github-comment?${queryParams.toString()}`,
+        path: `/testing/runs/${args.runId}/github-comment?${queryParams.toString()}`,
         body: {
           githubToken,
           appSlug: args.appSlug,
