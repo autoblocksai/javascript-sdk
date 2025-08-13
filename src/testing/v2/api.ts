@@ -91,7 +91,7 @@ export async function sendCreateResult(args: {
       appSlug: args.appSlug,
       runId: args.runId,
       environment: args.environment,
-      runMessage: args.runMessage ?? null,
+      runMessage: args.runMessage,
       startedAt: args.startedAt,
       durationMS: args.durationMS,
       status: args.status,

@@ -186,7 +186,7 @@ export class RunManager<TestCaseType, OutputType> {
 
   public async end(): Promise<void> {
     if (!this.startedAt) {
-      this.startedAt = nowRfc3339();
+      throw new Error('Cannot end run before starting it; call start() first.');
     }
     this.endedAt = nowRfc3339();
     this.canCreateHumanReview = true;
@@ -199,7 +199,7 @@ export class RunManager<TestCaseType, OutputType> {
   }): Promise<void> {
     if (!this.canCreateHumanReview || !this.startedAt || !this.endedAt) {
       throw new Error(
-        'Run has not ended or timestamps missing; call end() before creating human review.',
+        'Run must be started and ended before creating human review; call start() then end().',
       );
     }
 

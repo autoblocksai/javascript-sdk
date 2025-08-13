@@ -120,29 +120,9 @@ describe('RunManager V2', () => {
     expect(typeof hrBody.endTimestamp).toBe('string');
   });
 
-  it('end without start sets timestamps and allows human review', async () => {
+  it('end without start throws', async () => {
     const rm = new RunManager<MyTestCase, MyOutput>({ appSlug: 'my-app' });
-    await rm.end();
-    expect(rm.canCreateHumanReview).toBe(true);
-    expect(rm.startedAt).toBeDefined();
-    expect(rm.endedAt).toBeDefined();
-
-    await rm.createHumanReview({
-      name: 'HR job',
-      assigneeEmailAddresses: ['a@test.com'],
-    });
-    const fetchCalls = (global.fetch as unknown as jest.Mock).mock.calls;
-    const hrCall = fetchCalls.find((c) =>
-      c[0].toString().includes('/human-review/jobs'),
-    )!;
-    const hrBody = JSON.parse(hrCall[1].body);
-    expect(hrBody).toMatchObject({
-      runId: rm.runId,
-      assigneeEmailAddresses: ['a@test.com'],
-      name: 'HR job',
-    });
-    expect(typeof hrBody.startTimestamp).toBe('string');
-    expect(typeof hrBody.endTimestamp).toBe('string');
+    await expect(rm.end()).rejects.toThrow(/start\(\) first/i);
   });
 
   it('addResult without evaluators sends empty maps', async () => {
