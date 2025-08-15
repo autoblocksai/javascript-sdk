@@ -3,6 +3,7 @@ import {
   DatasetV2,
   CreateDatasetV2Request,
   CreateDatasetItemsV2Request,
+  UpdateDatasetV2Request,
   UpdateItemV2Request,
   DatasetItemV2,
   DatasetSchemaV2,
@@ -35,6 +36,33 @@ export class DatasetsV2Client extends BaseAppResourceClient {
     return this.post<DatasetV2>(
       `/apps/${this.appSlug}/datasets`,
       datasetWithIds,
+    );
+  }
+
+  /**
+   * Update an existing dataset's schema
+   *
+   * Schema property IDs will be generated for any new properties.
+   */
+  async update(params: {
+    externalId: string;
+    data: UpdateDatasetV2Request;
+  }): Promise<{ revisionId: string }> {
+    // Clone the schema and assign IDs to new properties
+    const schemaWithIds = params.data.schema.map((property) => ({
+      ...property,
+      id: property.id ?? cuid2.createId(),
+    }));
+
+    // Validate that property names are unique
+    const names = schemaWithIds.map((p) => p.name);
+    if (new Set(names).size !== names.length) {
+      throw new Error('Property names must be unique.');
+    }
+
+    return this.put<{ revisionId: string }>(
+      `/apps/${this.appSlug}/datasets/${params.externalId}`,
+      { schema: schemaWithIds },
     );
   }
 
