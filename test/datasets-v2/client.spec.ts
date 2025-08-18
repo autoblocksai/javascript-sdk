@@ -4,9 +4,16 @@ import { DatasetsV2Client } from '../../src/datasets-v2/client';
 import { UpdateDatasetV2Request } from '../../src/datasets-v2/types';
 import { SchemaPropertyTypesEnum } from '../../src/datasets-v2/types';
 
+// Mock environment variable
+process.env.AUTOBLOCKS_V2_API_KEY = 'mock-api-key';
+
 describe('DatasetsV2Client.update', () => {
   const createClient = () => {
-    const client = new DatasetsV2Client('app', 'test');
+    const client = new DatasetsV2Client({
+      appSlug: 'app',
+      apiKey: 'mock-api-key',
+      timeout: { seconds: 60 },
+    });
     jest.spyOn(client, 'put').mockImplementation(async (path, body) => body);
     return client;
   };
