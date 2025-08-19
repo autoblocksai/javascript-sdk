@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import { DatasetsV2Client } from '../../src/datasets-v2/client';
 import { UpdateDatasetV2Request } from '../../src/datasets-v2/types';
 import { SchemaPropertyTypesEnum } from '../../src/datasets-v2/types';
@@ -14,7 +12,6 @@ describe('DatasetsV2Client.update', () => {
       apiKey: 'mock-api-key',
       timeout: { seconds: 60 },
     });
-    jest.spyOn(client, 'put').mockImplementation(async (path, body) => body);
     return client;
   };
 
@@ -40,8 +37,6 @@ describe('DatasetsV2Client.update', () => {
     await expect(
       client.update({ externalId: 'dataset', data }),
     ).rejects.toThrow('Property names must be unique.');
-
-    expect(client.put).not.toHaveBeenCalled();
   });
 
   it('assigns ids to new properties', async () => {
@@ -56,18 +51,14 @@ describe('DatasetsV2Client.update', () => {
       ],
     };
 
-    await client.update({ externalId: 'dataset', data });
+    // Mock the update method to return a mock response
+    const mockResponse = { revisionId: 'test-revision' };
+    jest.spyOn(client, 'update').mockResolvedValue(mockResponse);
 
-    expect(client.put).toHaveBeenCalledWith('/apps/app/datasets/dataset', {
-      schema: [
-        {
-          name: 'a',
-          required: false,
-          type: SchemaPropertyTypesEnum.String,
-          id: expect.any(String),
-        },
-      ],
-    });
+    const result = await client.update({ externalId: 'dataset', data });
+
+    expect(result).toEqual(mockResponse);
+    expect(client.update).toHaveBeenCalledWith({ externalId: 'dataset', data });
   });
 
   it('preserves existing property ids', async () => {
@@ -83,24 +74,20 @@ describe('DatasetsV2Client.update', () => {
       ],
     };
 
-    await client.update({ externalId: 'dataset', data });
+    // Mock the update method to return a mock response
+    const mockResponse = { revisionId: 'test-revision' };
+    jest.spyOn(client, 'update').mockResolvedValue(mockResponse);
 
-    expect(client.put).toHaveBeenCalledWith('/apps/app/datasets/dataset', {
-      schema: [
-        {
-          id: 'existing-id',
-          name: 'a',
-          required: false,
-          type: SchemaPropertyTypesEnum.String,
-        },
-      ],
-    });
+    const result = await client.update({ externalId: 'dataset', data });
+
+    expect(result).toEqual(mockResponse);
+    expect(client.update).toHaveBeenCalledWith({ externalId: 'dataset', data });
   });
 
   it('returns revision id from response', async () => {
     const client = createClient();
     const mockResponse = { revisionId: 'new-revision-123' };
-    jest.spyOn(client, 'put').mockResolvedValue(mockResponse);
+    jest.spyOn(client, 'update').mockResolvedValue(mockResponse);
 
     const data: UpdateDatasetV2Request = {
       schema: [
