@@ -42,6 +42,13 @@ export interface CreateDatasetV2Request {
 }
 
 /**
+ * Update dataset request
+ */
+export interface UpdateDatasetV2Request {
+  schema: SchemaProperty[];
+}
+
+/**
  * Create dataset items request
  */
 export interface CreateDatasetItemsV2Request {
